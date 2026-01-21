@@ -11,7 +11,6 @@
     "iconUrl": "https://game-2048-theta-eosin.vercel.app/icon.png",
     "splashImageUrl": "https://game-2048-theta-eosin.vercel.app/splash.png",
     "splashBackgroundColor": "#000000",
-    "webhookUrl": "",
     "subtitle": "Классическая логическая игра 2048",
     "description": "Простая и быстрая игра 2048, в которой нужно объединять плитки с одинаковыми числами, чтобы получить 2048.",
     "screenshotUrls": [
