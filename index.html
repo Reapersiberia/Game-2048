@@ -3,6 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="fc:miniapp" content='{
+      "version":"next",
+      "imageUrl":"https://game-2048-theta-eosin.vercel.app/embed-image.png",
+      "button":{
+          "title":"Play 2048",
+          "action":{
+              "type":"launch_miniapp",
+              "name":"Game 2048",
+              "url":"https://game-2048-theta-eosin.vercel.app"
+          }
+      }
+    }'>
     <title>Игра 2048</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -29,6 +41,18 @@
             <p>Используйте стрелки на клавиатуре для перемещения плиток. Когда две плитки с одинаковым числом соприкасаются, они объединяются в одну!</p>
         </div>
     </div>
+
+    <!-- Farcaster MiniApp SDK через CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@farcaster/miniapp-sdk/dist/index.min.js"></script>
+    <!-- Логика игры -->
     <script src="script.js"></script>
+    <!-- Сигнал готовности мини-приложения для Base app -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.miniapp && miniapp.sdk && miniapp.sdk.actions && miniapp.sdk.actions.ready) {
+                miniapp.sdk.actions.ready();
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор Placeholder изображений для Base Mini App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .image-generator {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px dashed #ddd;
+            border-radius: 4px;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            display: block;
+        }
+        button {
+            background: #0070f3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0051cc;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Генератор Placeholder изображений</h1>
+        <p>Используйте этот инструмент для создания простых placeholder-изображений для тестирования.</p>
+        <p><strong>Важно:</strong> Это временные изображения для теста. Позже замените их на профессиональные!</p>
+
+        <div class="image-generator">
+            <h2>1. Icon (512x512)</h2>
+            <div class="info">Иконка приложения - минимально необходимое изображение</div>
+            <canvas id="iconCanvas" width="512" height="512"></canvas>
+            <button onclick="generateIcon()">Сгенерировать Icon</button>
+            <button onclick="downloadCanvas('iconCanvas', 'icon.png')">Скачать icon.png</button>
+        </div>
+
+        <div class="image-generator">
+            <h2>2. OG Image (1200x630)</h2>
+            <div class="info">Изображение для превью в соцсетях и Base app</div>
+            <canvas id="ogCanvas" width="1200" height="630"></canvas>
+            <button onclick="generateOG()">Сгенерировать OG Image</button>
+            <button onclick="downloadCanvas('ogCanvas', 'og.png')">Скачать og.png</button>
+        </div>
+
+        <div class="image-generator">
+            <h2>3. Splash (1200x675)</h2>
+            <div class="info">Экран загрузки мини-приложения</div>
+            <canvas id="splashCanvas" width="1200" height="675"></canvas>
+            <button onclick="generateSplash()">Сгенерировать Splash</button>
+            <button onclick="downloadCanvas('splashCanvas', 'splash.png')">Скачать splash.png</button>
+        </div>
+
+        <div class="image-generator">
+            <h2>4. Embed Image (1200x630)</h2>
+            <div class="info">Изображение для embed-превью</div>
+            <canvas id="embedCanvas" width="1200" height="630"></canvas>
+            <button onclick="generateEmbed()">Сгенерировать Embed Image</button>
+            <button onclick="downloadCanvas('embedCanvas', 'embed-image.png')">Скачать embed-image.png</button>
+        </div>
+
+        <div class="image-generator">
+            <h2>5. Screenshot (1200x800)</h2>
+            <div class="info">Скриншот игрового процесса</div>
+            <canvas id="screenshotCanvas" width="1200" height="800"></canvas>
+            <button onclick="generateScreenshot()">Сгенерировать Screenshot</button>
+            <button onclick="downloadCanvas('screenshotCanvas', 'screenshot-1.png')">Скачать screenshot-1.png</button>
+        </div>
+
+        <div class="info" style="margin-top: 30px;">
+            <h3>📝 Инструкция:</h3>
+            <ol>
+                <li>Нажмите "Сгенерировать" для каждого изображения</li>
+                <li>Нажмите "Скачать" для сохранения файла</li>
+                <li>Поместите скачанные файлы в корень проекта (рядом с index.html)</li>
+                <li>Закоммитьте и запушьте на GitHub</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function drawText(canvas, text, fontSize, color = '#333') {
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = color;
+            ctx.font = `bold ${fontSize}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+        }
+
+        function generateIcon() {
+            const canvas = document.getElementById('iconCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Градиентный фон
+            const gradient = ctx.createLinearGradient(0, 0, 512, 512);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 512, 512);
+            
+            // Белый текст "2048"
+            drawText(canvas, '2048', 120, '#ffffff');
+        }
+
+        function generateOG() {
+            const canvas = document.getElementById('ogCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Градиентный фон
+            const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1200, 630);
+            
+            // Заголовок
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 80px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game 2048', 600, 250);
+            
+            // Подзаголовок
+            ctx.font = '32px Arial';
+            ctx.fillText('Классическая логическая игра', 600, 350);
+        }
+
+        function generateSplash() {
+            const canvas = document.getElementById('splashCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Темный фон
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, 1200, 675);
+            
+            // Белый текст
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 100px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('2048', 600, 300);
+            
+            ctx.font = '36px Arial';
+            ctx.fillText('Загрузка...', 600, 400);
+        }
+
+        function generateEmbed() {
+            const canvas = document.getElementById('embedCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Градиентный фон
+            const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+            gradient.addColorStop(0, '#f093fb');
+            gradient.addColorStop(1, '#f5576c');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1200, 630);
+            
+            // Заголовок
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 72px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game 2048', 600, 280);
+            
+            // Описание
+            ctx.font = '28px Arial';
+            ctx.fillText('Играй прямо в Base app!', 600, 360);
+        }
+
+        function generateScreenshot() {
+            const canvas = document.getElementById('screenshotCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Светлый фон
+            ctx.fillStyle = '#faf8ef';
+            ctx.fillRect(0, 0, 1200, 800);
+            
+            // Заголовок
+            ctx.fillStyle = '#776e65';
+            ctx.font = 'bold 60px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Game 2048', 600, 100);
+            
+            // Имитация игрового поля
+            const gridSize = 4;
+            const cellSize = 100;
+            const startX = (1200 - gridSize * cellSize) / 2;
+            const startY = 300;
+            
+            // Рисуем сетку
+            ctx.strokeStyle = '#bbada0';
+            ctx.lineWidth = 5;
+            for (let i = 0; i <= gridSize; i++) {
+                ctx.beginPath();
+                ctx.moveTo(startX + i * cellSize, startY);
+                ctx.lineTo(startX + i * cellSize, startY + gridSize * cellSize);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(startX, startY + i * cellSize);
+                ctx.lineTo(startX + gridSize * cellSize, startY + i * cellSize);
+                ctx.stroke();
+            }
+            
+            // Рисуем несколько плиток
+            const tiles = [
+                {x: 0, y: 0, value: 2},
+                {x: 1, y: 0, value: 4},
+                {x: 0, y: 1, value: 8},
+                {x: 2, y: 1, value: 16}
+            ];
+            
+            tiles.forEach(tile => {
+                const x = startX + tile.x * cellSize + 10;
+                const y = startY + tile.y * cellSize + 10;
+                ctx.fillStyle = '#eee4da';
+                ctx.fillRect(x, y, cellSize - 20, cellSize - 20);
+                ctx.fillStyle = '#776e65';
+                ctx.font = 'bold 40px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(tile.value.toString(), x + (cellSize - 20) / 2, y + (cellSize - 20) / 2 + 15);
+            });
+        }
+
+        function downloadCanvas(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Автоматически генерируем все изображения при загрузке
+        window.addEventListener('load', () => {
+            generateIcon();
+            generateOG();
+            generateSplash();
+            generateEmbed();
+            generateScreenshot();
+        });
+    </script>
+</body>
+</html>

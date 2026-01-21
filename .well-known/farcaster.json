@@ -1,0 +1,29 @@
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
+  "miniapp": {
+    "version": "1",
+    "name": "Game 2048",
+    "homeUrl": "https://game-2048-theta-eosin.vercel.app", 
+    "iconUrl": "https://game-2048-theta-eosin.vercel.app/icon.png",
+    "splashImageUrl": "https://game-2048-theta-eosin.vercel.app/splash.png",
+    "splashBackgroundColor": "#000000",
+    "webhookUrl": "",
+    "subtitle": "Классическая логическая игра 2048",
+    "description": "Простая и быстрая игра 2048, в которой нужно объединять плитки с одинаковыми числами, чтобы получить 2048.",
+    "screenshotUrls": [
+      "https://game-2048-theta-eosin.vercel.app/screenshot-1.png"
+    ],
+    "primaryCategory": "games",
+    "tags": ["game", "2048", "puzzle", "miniapp", "baseapp"],
+    "heroImageUrl": "https://game-2048-theta-eosin.vercel.app/og.png",
+    "tagline": "Собери 2048!",
+    "ogTitle": "Game 2048",
+    "ogDescription": "Играй в классическую головоломку 2048 прямо в Base app.",
+    "ogImageUrl": "https://game-2048-theta-eosin.vercel.app/og.png",
+    "noindex": true
+  }
+}
