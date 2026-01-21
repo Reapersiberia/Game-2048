@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создание изображений для Base Mini App</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        button { background: #0070f3; color: white; border: none; padding: 15px 30px; border-radius: 4px; cursor: pointer; font-size: 16px; margin: 10px 5px; }
+        button:hover { background: #0051cc; }
+        .info { background: #e3f2fd; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        #status { margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Создание изображений для Base Mini App</h1>
+        <div class="info">
+            <p>Этот инструмент автоматически создаст все необходимые изображения:</p>
+            <ul>
+                <li><strong>icon.png</strong> (512x512) - иконка приложения</li>
+                <li><strong>og.png</strong> (1200x630) - изображение для превью</li>
+                <li><strong>splash.png</strong> (1200x675) - экран загрузки</li>
+                <li><strong>embed-image.png</strong> (1200x630) - для embed-превью</li>
+                <li><strong>screenshot-1.png</strong> (1200x800) - скриншот игры</li>
+            </ul>
+        </div>
+        <button onclick="createAllImages()">✨ Создать все изображения</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        function createCanvas(width, height, drawFunc) {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            drawFunc(ctx, width, height);
+            return canvas;
+        }
+
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            return new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        function createIcon() {
+            return createCanvas(512, 512, (ctx, w, h) => {
+                const gradient = ctx.createLinearGradient(0, 0, w, h);
+                gradient.addColorStop(0, '#667eea');
+                gradient.addColorStop(1, '#764ba2');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 120px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('2048', w/2, h/2);
+            });
+        }
+
+        function createOG() {
+            return createCanvas(1200, 630, (ctx, w, h) => {
+                const gradient = ctx.createLinearGradient(0, 0, w, h);
+                gradient.addColorStop(0, '#667eea');
+                gradient.addColorStop(1, '#764ba2');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 80px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Game 2048', w/2, 250);
+                ctx.font = '32px Arial';
+                ctx.fillText('Классическая логическая игра', w/2, 350);
+            });
+        }
+
+        function createSplash() {
+            return createCanvas(1200, 675, (ctx, w, h) => {
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 100px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('2048', w/2, 300);
+                ctx.font = '36px Arial';
+                ctx.fillText('Загрузка...', w/2, 400);
+            });
+        }
+
+        function createEmbed() {
+            return createCanvas(1200, 630, (ctx, w, h) => {
+                const gradient = ctx.createLinearGradient(0, 0, w, h);
+                gradient.addColorStop(0, '#f093fb');
+                gradient.addColorStop(1, '#f5576c');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 72px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Game 2048', w/2, 280);
+                ctx.font = '28px Arial';
+                ctx.fillText('Играй прямо в Base app!', w/2, 360);
+            });
+        }
+
+        function createScreenshot() {
+            return createCanvas(1200, 800, (ctx, w, h) => {
+                ctx.fillStyle = '#faf8ef';
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = '#776e65';
+                ctx.font = 'bold 60px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Game 2048', w/2, 100);
+                
+                const gridSize = 4;
+                const cellSize = 100;
+                const startX = (w - gridSize * cellSize) / 2;
+                const startY = 300;
+                
+                ctx.strokeStyle = '#bbada0';
+                ctx.lineWidth = 5;
+                for (let i = 0; i <= gridSize; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(startX + i * cellSize, startY);
+                    ctx.lineTo(startX + i * cellSize, startY + gridSize * cellSize);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(startX, startY + i * cellSize);
+                    ctx.lineTo(startX + gridSize * cellSize, startY + i * cellSize);
+                    ctx.stroke();
+                }
+                
+                const tiles = [
+                    {x: 0, y: 0, value: 2},
+                    {x: 1, y: 0, value: 4},
+                    {x: 0, y: 1, value: 8},
+                    {x: 2, y: 1, value: 16}
+                ];
+                
+                tiles.forEach(tile => {
+                    const x = startX + tile.x * cellSize + 10;
+                    const y = startY + tile.y * cellSize + 10;
+                    ctx.fillStyle = '#eee4da';
+                    ctx.fillRect(x, y, cellSize - 20, cellSize - 20);
+                    ctx.fillStyle = '#776e65';
+                    ctx.font = 'bold 40px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(tile.value.toString(), x + (cellSize - 20) / 2, y + (cellSize - 20) / 2 + 15);
+                });
+            });
+        }
+
+        async function createAllImages() {
+            const status = document.getElementById('status');
+            status.innerHTML = '<p>⏳ Создание изображений...</p>';
+            
+            try {
+                status.innerHTML += '<p>📸 Создание icon.png...</p>';
+                await downloadCanvas(createIcon(), 'icon.png');
+                
+                status.innerHTML += '<p>📸 Создание og.png...</p>';
+                await downloadCanvas(createOG(), 'og.png');
+                
+                status.innerHTML += '<p>📸 Создание splash.png...</p>';
+                await downloadCanvas(createSplash(), 'splash.png');
+                
+                status.innerHTML += '<p>📸 Создание embed-image.png...</p>';
+                await downloadCanvas(createEmbed(), 'embed-image.png');
+                
+                status.innerHTML += '<p>📸 Создание screenshot-1.png...</p>';
+                await downloadCanvas(createScreenshot(), 'screenshot-1.png');
+                
+                status.innerHTML += '<p style="color: green; font-weight: bold;">✅ Все изображения созданы!</p>';
+                status.innerHTML += '<p><strong>Инструкция:</strong></p>';
+                status.innerHTML += '<ol>';
+                status.innerHTML += '<li>Все файлы должны быть в папке "Загрузки" (Downloads)</li>';
+                status.innerHTML += '<li>Скопируйте их в корень проекта (рядом с index.html)</li>';
+                status.innerHTML += '<li>Закоммитьте и запушьте на GitHub</li>';
+                status.innerHTML += '</ol>';
+            } catch (error) {
+                status.innerHTML += '<p style="color: red;">❌ Ошибка: ' + error.message + '</p>';
+            }
+        }
+
+        // Автоматически создаем при загрузке
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (confirm('Создать все изображения автоматически?')) {
+                    createAllImages();
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>
