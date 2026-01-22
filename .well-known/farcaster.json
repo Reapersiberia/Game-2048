@@ -1,8 +1,8 @@
 {
   "accountAssociation": {
-    "header": "",
-    "payload": "",
-    "signature": ""
+    "header": "eyJmaWQiOjE0Nzc1NjUsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHg1M2Q3ZTg0N2E3RUI2RUNCNTYxZDk1RmQ2Q2U3MmQ4ODhBOENhMGFhIn0",
+    "payload": "eyJkb21haW4iOiJnYW1lLTIwNDgtdGhldGEtZW9zaW4udmVyY2VsLmFwcCJ9",
+    "signature": "GQtWjnxPiVlALCHmC8Uwf6ikVSal6XoQxR46IsuA/mEHhET2WFtqGyE+CzAQadgVzJDCZtsWiUdv/Hx8FAh8xRs="
   },
   "miniapp": {
     "version": "1",
@@ -11,7 +11,7 @@
     "iconUrl": "https://game-2048-theta-eosin.vercel.app/icon.png",
     "splashImageUrl": "https://game-2048-theta-eosin.vercel.app/splash.png",
     "splashBackgroundColor": "#000000",
-    "subtitle": "Классическая логическая игра 2048",
+    "subtitle": "Классическая игра 2048",
     "description": "Простая и быстрая игра 2048, в которой нужно объединять плитки с одинаковыми числами, чтобы получить 2048.",
     "screenshotUrls": [
       "https://game-2048-theta-eosin.vercel.app/screenshot-1.png"
