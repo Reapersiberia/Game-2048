@@ -9,7 +9,7 @@
 - [ ] Деплой на Vercel успешно завершен
 - [ ] Получен URL приложения: `https://ВАШ-APP.vercel.app`
 - [ ] Проверено, что игра открывается по URL
-- [ ] Проверено, что манифест доступен: `https://ВАШ-APP.vercel.app/.well-known/farcaster.json`
+- [ ] Проверено, что манифест доступен: [https://game-2048-theta-eosin.vercel.app/.well-known/farcaster.json](https://game-2048-theta-eosin.vercel.app/.well-known/farcaster.json)
 
 ## ✅ Этап 2: Изображения
 
@@ -33,13 +33,15 @@
 - [ ] Изменения закоммичены и запушены на GitHub
 - [ ] Vercel обновил деплой
 
-## ✅ Этап 4: Account Association (Base Build)
+## ✅ Этап 4: Account Association
 
-- [ ] Открыт [Base Build](https://build.base.org/)
-- [ ] Переход в раздел "Account association tool"
-- [ ] Введен URL приложения: `https://ВАШ-APP.vercel.app`
-- [ ] Нажата кнопка "Submit"
-- [ ] Нажата кнопка "Verify" и выполнены инструкции
+**Вариант 1: Farcaster Manifest Tool (рекомендуется)**
+
+- [ ] Открыт [Farcaster Manifest Tool](https://farcaster.xyz/~/developers/mini-apps/manifest)
+- [ ] Выполнен вход в Farcaster аккаунт
+- [ ] Введен домен (без `https://`): `ВАШ-APP.vercel.app`
+- [ ] Нажата кнопка "Refresh" для загрузки манифеста
+- [ ] Нажата кнопка "Generate Account Association"
 - [ ] Скопированы сгенерированные поля:
   - `header`
   - `payload`
@@ -48,19 +50,36 @@
 - [ ] Изменения закоммичены и запушены на GitHub
 - [ ] Vercel обновил деплой
 
-## ✅ Этап 5: Проверка через Base Build Preview
+**Вариант 2: Base Build (если доступен)**
 
-- [ ] Открыт [Base Build Preview tool](https://build.base.org/)
+- [ ] Открыт [Base Build](https://build.base.org/)
+- [ ] Переход в раздел "Account association tool"
 - [ ] Введен URL приложения: `https://ВАШ-APP.vercel.app`
-- [ ] Проверена вкладка "Metadata":
-  - Все поля заполнены корректно
-  - Нет ошибок
-- [ ] Проверена вкладка "Account association":
-  - Статус: Verified (зеленая галочка)
-- [ ] Проверена вкладка "Embeds":
-  - Embed-превью отображается корректно
-  - Кнопка "Play 2048" видна и работает
-- [ ] Нажата кнопка "Launch" - приложение открывается корректно
+- [ ] Нажата кнопка "Submit"
+- [ ] Нажата кнопка "Verify" и выполнены инструкции
+- [ ] Скопированы сгенерированные поля
+- [ ] Вставлены в файл `/.well-known/farcaster.json`
+- [ ] Изменения закоммичены и запушены на GitHub
+- [ ] Vercel обновил деплой
+
+## ✅ Этап 5: Проверка
+
+**Проверка через Farcaster Manifest Tool:**
+
+- [ ] Открыт [Farcaster Manifest Tool](https://farcaster.xyz/~/developers/mini-apps/manifest)
+- [ ] Введен домен: `ВАШ-APP.vercel.app`
+- [ ] Нажата кнопка "Refresh"
+- [ ] Проверено, что все поля заполнены корректно:
+  - Metadata отображается правильно
+  - Account association показывает Verified (зеленая галочка)
+- [ ] Проверен манифест напрямую: [https://game-2048-theta-eosin.vercel.app/.well-known/farcaster.json](https://game-2048-theta-eosin.vercel.app/.well-known/farcaster.json)
+- [ ] JSON валиден и все поля заполнены
+
+**Дополнительная проверка:**
+
+- [ ] Открыт URL приложения в браузере
+- [ ] Игра загружается и работает корректно
+- [ ] Все изображения загружаются (icon.png, og.png и т.д.)
 
 ## ✅ Этап 6: Публикация в Base App
 
@@ -79,7 +98,8 @@
 
 ## Полезные ссылки:
 
-- [Base Build](https://build.base.org/) - инструменты для разработчиков
+- [Farcaster Manifest Tool](https://farcaster.xyz/~/developers/mini-apps/manifest) - генерация Account Association
+- [Манифест приложения](https://game-2048-theta-eosin.vercel.app/.well-known/farcaster.json) - прямой доступ к манифесту
 - [Base Documentation](https://docs.base.org/mini-apps/quickstart/migrate-existing-apps) - документация
 - [Vercel Dashboard](https://vercel.com/dashboard) - управление деплоем
 

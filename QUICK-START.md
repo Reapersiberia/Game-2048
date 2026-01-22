@@ -35,19 +35,52 @@
 
 ## Шаг 4: Account Association (5 минут)
 
+**Вариант 1: Farcaster Manifest Tool (рекомендуется)**
+
+1. Откройте [Farcaster Manifest Tool](https://farcaster.xyz/~/developers/mini-apps/manifest)
+2. Войдите в свой Farcaster аккаунт
+3. Введите ваш домен (без `https://` и слешей): `game-2048-theta-eosin.vercel.app`
+4. Нажмите "Refresh" для загрузки манифеста
+5. Нажмите "Generate Account Association"
+6. Скопируйте `header`, `payload`, `signature`
+
+**Вариант 2: Base Build (если доступен)**
+
 1. Откройте [Base Build](https://build.base.org/) → Account association tool
-2. Введите ваш Vercel URL: `https://ваш-app.vercel.app`
+2. Введите ваш Vercel URL: `https://game-2048-theta-eosin.vercel.app`
 3. Нажмите "Submit", затем "Verify"
 4. Скопируйте `header`, `payload`, `signature`
-5. Вставьте их в `/.well-known/farcaster.json` в блок `accountAssociation`
-6. Закоммитьте и запушьте
+
+**Автоматическое обновление (рекомендуется):**
+```powershell
+.\UPDATE-ACCOUNT-ASSOCIATION.ps1 -Header "ваш-header" -Payload "ваш-payload" -Signature "ваш-signature"
+```
+
+**Или обновите вручную:**
+- Откройте `/.well-known/farcaster.json`
+- Вставьте скопированные значения в блок `accountAssociation`:
+  ```json
+  "accountAssociation": {
+    "header": "ваш-header",
+    "payload": "ваш-payload",
+    "signature": "ваш-signature"
+  }
+  ```
+
+6. Закоммитьте и запушьте изменения
 
 ## Шаг 5: Проверка (2 минуты)
 
-1. Откройте [Base Build Preview](https://build.base.org/)
-2. Введите ваш URL
-3. Проверьте все вкладки (Metadata, Account association, Embeds)
-4. Убедитесь, что нет ошибок
+**Проверка через Farcaster Manifest Tool:**
+1. Откройте [Farcaster Manifest Tool](https://farcaster.xyz/~/developers/mini-apps/manifest)
+2. Введите ваш домен: `game-2048-theta-eosin.vercel.app`
+3. Нажмите "Refresh"
+4. Проверьте, что все поля заполнены корректно
+5. Убедитесь, что Account Association показывает зеленую галочку (Verified)
+
+**Альтернативная проверка:**
+- Откройте ваш манифест напрямую: [https://game-2048-theta-eosin.vercel.app/.well-known/farcaster.json](https://game-2048-theta-eosin.vercel.app/.well-known/farcaster.json)
+- Убедитесь, что JSON валиден и все поля заполнены
 
 ## Шаг 6: Публикация (1 минута)
 
@@ -71,5 +104,7 @@
 - Account association не работает → Убедитесь, что манифест обновлен на Vercel
 
 **Нужна помощь?**
-- [Base Documentation](https://docs.base.org/mini-apps/quickstart/migrate-existing-apps)
-- [Vercel Dashboard](https://vercel.com/dashboard)
+- [Farcaster Manifest Tool](https://farcaster.xyz/~/developers/mini-apps/manifest) - для Account Association
+- [Манифест приложения](https://game-2048-theta-eosin.vercel.app/.well-known/farcaster.json) - прямой доступ к манифесту
+- [Base Documentation](https://docs.base.org/mini-apps/quickstart/migrate-existing-apps) - документация
+- [Vercel Dashboard](https://vercel.com/dashboard) - управление деплоем
