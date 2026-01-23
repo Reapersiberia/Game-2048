@@ -77,6 +77,27 @@ h1 {
     background: #9f8a76;
 }
 
+.gm-tx-display {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 6px;
+    padding: 8px 12px;
+    text-align: center;
+}
+
+.gm-tx-link {
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.gm-tx-link:hover {
+    text-decoration: underline;
+}
+
 .transaction-display {
     background: #8f7a66;
     border-radius: 6px;
@@ -339,8 +360,14 @@ h1 {
     padding: 10px;
     border-radius: 8px;
     font-size: 14px;
-    min-height: 20px;
+    min-height: 0;
     transition: all 0.3s ease;
+}
+
+.web3-status:empty {
+    display: none;
+    padding: 0;
+    margin: 0;
 }
 
 .web3-status.success {
@@ -379,6 +406,107 @@ h1 {
     color: #776e65;
     font-size: 14px;
     line-height: 1.6;
+}
+
+/* GM Counter */
+.gm-counter-container {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.gm-counter-box {
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+    border-radius: 12px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    min-width: 200px;
+    transition: all 0.3s ease;
+}
+
+.gm-counter-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.gm-counter-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+.gm-pokemon-sprite {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes celebrate {
+    0% {
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(1.1) rotate(-3deg);
+    }
+    50% {
+        transform: scale(1.15) rotate(3deg);
+    }
+    75% {
+        transform: scale(1.1) rotate(-3deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+.gm-counter-content {
+    flex: 1;
+    text-align: left;
+}
+
+.gm-counter-label {
+    color: rgba(0, 0, 0, 0.7);
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.gm-counter-value {
+    color: #333;
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 4px;
+    text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
+    transition: transform 0.2s ease;
+}
+
+.gm-counter-date {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 11px;
+    font-weight: 500;
 }
 
 @media (max-width: 500px) {

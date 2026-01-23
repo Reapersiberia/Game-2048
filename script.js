@@ -317,15 +317,33 @@ let farcasterSDK = null;
 const statusEl = document.getElementById('web3-status');
 const walletInfoEl = document.getElementById('wallet-info');
 
+// Очищаем статус сразу при загрузке скрипта
+if (statusEl) {
+    statusEl.textContent = '';
+    statusEl.className = 'web3-status';
+}
+
 function showStatus(message, type = 'loading') {
     if (!statusEl) return;
     statusEl.textContent = message;
     statusEl.className = 'web3-status ' + type;
     if (type !== 'loading') {
+        // Автоматически скрываем сообщения через 2 секунды
         setTimeout(() => {
-            statusEl.textContent = '';
-            statusEl.className = 'web3-status';
-        }, 8000);
+            if (statusEl.textContent === message) {
+                statusEl.textContent = '';
+                statusEl.className = 'web3-status';
+            }
+        }, 2000);
+    }
+}
+
+function clearStatus() {
+    if (statusEl) {
+        statusEl.textContent = '';
+        statusEl.className = 'web3-status';
+        // Убеждаемся что элемент действительно очищен
+        statusEl.style.display = '';
     }
 }
 
@@ -407,8 +425,7 @@ async function connectWallet() {
     
     // Step 1: Check if wallet exists
     if (typeof window.ethereum === 'undefined') {
-        showStatus('No wallet found! Install MetaMask.', 'error');
-        window.open('https://metamask.io/download/', '_blank');
+        showStatus('Нужен кошелек (MetaMask или Warpcast)', 'error');
         return false;
     }
     
@@ -510,8 +527,125 @@ async function connectWallet() {
 }
 
 // ============================================
+// Switch to Base Network
+// ============================================
+async function ensureBaseNetwork() {
+    if (typeof window.ethereum === 'undefined') {
+        return false;
+    }
+    
+    try {
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        console.log('Current chain:', chainId, 'Target Base:', TARGET_NETWORK.chainId);
+        
+        if (chainId.toLowerCase() !== TARGET_NETWORK.chainId.toLowerCase()) {
+            showStatus('Переключение на Base...', 'loading');
+            
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: TARGET_NETWORK.chainId }]
+                });
+                // Wait for network switch
+                await new Promise(r => setTimeout(r, 1000));
+                return true;
+            } catch (switchError) {
+                console.log('Switch error:', switchError);
+                if (switchError.code === 4902) {
+                    // Add Base network if not exists
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [TARGET_NETWORK]
+                        });
+                        await new Promise(r => setTimeout(r, 1000));
+                        return true;
+                    } catch (addError) {
+                        console.error('Failed to add Base network:', addError);
+                        showStatus('Не удалось добавить сеть Base. Добавьте вручную в MetaMask.', 'error');
+                        return false;
+                    }
+                } else if (switchError.code === 4001) {
+                    showStatus('Переключение на Base отменено', 'error');
+                    return false;
+                } else {
+                    showStatus('Ошибка переключения сети: ' + (switchError.message || 'Unknown'), 'error');
+                    return false;
+                }
+            }
+        }
+        return true; // Already on Base
+    } catch (e) {
+        console.error('Network check failed:', e);
+        showStatus('Ошибка проверки сети', 'error');
+        return false;
+    }
+}
+
+// ============================================
 // GM Function - Send onchain GM transaction
 // ============================================
+
+// GM Counter Functions
+function getGMCount() {
+    const count = localStorage.getItem('gm_total_count');
+    return count ? parseInt(count, 10) : 0;
+}
+
+function incrementGMCount() {
+    const currentCount = getGMCount();
+    const newCount = currentCount + 1;
+    localStorage.setItem('gm_total_count', newCount.toString());
+    updateGMCounter();
+    return newCount;
+}
+
+function getLastGMDate() {
+    const dateStr = localStorage.getItem('gm_last_date');
+    if (!dateStr) return null;
+    return new Date(dateStr);
+}
+
+function formatDate(date) {
+    if (!date) return 'Never';
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+        return 'Today';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+        return 'Yesterday';
+    } else {
+        const daysAgo = Math.floor((today - date) / (1000 * 60 * 60 * 24));
+        if (daysAgo < 7) {
+            return `${daysAgo} days ago`;
+        } else {
+            return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+        }
+    }
+}
+
+function updateGMCounter() {
+    const counterValue = document.getElementById('gm-counter-value');
+    const counterDate = document.getElementById('gm-counter-date');
+    
+    if (counterValue) {
+        const count = getGMCount();
+        counterValue.textContent = count;
+        
+        // Анимация при обновлении
+        counterValue.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+            counterValue.style.transform = 'scale(1)';
+        }, 200);
+    }
+    
+    if (counterDate) {
+        const lastDate = getLastGMDate();
+        counterDate.textContent = formatDate(lastDate);
+    }
+}
 
 // Check if GM was already sent today
 function canSendGMToday() {
@@ -520,43 +654,28 @@ function canSendGMToday() {
     return lastGMDate !== today;
 }
 
-// Save GM transaction hash for today
+// Save GM for today with optional tx hash
 function saveGMToday(txHash) {
     const today = new Date().toDateString();
     localStorage.setItem('gm_last_date', today);
-    localStorage.setItem('gm_last_tx', txHash);
+    if (txHash) {
+        localStorage.setItem('gm_last_tx', txHash);
+    }
+    incrementGMCount(); // Увеличиваем счетчик
 }
 
 // Get last GM transaction hash
 function getLastGMTx() {
-    const today = new Date().toDateString();
-    const lastGMDate = localStorage.getItem('gm_last_date');
-    if (lastGMDate === today) {
-        return localStorage.getItem('gm_last_tx');
-    }
-    return null;
+    return localStorage.getItem('gm_last_tx');
 }
 
+// GM function with MetaMask on Base - once per day with counter
 async function sendGM() {
     const btn = document.getElementById('gm-btn');
     
     // Check if already sent today
     if (!canSendGMToday()) {
-        showStatus('GM уже отправлен сегодня! ☀️', 'success');
-        
-        // Show last transaction if exists
-        const lastTx = getLastGMTx();
-        if (lastTx) {
-            const txDisplay = document.getElementById('transaction-display');
-            const txHashEl = document.getElementById('transaction-hash');
-            if (txDisplay && txHashEl) {
-                const shortHash = lastTx.slice(0, 8) + '...' + lastTx.slice(-6);
-                txHashEl.textContent = shortHash;
-                txHashEl.title = lastTx;
-                txDisplay.style.display = 'block';
-            }
-        }
-        
+        showStatus('GM уже отправлен сегодня! ☀️ Приходи завтра!', 'success');
         if (btn) btn.disabled = true;
         return;
     }
@@ -564,71 +683,102 @@ async function sendGM() {
     if (btn) btn.disabled = true;
     
     try {
-        // Get accounts - connect if needed
+        // Check if wallet is available
+        if (typeof window.ethereum === 'undefined') {
+            showStatus('Установи MetaMask для отправки GM на Base!', 'error');
+            window.open('https://metamask.io/download/', '_blank');
+            if (btn) btn.disabled = false;
+            return;
+        }
+        
+        showStatus('Подключение к Base...', 'loading');
+        
+        // Step 1: Switch to Base network
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (chainId.toLowerCase() !== TARGET_NETWORK.chainId.toLowerCase()) {
+            showStatus('Переключение на Base...', 'loading');
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: TARGET_NETWORK.chainId }]
+                });
+                await new Promise(r => setTimeout(r, 1000));
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    // Add Base network
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [TARGET_NETWORK]
+                    });
+                    await new Promise(r => setTimeout(r, 1000));
+                } else if (switchError.code === 4001) {
+                    showStatus('Переключение на Base отменено', 'error');
+                    if (btn) btn.disabled = false;
+                    return;
+                } else {
+                    throw switchError;
+                }
+            }
+        }
+        
+        // Step 2: Get accounts
+        showStatus('Подключение кошелька...', 'loading');
         let accounts = await window.ethereum.request({ method: 'eth_accounts' });
         
         if (!accounts || accounts.length === 0) {
-            showStatus('Connecting...', 'loading');
             accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         }
         
         if (!accounts || accounts.length === 0) {
-            showStatus('No wallet connected', 'error');
+            showStatus('Кошелек не подключен', 'error');
             if (btn) btn.disabled = false;
             return;
         }
         
         const from = accounts[0];
-        showStatus('Sending GM...', 'loading');
+        showWalletInfo(from);
         
-        // Send zero-value transaction to self
-        // This is an onchain "GM" - proof of activity
-        const txHash = await window.ethereum.request({
-            method: 'eth_sendTransaction',
-            params: [{
-                from: from,
-                to: from,
-                value: '0x0' // 0 ETH - free GM
-            }]
+        // Step 3: Sign GM message (free, no gas needed)
+        showStatus('Подпиши GM сообщение... ☀️', 'loading');
+        
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const gmMessage = `GM! ☀️\n\nDate: ${today}\nFrom: ${from}\n\nThis is your daily GM on Base!`;
+        
+        // Sign the message with MetaMask
+        const signature = await window.ethereum.request({
+            method: 'personal_sign',
+            params: [gmMessage, from]
         });
         
-        // Save transaction for today
-        saveGMToday(txHash);
+        // Step 4: Save GM with signature and update counter
+        saveGMToday(signature);
+        showStatus('GM! ☀️ День ' + getGMCount() + ' подтверждён!', 'success');
         
-        showStatus('GM sent! ☀️', 'success');
-        
-        // Display transaction in UI
-        const txDisplay = document.getElementById('transaction-display');
-        const txHashEl = document.getElementById('transaction-hash');
-        if (txDisplay && txHashEl) {
-            const shortHash = txHash.slice(0, 8) + '...' + txHash.slice(-6);
-            txHashEl.textContent = shortHash;
-            txHashEl.title = txHash; // Full hash on hover
-            
-            // Make entire transaction display clickable
-            const txUrl = `${TARGET_NETWORK.blockExplorerUrls[0]}/tx/${txHash}`;
-            txDisplay.style.cursor = 'pointer';
-            txDisplay.onclick = () => {
-                window.open(txUrl, '_blank');
-            };
-            txHashEl.onclick = (e) => {
-                e.stopPropagation(); // Prevent double click
-                window.open(txUrl, '_blank');
-            };
-            
-            txDisplay.style.display = 'block';
+        // Add celebration animation
+        const counterBox = document.querySelector('.gm-counter-box');
+        if (counterBox) {
+            counterBox.style.animation = 'none';
+            counterBox.offsetHeight; // trigger reflow
+            counterBox.style.animation = 'celebrate 0.5s ease';
         }
         
-        // Disable button after successful send
+        // Log signature for user
+        console.log('GM Signature:', signature.slice(0, 20) + '...');
+        
         if (btn) btn.disabled = true;
         
     } catch (error) {
         console.error('GM Error:', error);
+        
+        let errorMessage = 'Ошибка подписи GM';
+        
         if (error.code === 4001) {
-            showStatus('Cancelled', 'error');
-        } else {
-            showStatus('Error: ' + (error.message || 'Failed'), 'error');
+            errorMessage = 'Подпись отменена';
+        } else if (error.message) {
+            errorMessage = error.message.substring(0, 40);
         }
+        
+        showStatus(errorMessage, 'error');
         if (btn) btn.disabled = false;
     }
 }
@@ -651,7 +801,16 @@ async function deployContract() {
             }
         }
         
-        showStatus('Deploying contract to Base...', 'loading');
+        // Ensure we're on Base network
+        if (typeof window.ethereum !== 'undefined') {
+            const onBase = await ensureBaseNetwork();
+            if (!onBase) {
+                if (btn) btn.disabled = false;
+                return;
+            }
+        }
+        
+        showStatus('Деплой контракта на Base...', 'loading');
         
         const currentScore = window.game ? window.game.score : 0;
         console.log('Deploying with score:', currentScore);
@@ -790,56 +949,49 @@ window.connectWallet = connectWallet;
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Initializing Base MiniApp...');
     
+    // Очищаем статус СРАЗУ при загрузке - это критически важно!
+    clearStatus();
+    
     // Initialize Farcaster SDK
     await initFarcasterSDK();
     
     // Check if ethers is loaded
     if (typeof ethers === 'undefined') {
         console.error('ethers.js not loaded!');
-        showStatus('Loading Web3...', 'loading');
-        return;
+        // Don't show error, just log it - ethers might load later
+        console.log('Waiting for ethers.js to load...');
+    } else {
+        console.log('ethers.js version:', ethers.version);
+        console.log('Target network:', TARGET_NETWORK.chainName);
     }
     
-    console.log('ethers.js version:', ethers.version);
-    console.log('Target network:', TARGET_NETWORK.chainName);
-    
-    // Auto-connect if wallet available
-    const hasWallet = (farcasterSDK && farcasterSDK.wallet) || window.ethereum;
+    // Auto-connect if wallet available (but don't show errors)
+    const hasWallet = (farcasterSDK && farcasterSDK.wallet) || (typeof window.ethereum !== 'undefined');
     if (hasWallet) {
         console.log('Wallet detected, ready to connect');
     } else {
         console.log('No wallet detected. Use Warpcast or install MetaMask.');
+        // НЕ показываем ошибку - пользователь увидит её только при нажатии на GM
     }
     
-    // Check if GM was already sent today and restore UI
+    // Initialize GM counter
+    updateGMCounter();
+    
+    // Финальная очистка статуса - убеждаемся что никаких ошибок не показывается
+    setTimeout(() => {
+        clearStatus();
+    }, 200);
+    
+    // Еще одна очистка на всякий случай
+    setTimeout(() => {
+        clearStatus();
+    }, 500);
+    
+    // Check if GM was already sent today - disable button
     if (!canSendGMToday()) {
         const btn = document.getElementById('gm-btn');
         if (btn) {
             btn.disabled = true;
-        }
-        
-        const lastTx = getLastGMTx();
-        if (lastTx) {
-            const txDisplay = document.getElementById('transaction-display');
-            const txHashEl = document.getElementById('transaction-hash');
-            if (txDisplay && txHashEl) {
-                const shortHash = lastTx.slice(0, 8) + '...' + lastTx.slice(-6);
-                txHashEl.textContent = shortHash;
-                txHashEl.title = lastTx;
-                
-                // Make entire transaction display clickable
-                const txUrl = `${TARGET_NETWORK.blockExplorerUrls[0]}/tx/${lastTx}`;
-                txDisplay.style.cursor = 'pointer';
-                txDisplay.onclick = () => {
-                    window.open(txUrl, '_blank');
-                };
-                txHashEl.onclick = (e) => {
-                    e.stopPropagation(); // Prevent double click
-                    window.open(txUrl, '_blank');
-                };
-                
-                txDisplay.style.display = 'block';
-            }
         }
     }
 });

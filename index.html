@@ -28,11 +28,24 @@
                 <div class="score-label">Score</div>
                 <div class="score-value" id="score">0</div>
             </div>
-            <div class="transaction-display" id="transaction-display" style="display: none;">
-                <div class="transaction-label">GM TX</div>
-                <div class="transaction-value" id="transaction-hash"></div>
-            </div>
             <button class="new-game-btn" onclick="game.newGame()">New Game</button>
+        </div>
+
+        <!-- GM Counter -->
+        <div class="gm-counter-container">
+            <div class="gm-counter-box">
+                <div class="gm-counter-icon">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" 
+                         alt="Pikachu" 
+                         class="gm-pokemon-sprite"
+                         onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif'; this.onerror=function(){this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png'; this.onerror=null;}">
+                </div>
+                <div class="gm-counter-content">
+                    <div class="gm-counter-label">GM Count</div>
+                    <div class="gm-counter-value" id="gm-counter-value">0</div>
+                    <div class="gm-counter-date" id="gm-counter-date">Never</div>
+                </div>
+            </div>
         </div>
 
         <!-- Web3 кнопки для Base -->
