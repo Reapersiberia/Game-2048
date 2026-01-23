@@ -15,7 +15,7 @@
           }
       }
     }'>
-    <title>Игра 2048</title>
+    <title>Game 2048 - Base MiniApp</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#faf8ef">
     <link rel="stylesheet" href="style.css">
@@ -25,36 +25,64 @@
         <h1>2048</h1>
         <div class="score-container">
             <div class="score-box">
-                <div class="score-label">Счет</div>
+                <div class="score-label">Score</div>
                 <div class="score-value" id="score">0</div>
             </div>
-            <button class="new-game-btn" onclick="game.newGame()">Новая игра</button>
+            <div class="transaction-display" id="transaction-display" style="display: none;">
+                <div class="transaction-label">GM TX</div>
+                <div class="transaction-value" id="transaction-hash"></div>
+            </div>
+            <button class="new-game-btn" onclick="game.newGame()">New Game</button>
         </div>
+
+        <!-- Web3 кнопки для Base -->
+        <div class="web3-buttons">
+            <button class="web3-btn gm-btn" id="gm-btn" onclick="sendGM()">
+                <span class="btn-icon">☀️</span>
+                <span class="btn-text">GM</span>
+            </button>
+            <button class="web3-btn deploy-btn" id="deploy-btn" onclick="deployContract()">
+                <span class="btn-icon">📜</span>
+                <span class="btn-text">Deploy</span>
+            </button>
+        </div>
+        <div id="web3-status" class="web3-status"></div>
+        <div id="wallet-info" class="wallet-info"></div>
+
         <div class="game-container">
             <div class="grid-container" id="grid"></div>
             <div class="game-over" id="game-over">
                 <div class="game-over-message">
-                    <h2>Игра окончена!</h2>
-                    <button onclick="game.newGame()">Играть снова</button>
+                    <h2>Game Over!</h2>
+                    <button onclick="game.newGame()">Play Again</button>
                 </div>
             </div>
         </div>
         <div class="instructions">
-            <p>Используйте стрелки на клавиатуре для перемещения плиток. Когда две плитки с одинаковым числом соприкасаются, они объединяются в одну!</p>
+            <p>Use arrow keys to move tiles. When two tiles with the same number touch, they merge into one!</p>
         </div>
     </div>
 
-    <!-- Farcaster MiniApp SDK через CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@farcaster/miniapp-sdk/dist/index.min.js"></script>
+    <!-- ethers.js для Web3 -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+    
+    <!-- Farcaster MiniApp SDK -->
+    <script type="module">
+        import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk@0.1.10';
+        window.farcasterSDK = sdk;
+        
+        // Initialize SDK
+        (async () => {
+            try {
+                await sdk.actions.ready();
+                console.log('Farcaster SDK ready');
+            } catch (e) {
+                console.log('SDK init:', e.message);
+            }
+        })();
+    </script>
+    
     <!-- Логика игры -->
     <script src="script.js"></script>
-    <!-- Сигнал готовности мини-приложения для Base app -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            if (window.miniapp && miniapp.sdk && miniapp.sdk.actions && miniapp.sdk.actions.ready) {
-                miniapp.sdk.actions.ready();
-            }
-        });
-    </script>
 </body>
 </html>
