@@ -166,6 +166,67 @@ h1 {
     font-weight: bold;
     color: #776e65;
     transition: all 0.15s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Пиксельная травка с покачиванием */
+.cell::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20%;
+    background: 
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            transparent 2px,
+            #3d8c40 2px,
+            #3d8c40 4px,
+            transparent 4px,
+            transparent 8px
+        ),
+        linear-gradient(to top, 
+            #2d5a1e 0%,
+            #3d8c40 30%,
+            #4aba4f 60%,
+            #6ed86e 80%,
+            transparent 100%
+        );
+    border-radius: 0 0 3px 3px;
+    z-index: 0;
+    animation: grassSway 2s ease-in-out infinite;
+}
+
+/* Второй слой травинок */
+.cell::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 12%;
+    background: 
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            transparent 6px,
+            #4aba4f 6px,
+            #4aba4f 8px,
+            transparent 8px,
+            transparent 12px
+        );
+    z-index: 1;
+    animation: grassSway 2.5s ease-in-out infinite reverse;
+}
+
+/* Анимация покачивания */
+@keyframes grassSway {
+    0%, 100% { transform: skewX(0deg); }
+    25% { transform: skewX(2deg); }
+    75% { transform: skewX(-2deg); }
 }
 
 .tile {
@@ -183,17 +244,70 @@ h1 {
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+/* Пиксельная травка под покемоном */
+.tile::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 22%;
+    background: 
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            transparent 3px,
+            #2d7a30 3px,
+            #2d7a30 5px,
+            transparent 5px,
+            transparent 10px
+        ),
+        linear-gradient(to top, 
+            #1e4d20 0%,
+            #2d7a30 25%,
+            #3d9a40 50%,
+            #5dc85d 75%,
+            transparent 100%
+        );
+    border-radius: 0 0 3px 3px;
+    z-index: 0;
+    animation: grassSway 1.8s ease-in-out infinite;
+}
+
+/* Второй слой травинок на тайле */
+.tile::before {
+    content: '';
+    position: absolute;
+    bottom: 2%;
+    left: 0;
+    right: 0;
+    height: 10%;
+    background: 
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            transparent 8px,
+            #5dc85d 8px,
+            #5dc85d 10px,
+            transparent 10px,
+            transparent 14px
+        );
+    z-index: 4;
+    animation: grassSway 2.2s ease-in-out infinite reverse;
+}
+
 .pokemon-sprite {
-    width: 100%;
-    height: 100%;
+    width: 90%;
+    height: 85%;
     object-fit: contain;
     position: absolute;
     top: 0;
-    left: 0;
-    z-index: 1;
+    left: 5%;
+    z-index: 2;
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
 }
 
 .tile-number {
