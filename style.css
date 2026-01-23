@@ -84,6 +84,14 @@ h1 {
     text-align: center;
     min-width: 120px;
     flex: 0 0 auto;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.transaction-display:hover {
+    background: #9f8a76;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .transaction-label {

@@ -513,8 +513,54 @@ async function connectWallet() {
 // GM Function - Send onchain GM transaction
 // ============================================
 
+// Check if GM was already sent today
+function canSendGMToday() {
+    const today = new Date().toDateString();
+    const lastGMDate = localStorage.getItem('gm_last_date');
+    return lastGMDate !== today;
+}
+
+// Save GM transaction hash for today
+function saveGMToday(txHash) {
+    const today = new Date().toDateString();
+    localStorage.setItem('gm_last_date', today);
+    localStorage.setItem('gm_last_tx', txHash);
+}
+
+// Get last GM transaction hash
+function getLastGMTx() {
+    const today = new Date().toDateString();
+    const lastGMDate = localStorage.getItem('gm_last_date');
+    if (lastGMDate === today) {
+        return localStorage.getItem('gm_last_tx');
+    }
+    return null;
+}
+
 async function sendGM() {
     const btn = document.getElementById('gm-btn');
+    
+    // Check if already sent today
+    if (!canSendGMToday()) {
+        showStatus('GM уже отправлен сегодня! ☀️', 'success');
+        
+        // Show last transaction if exists
+        const lastTx = getLastGMTx();
+        if (lastTx) {
+            const txDisplay = document.getElementById('transaction-display');
+            const txHashEl = document.getElementById('transaction-hash');
+            if (txDisplay && txHashEl) {
+                const shortHash = lastTx.slice(0, 8) + '...' + lastTx.slice(-6);
+                txHashEl.textContent = shortHash;
+                txHashEl.title = lastTx;
+                txDisplay.style.display = 'block';
+            }
+        }
+        
+        if (btn) btn.disabled = true;
+        return;
+    }
+    
     if (btn) btn.disabled = true;
     
     try {
@@ -546,21 +592,35 @@ async function sendGM() {
             }]
         });
         
+        // Save transaction for today
+        saveGMToday(txHash);
+        
         showStatus('GM sent! ☀️', 'success');
         
-        // Display transaction in UI instead of redirecting
+        // Display transaction in UI
         const txDisplay = document.getElementById('transaction-display');
         const txHashEl = document.getElementById('transaction-hash');
         if (txDisplay && txHashEl) {
             const shortHash = txHash.slice(0, 8) + '...' + txHash.slice(-6);
             txHashEl.textContent = shortHash;
             txHashEl.title = txHash; // Full hash on hover
-            txHashEl.onclick = () => {
-                const txUrl = `${TARGET_NETWORK.blockExplorerUrls[0]}/tx/${txHash}`;
+            
+            // Make entire transaction display clickable
+            const txUrl = `${TARGET_NETWORK.blockExplorerUrls[0]}/tx/${txHash}`;
+            txDisplay.style.cursor = 'pointer';
+            txDisplay.onclick = () => {
                 window.open(txUrl, '_blank');
             };
+            txHashEl.onclick = (e) => {
+                e.stopPropagation(); // Prevent double click
+                window.open(txUrl, '_blank');
+            };
+            
             txDisplay.style.display = 'block';
         }
+        
+        // Disable button after successful send
+        if (btn) btn.disabled = true;
         
     } catch (error) {
         console.error('GM Error:', error);
@@ -569,7 +629,6 @@ async function sendGM() {
         } else {
             showStatus('Error: ' + (error.message || 'Failed'), 'error');
         }
-    } finally {
         if (btn) btn.disabled = false;
     }
 }
@@ -670,16 +729,36 @@ async function deployContract() {
             console.log('Contract Address:', receipt.contractAddress);
             console.log('Explorer:', txUrl);
             
-            // Open in explorer
-            if (farcasterSDK && farcasterSDK.actions && farcasterSDK.actions.openUrl) {
-                farcasterSDK.actions.openUrl(txUrl);
-            } else {
-                window.open(txUrl, '_blank');
+            // Display transaction in UI instead of redirecting
+            const txDisplay = document.getElementById('transaction-display');
+            const txHashEl = document.getElementById('transaction-hash');
+            if (txDisplay && txHashEl) {
+                const shortHash = receipt.contractAddress.slice(0, 8) + '...' + receipt.contractAddress.slice(-6);
+                txHashEl.textContent = shortHash;
+                txHashEl.title = receipt.contractAddress; // Full address on hover
+                txHashEl.style.cursor = 'pointer';
+                txHashEl.onclick = () => {
+                    window.open(txUrl, '_blank');
+                };
+                txDisplay.style.display = 'block';
             }
         } else {
             const txUrl = `${TARGET_NETWORK.blockExplorerUrls[0]}/tx/${receipt.hash}`;
             showStatus(`TX confirmed! ${receipt.hash.slice(0, 10)}...`, 'success');
-            window.open(txUrl, '_blank');
+            
+            // Display transaction in UI instead of redirecting
+            const txDisplay = document.getElementById('transaction-display');
+            const txHashEl = document.getElementById('transaction-hash');
+            if (txDisplay && txHashEl) {
+                const shortHash = receipt.hash.slice(0, 8) + '...' + receipt.hash.slice(-6);
+                txHashEl.textContent = shortHash;
+                txHashEl.title = receipt.hash; // Full hash on hover
+                txHashEl.style.cursor = 'pointer';
+                txHashEl.onclick = () => {
+                    window.open(txUrl, '_blank');
+                };
+                txDisplay.style.display = 'block';
+            }
         }
         
     } catch (error) {
@@ -730,6 +809,38 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('Wallet detected, ready to connect');
     } else {
         console.log('No wallet detected. Use Warpcast or install MetaMask.');
+    }
+    
+    // Check if GM was already sent today and restore UI
+    if (!canSendGMToday()) {
+        const btn = document.getElementById('gm-btn');
+        if (btn) {
+            btn.disabled = true;
+        }
+        
+        const lastTx = getLastGMTx();
+        if (lastTx) {
+            const txDisplay = document.getElementById('transaction-display');
+            const txHashEl = document.getElementById('transaction-hash');
+            if (txDisplay && txHashEl) {
+                const shortHash = lastTx.slice(0, 8) + '...' + lastTx.slice(-6);
+                txHashEl.textContent = shortHash;
+                txHashEl.title = lastTx;
+                
+                // Make entire transaction display clickable
+                const txUrl = `${TARGET_NETWORK.blockExplorerUrls[0]}/tx/${lastTx}`;
+                txDisplay.style.cursor = 'pointer';
+                txDisplay.onclick = () => {
+                    window.open(txUrl, '_blank');
+                };
+                txHashEl.onclick = (e) => {
+                    e.stopPropagation(); // Prevent double click
+                    window.open(txUrl, '_blank');
+                };
+                
+                txDisplay.style.display = 'block';
+            }
+        }
     }
 });
 
