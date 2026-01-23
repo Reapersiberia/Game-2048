@@ -1,0 +1,40 @@
+===========================================
+ЧТО ДЕЛАТЬ СЕЙЧАС - ПРОСТАЯ ИНСТРУКЦИЯ
+===========================================
+
+✅ ШАГ 1: Манифест уже доступен на Vercel!
+   Проверено: https://game-2048-theta-eosin.vercel.app/.well-known/farcaster.json
+
+✅ ШАГ 2: Откройте Farcaster Manifest Tool
+   (Должно открыться автоматически, или откройте вручную):
+   https://farcaster.xyz/~/developers/mini-apps/manifest
+
+✅ ШАГ 3: В открывшемся окне:
+   1. Войдите в свой Farcaster аккаунт (если не вошли)
+   2. В поле "Domain" введите (БЕЗ https://):
+      game-2048-theta-eosin.vercel.app
+   3. Нажмите кнопку "Refresh"
+      (Должен загрузиться ваш манифест)
+   4. Нажмите фиолетовую кнопку "Generate Account Association"
+   5. Скопируйте три значения:
+      - header
+      - payload  
+      - signature
+
+✅ ШАГ 4: После копирования данных, запустите в PowerShell:
+   .\UPDATE-ACCOUNT-ASSOCIATION.ps1 -Header "ваш-header" -Payload "ваш-payload" -Signature "ваш-signature"
+
+   Или обновите вручную файл: .well-known/farcaster.json
+   Замените пустые значения в блоке accountAssociation
+
+✅ ШАГ 5: Закоммитьте и запушьте:
+   git add .well-known/farcaster.json
+   git commit -m "Add account association"
+   git push
+
+✅ ШАГ 6: Подождите 1-2 минуты и проверьте в Farcaster Manifest Tool:
+   - Account Association должна показывать "Verified" (зеленая галочка)
+
+===========================================
+ГОТОВО!
+===========================================
