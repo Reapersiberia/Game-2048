@@ -10,6 +10,28 @@ class Game2048 {
         this.gridContainer = document.getElementById('grid');
         this.scoreElement = document.getElementById('score');
         this.gameOverElement = document.getElementById('game-over');
+        // Маппинг чисел на ID покемонов (популярные покемоны)
+        this.pokemonMap = {
+            2: 1,    // Bulbasaur
+            4: 4,    // Charmander
+            8: 7,    // Squirtle
+            16: 25,  // Pikachu
+            32: 39,  // Jigglypuff
+            64: 52,  // Meowth
+            128: 54, // Psyduck
+            256: 133, // Eevee
+            512: 150, // Mewtwo
+            1024: 151, // Mew
+            2048: 149  // Dragonite
+        };
+        
+        // Дополнительные покемоны для больших чисел
+        this.pokemonList = [
+            1, 4, 7, 25, 39, 52, 54, 133, 150, 151, 149, // Основные
+            6, 9, 26, 38, 94, 130, 134, 135, 136, 143, // Дополнительные популярные
+            144, 145, 146, 150, 151, 249, 250, 251, // Легендарные
+            3, 5, 8, 10, 11, 12, 13, 14, 15 // Еще покемоны
+        ];
         this.init();
     }
 
@@ -114,6 +136,23 @@ class Game2048 {
         this.scoreElement.textContent = this.score;
     }
 
+    getPokemonSpriteUrl(pokemonId) {
+        // Используем анимированные спрайты из PokeAPI
+        // Для разных поколений есть разные варианты анимаций
+        return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${pokemonId}.gif`;
+    }
+    
+    getPokemonIdForValue(value) {
+        // Если есть точное соответствие, используем его
+        if (this.pokemonMap[value]) {
+            return this.pokemonMap[value];
+        }
+        // Иначе вычисляем покемона на основе значения
+        // Используем индекс из списка покемонов
+        const index = Math.min(Math.floor(Math.log2(value)) - 1, this.pokemonList.length - 1);
+        return this.pokemonList[Math.max(0, index)] || 1;
+    }
+
     updateDisplay() {
         this.gridContainer.innerHTML = '';
         const cellSize = (this.gridContainer.offsetWidth - 40) / this.size;
@@ -127,9 +166,39 @@ class Game2048 {
         for (let row = 0; row < this.size; row++) {
             for (let col = 0; col < this.size; col++) {
                 if (this.grid[row][col] !== 0) {
+                    const value = this.grid[row][col];
                     const tile = document.createElement('div');
-                    tile.className = `tile tile-${this.grid[row][col]}`;
-                    tile.textContent = this.grid[row][col];
+                    tile.className = `tile tile-${value}`;
+                    
+                    // Получаем ID покемона для этого числа
+                    const pokemonId = this.getPokemonIdForValue(value);
+                    const spriteUrl = this.getPokemonSpriteUrl(pokemonId);
+                    
+                    // Создаем контейнер для покемона и цифры
+                    const pokemonImg = document.createElement('img');
+                    pokemonImg.src = spriteUrl;
+                    pokemonImg.className = 'pokemon-sprite';
+                    pokemonImg.alt = `Pokemon ${pokemonId}`;
+                    pokemonImg.loading = 'lazy';
+                    pokemonImg.onerror = function() {
+                        // Если анимированный спрайт не загрузился, пробуем другие варианты
+                        const staticUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`;
+                        if (this.src !== staticUrl) {
+                            this.src = staticUrl;
+                        } else {
+                            // Если и статический не загрузился, используем placeholder
+                            this.style.display = 'none';
+                        }
+                    };
+                    
+                    // Цифра прямо на покемоне (без бейджа)
+                    const numberLabel = document.createElement('div');
+                    numberLabel.className = 'tile-number';
+                    numberLabel.textContent = value;
+                    
+                    tile.appendChild(pokemonImg);
+                    tile.appendChild(numberLabel);
+                    
                     tile.style.width = `${cellSize}px`;
                     tile.style.height = `${cellSize}px`;
                     tile.style.top = `${10 + row * (cellSize + 10)}px`;
