@@ -341,6 +341,11 @@ h1 {
     }
 }
 
+/* ============================================ */
+/* СИСТЕМА СТИХИЙ ПОКЕМОНОВ */
+/* ============================================ */
+
+/* Базовые цвета плиток */
 .tile-2 { background: rgba(238, 228, 218, 0.3); }
 .tile-4 { background: rgba(237, 224, 200, 0.3); }
 .tile-8 { background: rgba(242, 177, 121, 0.3); }
@@ -353,6 +358,962 @@ h1 {
 .tile-1024 { background: rgba(237, 197, 63, 0.3); }
 .tile-2048 { background: rgba(237, 194, 46, 0.3); }
 .tile-super { background: rgba(60, 58, 50, 0.3); }
+
+/* ============================================ */
+/* СТИХИЯ: NORMAL (2-16) */
+/* ============================================ */
+.element-normal {
+    background: linear-gradient(135deg, rgba(168, 168, 120, 0.4) 0%, rgba(200, 200, 170, 0.4) 100%) !important;
+    border: 2px solid rgba(168, 168, 120, 0.6) !important;
+}
+
+/* ============================================ */
+/* СТИХИЯ: FIRE (32-64) 🔥 */
+/* ============================================ */
+.element-fire {
+    background: linear-gradient(135deg, rgba(240, 128, 48, 0.5) 0%, rgba(255, 80, 0, 0.5) 100%) !important;
+    border: 2px solid #F08030 !important;
+    animation: fireGlow 0.8s ease-in-out infinite alternate;
+    box-shadow: 0 0 15px rgba(255, 100, 0, 0.6), inset 0 0 20px rgba(255, 200, 100, 0.3);
+}
+
+.element-fire .pokemon-sprite {
+    animation: fireShake 0.15s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(255, 100, 0, 0.8));
+}
+
+.element-fire .tile-number {
+    color: #FF4500 !important;
+    text-shadow: 
+        2px 2px 4px rgba(255, 255, 255, 1),
+        0 0 10px rgba(255, 100, 0, 0.8),
+        0 0 20px rgba(255, 50, 0, 0.6) !important;
+}
+
+@keyframes fireGlow {
+    0% { box-shadow: 0 0 15px rgba(255, 100, 0, 0.6), inset 0 0 20px rgba(255, 200, 100, 0.3); }
+    100% { box-shadow: 0 0 25px rgba(255, 50, 0, 0.8), inset 0 0 30px rgba(255, 150, 50, 0.5); }
+}
+
+@keyframes fireShake {
+    0%, 100% { transform: translateX(0) rotate(-1deg); }
+    50% { transform: translateX(1px) rotate(1deg); }
+}
+
+/* Частицы огня */
+.particles-fire {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.particles-fire::before,
+.particles-fire::after {
+    content: '🔥';
+    position: absolute;
+    font-size: 12px;
+    animation: fireParticle 1s ease-out infinite;
+    opacity: 0;
+}
+
+.particles-fire::before {
+    left: 20%;
+    animation-delay: 0s;
+}
+
+.particles-fire::after {
+    left: 60%;
+    animation-delay: 0.5s;
+}
+
+@keyframes fireParticle {
+    0% { bottom: 10%; opacity: 1; transform: scale(0.5); }
+    100% { bottom: 90%; opacity: 0; transform: scale(1) translateX(10px); }
+}
+
+/* ============================================ */
+/* СТИХИЯ: WATER (128-256) 💧 */
+/* ============================================ */
+.element-water {
+    background: linear-gradient(135deg, rgba(104, 144, 240, 0.5) 0%, rgba(0, 100, 200, 0.5) 100%) !important;
+    border: 2px solid #6890F0 !important;
+    animation: waterWave 2s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba(100, 150, 255, 0.6), inset 0 0 20px rgba(150, 200, 255, 0.3);
+}
+
+.element-water .pokemon-sprite {
+    animation: waterBob 1.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(100, 150, 255, 0.8));
+}
+
+.element-water .tile-number {
+    color: #0066CC !important;
+    text-shadow: 
+        2px 2px 4px rgba(255, 255, 255, 1),
+        0 0 10px rgba(100, 150, 255, 0.8),
+        0 0 20px rgba(0, 100, 200, 0.6) !important;
+}
+
+@keyframes waterWave {
+    0%, 100% { 
+        box-shadow: 0 0 15px rgba(100, 150, 255, 0.6), inset 0 0 20px rgba(150, 200, 255, 0.3);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 25px rgba(50, 100, 255, 0.8), inset 0 0 30px rgba(100, 180, 255, 0.5);
+        transform: scale(1.02);
+    }
+}
+
+@keyframes waterBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+/* Частицы воды */
+.particles-water::before,
+.particles-water::after {
+    content: '💧';
+    position: absolute;
+    font-size: 10px;
+    animation: waterDrop 1.5s ease-in infinite;
+    opacity: 0;
+}
+
+.particles-water::before {
+    left: 30%;
+    animation-delay: 0s;
+}
+
+.particles-water::after {
+    left: 70%;
+    animation-delay: 0.7s;
+}
+
+@keyframes waterDrop {
+    0% { top: 10%; opacity: 1; }
+    100% { top: 80%; opacity: 0; }
+}
+
+/* ============================================ */
+/* СТИХИЯ: ELECTRIC (512-1024) ⚡ */
+/* ============================================ */
+.element-electric {
+    background: linear-gradient(135deg, rgba(248, 208, 48, 0.5) 0%, rgba(255, 230, 0, 0.5) 100%) !important;
+    border: 2px solid #F8D030 !important;
+    animation: electricSpark 0.3s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(255, 230, 0, 0.7), inset 0 0 25px rgba(255, 255, 150, 0.4);
+}
+
+.element-electric .pokemon-sprite {
+    animation: electricZap 0.1s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px rgba(255, 230, 0, 0.9)) brightness(1.1);
+}
+
+.element-electric .tile-number {
+    color: #CC9900 !important;
+    text-shadow: 
+        2px 2px 4px rgba(255, 255, 255, 1),
+        0 0 15px rgba(255, 230, 0, 1),
+        0 0 30px rgba(255, 200, 0, 0.8) !important;
+    animation: electricFlicker 0.2s ease-in-out infinite;
+}
+
+@keyframes electricSpark {
+    0%, 100% { 
+        box-shadow: 0 0 20px rgba(255, 230, 0, 0.7), inset 0 0 25px rgba(255, 255, 150, 0.4);
+    }
+    50% { 
+        box-shadow: 0 0 35px rgba(255, 230, 0, 1), inset 0 0 40px rgba(255, 255, 200, 0.6);
+    }
+}
+
+@keyframes electricZap {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+@keyframes electricFlicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.9; }
+}
+
+/* Частицы электричества */
+.particles-electric::before,
+.particles-electric::after {
+    content: '⚡';
+    position: absolute;
+    font-size: 14px;
+    animation: electricBolt 0.5s ease-out infinite;
+    opacity: 0;
+}
+
+.particles-electric::before {
+    left: 15%;
+    top: 20%;
+}
+
+.particles-electric::after {
+    right: 15%;
+    bottom: 20%;
+    animation-delay: 0.25s;
+}
+
+@keyframes electricBolt {
+    0% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1.2); }
+    100% { opacity: 0; transform: scale(0.5); }
+}
+
+/* ============================================ */
+/* СТИХИЯ: GRASS (2048-4096) 🌿 */
+/* ============================================ */
+.element-grass {
+    background: linear-gradient(135deg, rgba(120, 200, 80, 0.5) 0%, rgba(60, 150, 40, 0.5) 100%) !important;
+    border: 2px solid #78C850 !important;
+    animation: grassGrow 2s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba(100, 180, 80, 0.6), inset 0 0 20px rgba(150, 220, 100, 0.3);
+}
+
+.element-grass .pokemon-sprite {
+    animation: grassSway 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(100, 180, 80, 0.8));
+}
+
+.element-grass .tile-number {
+    color: #228B22 !important;
+    text-shadow: 
+        2px 2px 4px rgba(255, 255, 255, 1),
+        0 0 10px rgba(100, 200, 100, 0.8),
+        0 0 20px rgba(50, 150, 50, 0.6) !important;
+}
+
+@keyframes grassGrow {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+}
+
+/* Частицы травы */
+.particles-grass::before,
+.particles-grass::after {
+    content: '🍃';
+    position: absolute;
+    font-size: 12px;
+    animation: leafFloat 2s ease-in-out infinite;
+    opacity: 0;
+}
+
+.particles-grass::before {
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.particles-grass::after {
+    right: 10%;
+    animation-delay: 1s;
+}
+
+@keyframes leafFloat {
+    0% { top: 80%; opacity: 0; transform: rotate(0deg); }
+    50% { opacity: 1; }
+    100% { top: 10%; opacity: 0; transform: rotate(180deg); }
+}
+
+/* ============================================ */
+/* СТИХИЯ: ICE (8192-16384) ❄️ */
+/* ============================================ */
+.element-ice {
+    background: linear-gradient(135deg, rgba(152, 216, 216, 0.6) 0%, rgba(100, 180, 220, 0.6) 100%) !important;
+    border: 2px solid #98D8D8 !important;
+    animation: iceShimmer 1.5s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(150, 220, 255, 0.7), inset 0 0 25px rgba(200, 240, 255, 0.4);
+}
+
+.element-ice .pokemon-sprite {
+    animation: iceFloat 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px rgba(150, 220, 255, 0.9)) brightness(1.1);
+}
+
+.element-ice .tile-number {
+    color: #4169E1 !important;
+    text-shadow: 
+        2px 2px 4px rgba(255, 255, 255, 1),
+        0 0 15px rgba(150, 220, 255, 1),
+        0 0 25px rgba(100, 180, 255, 0.8) !important;
+}
+
+@keyframes iceShimmer {
+    0%, 100% { 
+        box-shadow: 0 0 20px rgba(150, 220, 255, 0.7), inset 0 0 25px rgba(200, 240, 255, 0.4);
+        filter: brightness(1);
+    }
+    50% { 
+        box-shadow: 0 0 30px rgba(180, 240, 255, 0.9), inset 0 0 35px rgba(220, 250, 255, 0.6);
+        filter: brightness(1.1);
+    }
+}
+
+@keyframes iceFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-4px) rotate(2deg); }
+}
+
+/* Частицы льда */
+.particles-ice::before,
+.particles-ice::after {
+    content: '❄️';
+    position: absolute;
+    font-size: 10px;
+    animation: snowfall 2s linear infinite;
+    opacity: 0;
+}
+
+.particles-ice::before {
+    left: 20%;
+    animation-delay: 0s;
+}
+
+.particles-ice::after {
+    left: 70%;
+    animation-delay: 1s;
+}
+
+@keyframes snowfall {
+    0% { top: 0; opacity: 1; transform: translateX(0) rotate(0deg); }
+    100% { top: 80%; opacity: 0; transform: translateX(10px) rotate(180deg); }
+}
+
+/* ============================================ */
+/* СТИХИЯ: ROCK (32768-65536) 🪨 */
+/* ============================================ */
+.element-rock {
+    background: linear-gradient(135deg, rgba(184, 160, 56, 0.5) 0%, rgba(140, 110, 40, 0.5) 100%) !important;
+    border: 3px solid #B8A038 !important;
+    animation: rockTremble 0.15s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba(180, 150, 80, 0.6), inset 0 0 20px rgba(200, 180, 100, 0.3);
+}
+
+.element-rock .pokemon-sprite {
+    animation: rockShake 0.2s ease-in-out infinite;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+}
+
+.element-rock .tile-number {
+    color: #8B4513 !important;
+    text-shadow: 
+        3px 3px 5px rgba(255, 255, 255, 1),
+        0 0 10px rgba(180, 150, 80, 0.8),
+        0 0 15px rgba(140, 110, 40, 0.6) !important;
+    font-weight: 900 !important;
+}
+
+@keyframes rockTremble {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-1px, 0); }
+    75% { transform: translate(1px, 0); }
+}
+
+@keyframes rockShake {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(1px); }
+}
+
+/* Частицы камня */
+.particles-rock::before,
+.particles-rock::after {
+    content: '💥';
+    position: absolute;
+    font-size: 10px;
+    animation: rockCrumble 1s ease-out infinite;
+    opacity: 0;
+}
+
+.particles-rock::before {
+    left: 25%;
+    bottom: 20%;
+}
+
+.particles-rock::after {
+    right: 25%;
+    bottom: 30%;
+    animation-delay: 0.5s;
+}
+
+@keyframes rockCrumble {
+    0% { opacity: 1; transform: scale(0.5); }
+    100% { opacity: 0; transform: scale(1) translateY(10px); }
+}
+
+/* ============================================ */
+/* СТИХИЯ: PSYCHIC (131072-262144) 🔮 */
+/* ============================================ */
+.element-psychic {
+    background: linear-gradient(135deg, rgba(248, 88, 136, 0.5) 0%, rgba(180, 60, 180, 0.5) 100%) !important;
+    border: 2px solid #F85888 !important;
+    animation: psychicPulse 1s ease-in-out infinite;
+    box-shadow: 0 0 25px rgba(250, 100, 150, 0.7), inset 0 0 30px rgba(255, 150, 200, 0.4);
+}
+
+.element-psychic .pokemon-sprite {
+    animation: psychicFloat 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 12px rgba(250, 100, 150, 0.9)) hue-rotate(10deg);
+}
+
+.element-psychic .tile-number {
+    color: #9932CC !important;
+    text-shadow: 
+        2px 2px 4px rgba(255, 255, 255, 1),
+        0 0 15px rgba(250, 100, 200, 1),
+        0 0 30px rgba(180, 60, 180, 0.8) !important;
+    animation: psychicGlow 1s ease-in-out infinite alternate;
+}
+
+@keyframes psychicPulse {
+    0%, 100% { 
+        box-shadow: 0 0 25px rgba(250, 100, 150, 0.7), inset 0 0 30px rgba(255, 150, 200, 0.4);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 40px rgba(250, 100, 200, 0.9), inset 0 0 45px rgba(255, 180, 220, 0.6);
+        transform: scale(1.02);
+    }
+}
+
+@keyframes psychicFloat {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50% { transform: translateY(-5px) rotate(3deg); }
+}
+
+@keyframes psychicGlow {
+    0% { text-shadow: 2px 2px 4px rgba(255, 255, 255, 1), 0 0 15px rgba(250, 100, 200, 1); }
+    100% { text-shadow: 2px 2px 4px rgba(255, 255, 255, 1), 0 0 25px rgba(250, 100, 200, 1), 0 0 40px rgba(180, 60, 180, 0.8); }
+}
+
+/* Частицы психики */
+.particles-psychic::before,
+.particles-psychic::after {
+    content: '✨';
+    position: absolute;
+    font-size: 12px;
+    animation: psychicSparkle 1.5s ease-in-out infinite;
+    opacity: 0;
+}
+
+.particles-psychic::before {
+    top: 20%;
+    left: 20%;
+}
+
+.particles-psychic::after {
+    bottom: 20%;
+    right: 20%;
+    animation-delay: 0.75s;
+}
+
+@keyframes psychicSparkle {
+    0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+}
+
+/* ============================================ */
+/* СТИХИЯ: DRAGON (524288+) 🐉 */
+/* ============================================ */
+.element-dragon {
+    background: linear-gradient(135deg, rgba(112, 56, 248, 0.6) 0%, rgba(80, 0, 180, 0.6) 100%) !important;
+    border: 3px solid #7038F8 !important;
+    animation: dragonAura 1.2s ease-in-out infinite;
+    box-shadow: 0 0 30px rgba(120, 60, 255, 0.8), 0 0 60px rgba(80, 0, 180, 0.5), inset 0 0 35px rgba(180, 100, 255, 0.4);
+}
+
+.element-dragon .pokemon-sprite {
+    animation: dragonRoar 0.8s ease-in-out infinite;
+    filter: drop-shadow(0 0 15px rgba(120, 60, 255, 1)) brightness(1.15);
+}
+
+.element-dragon .tile-number {
+    color: #4B0082 !important;
+    text-shadow: 
+        3px 3px 6px rgba(255, 255, 255, 1),
+        0 0 20px rgba(120, 60, 255, 1),
+        0 0 40px rgba(80, 0, 180, 0.9),
+        0 0 60px rgba(150, 100, 255, 0.7) !important;
+    animation: dragonPower 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes dragonAura {
+    0%, 100% { 
+        box-shadow: 0 0 30px rgba(120, 60, 255, 0.8), 0 0 60px rgba(80, 0, 180, 0.5), inset 0 0 35px rgba(180, 100, 255, 0.4);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 50px rgba(150, 80, 255, 1), 0 0 80px rgba(100, 20, 200, 0.7), inset 0 0 50px rgba(200, 150, 255, 0.6);
+        transform: scale(1.03);
+    }
+}
+
+@keyframes dragonRoar {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.05) rotate(-2deg); }
+    75% { transform: scale(1.05) rotate(2deg); }
+}
+
+@keyframes dragonPower {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
+}
+
+/* Частицы дракона */
+.particles-dragon::before,
+.particles-dragon::after {
+    content: '🔥';
+    position: absolute;
+    font-size: 14px;
+    animation: dragonFlame 0.8s ease-out infinite;
+    opacity: 0;
+}
+
+.particles-dragon::before {
+    left: 10%;
+    bottom: 30%;
+    content: '💜';
+}
+
+.particles-dragon::after {
+    right: 10%;
+    top: 30%;
+    content: '⭐';
+    animation-delay: 0.4s;
+}
+
+@keyframes dragonFlame {
+    0% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1) rotate(180deg); }
+    100% { opacity: 0; transform: scale(0.3) rotate(360deg); }
+}
+
+/* ============================================ */
+/* СТИХИЯ: POISON ☠️ */
+/* ============================================ */
+.element-poison {
+    background: linear-gradient(135deg, rgba(160, 64, 160, 0.5) 0%, rgba(100, 40, 130, 0.5) 100%) !important;
+    border: 2px solid #A040A0 !important;
+    animation: poisonBubble 1s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(160, 64, 160, 0.6), inset 0 0 25px rgba(200, 100, 200, 0.3);
+}
+.element-poison .pokemon-sprite { animation: poisonWobble 0.8s ease-in-out infinite; filter: drop-shadow(0 0 8px rgba(160, 64, 160, 0.8)) hue-rotate(-10deg); }
+.element-poison .tile-number { color: #8B008B !important; text-shadow: 2px 2px 4px rgba(255,255,255,1), 0 0 15px rgba(160, 64, 160, 0.9) !important; }
+@keyframes poisonBubble { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+@keyframes poisonWobble { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+.particles-poison::before, .particles-poison::after { content: '💀'; position: absolute; font-size: 10px; animation: poisonRise 1.5s ease-out infinite; opacity: 0; }
+.particles-poison::before { left: 20%; } .particles-poison::after { left: 70%; animation-delay: 0.7s; }
+@keyframes poisonRise { 0% { bottom: 10%; opacity: 1; } 100% { bottom: 90%; opacity: 0; } }
+
+/* ============================================ */
+/* СТИХИЯ: GROUND 🌍 */
+/* ============================================ */
+.element-ground {
+    background: linear-gradient(135deg, rgba(224, 192, 104, 0.5) 0%, rgba(180, 140, 60, 0.5) 100%) !important;
+    border: 3px solid #E0C068 !important;
+    animation: groundQuake 0.2s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba(200, 160, 80, 0.6), inset 0 0 20px rgba(220, 180, 100, 0.3);
+}
+.element-ground .pokemon-sprite { animation: groundShake 0.15s ease-in-out infinite; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4)); }
+.element-ground .tile-number { color: #8B6914 !important; text-shadow: 2px 2px 4px rgba(255,255,255,1), 0 0 10px rgba(200,160,80,0.8) !important; }
+@keyframes groundQuake { 0%,100% { transform: translate(0,0); } 50% { transform: translate(1px, 1px); } }
+@keyframes groundShake { 0%,100% { transform: translateY(0); } 50% { transform: translateY(2px); } }
+.particles-ground::before, .particles-ground::after { content: '🌋'; position: absolute; font-size: 12px; animation: groundErupt 1s ease-out infinite; opacity: 0; }
+@keyframes groundErupt { 0% { bottom: 20%; opacity: 1; } 100% { bottom: 80%; opacity: 0; } }
+
+/* ============================================ */
+/* СТИХИЯ: FLYING 🦅 */
+/* ============================================ */
+.element-flying {
+    background: linear-gradient(135deg, rgba(168, 144, 240, 0.5) 0%, rgba(120, 180, 255, 0.5) 100%) !important;
+    border: 2px solid #A890F0 !important;
+    animation: flyingFloat 2s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(168, 144, 240, 0.6), inset 0 0 25px rgba(200, 180, 255, 0.3);
+}
+.element-flying .pokemon-sprite { animation: flyingSoar 1.5s ease-in-out infinite; filter: drop-shadow(0 0 10px rgba(168, 144, 240, 0.8)); }
+.element-flying .tile-number { color: #6A5ACD !important; text-shadow: 2px 2px 4px rgba(255,255,255,1), 0 0 15px rgba(168,144,240,0.9) !important; }
+@keyframes flyingFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes flyingSoar { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-5px) rotate(3deg); } }
+.particles-flying::before, .particles-flying::after { content: '🌬️'; position: absolute; font-size: 12px; animation: windBlow 1s linear infinite; opacity: 0; }
+@keyframes windBlow { 0% { left: 100%; opacity: 1; } 100% { left: -20%; opacity: 0; } }
+
+/* ============================================ */
+/* СТИХИЯ: BUG 🐛 */
+/* ============================================ */
+.element-bug {
+    background: linear-gradient(135deg, rgba(168, 184, 32, 0.5) 0%, rgba(120, 140, 20, 0.5) 100%) !important;
+    border: 2px solid #A8B820 !important;
+    animation: bugCrawl 0.3s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba(168, 184, 32, 0.6), inset 0 0 20px rgba(200, 210, 80, 0.3);
+}
+.element-bug .pokemon-sprite { animation: bugWiggle 0.2s ease-in-out infinite; filter: drop-shadow(0 0 6px rgba(168,184,32,0.8)); }
+.element-bug .tile-number { color: #6B8E23 !important; text-shadow: 2px 2px 4px rgba(255,255,255,1), 0 0 10px rgba(168,184,32,0.8) !important; }
+@keyframes bugCrawl { 0%,100% { transform: translateX(0); } 50% { transform: translateX(2px); } }
+@keyframes bugWiggle { 0%,100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
+.particles-bug::before, .particles-bug::after { content: '🦋'; position: absolute; font-size: 10px; animation: bugFly 2s ease-in-out infinite; opacity: 0; }
+@keyframes bugFly { 0%,100% { opacity: 0; transform: translate(0,0); } 50% { opacity: 1; transform: translate(10px, -10px); } }
+
+/* ============================================ */
+/* СТИХИЯ: FIGHTING 🥊 */
+/* ============================================ */
+.element-fighting {
+    background: linear-gradient(135deg, rgba(192, 48, 40, 0.5) 0%, rgba(150, 30, 30, 0.5) 100%) !important;
+    border: 3px solid #C03028 !important;
+    animation: fightingPunch 0.15s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(192, 48, 40, 0.7), inset 0 0 25px rgba(220, 80, 70, 0.4);
+}
+.element-fighting .pokemon-sprite { animation: fightingStrike 0.2s ease-in-out infinite; filter: drop-shadow(0 0 10px rgba(192,48,40,0.9)); }
+.element-fighting .tile-number { color: #B22222 !important; text-shadow: 2px 2px 4px rgba(255,255,255,1), 0 0 15px rgba(192,48,40,1) !important; font-weight: 900 !important; }
+@keyframes fightingPunch { 0%,100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+@keyframes fightingStrike { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+.particles-fighting::before, .particles-fighting::after { content: '💥'; position: absolute; font-size: 14px; animation: fightingImpact 0.5s ease-out infinite; opacity: 0; }
+@keyframes fightingImpact { 0% { opacity: 1; transform: scale(0.5); } 100% { opacity: 0; transform: scale(1.5); } }
+
+/* ============================================ */
+/* СТИХИЯ: GHOST 👻 */
+/* ============================================ */
+.element-ghost {
+    background: linear-gradient(135deg, rgba(112, 88, 152, 0.6) 0%, rgba(80, 50, 120, 0.6) 100%) !important;
+    border: 2px solid #705898 !important;
+    animation: ghostPhase 2s ease-in-out infinite;
+    box-shadow: 0 0 25px rgba(112, 88, 152, 0.7), inset 0 0 30px rgba(150, 120, 200, 0.4);
+}
+.element-ghost .pokemon-sprite { animation: ghostFloat 1.5s ease-in-out infinite; filter: drop-shadow(0 0 15px rgba(112,88,152,0.9)) opacity(0.9); }
+.element-ghost .tile-number { color: #4B0082 !important; text-shadow: 2px 2px 4px rgba(255,255,255,1), 0 0 20px rgba(112,88,152,1) !important; }
+@keyframes ghostPhase { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.02); } }
+@keyframes ghostFloat { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-8px) rotate(5deg); } }
+.particles-ghost::before, .particles-ghost::after { content: '👁️'; position: absolute; font-size: 10px; animation: ghostEyes 2s ease-in-out infinite; opacity: 0; }
+@keyframes ghostEyes { 0%,100% { opacity: 0; } 50% { opacity: 1; } }
+
+/* ============================================ */
+/* СТИХИЯ: DARK 🌑 */
+/* ============================================ */
+.element-dark {
+    background: linear-gradient(135deg, rgba(112, 88, 72, 0.7) 0%, rgba(40, 30, 30, 0.7) 100%) !important;
+    border: 2px solid #705848 !important;
+    animation: darkPulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), inset 0 0 35px rgba(80, 60, 60, 0.5);
+}
+.element-dark .pokemon-sprite { animation: darkLurk 1s ease-in-out infinite; filter: drop-shadow(0 0 12px rgba(0,0,0,0.9)) brightness(0.9); }
+.element-dark .tile-number { color: #1C1C1C !important; text-shadow: 2px 2px 4px rgba(255,255,255,1), 0 0 15px rgba(100,80,80,1), 0 0 30px rgba(0,0,0,0.8) !important; }
+@keyframes darkPulse { 0%,100% { box-shadow: 0 0 30px rgba(0,0,0,0.8); } 50% { box-shadow: 0 0 50px rgba(0,0,0,1); } }
+@keyframes darkLurk { 0%,100% { transform: scale(1); } 50% { transform: scale(0.98); } }
+.particles-dark::before, .particles-dark::after { content: '🌑'; position: absolute; font-size: 10px; animation: darkOrb 1.5s ease-in-out infinite; opacity: 0; }
+@keyframes darkOrb { 0%,100% { opacity: 0; transform: scale(0.5); } 50% { opacity: 0.8; transform: scale(1); } }
+
+/* ============================================ */
+/* СТИХИЯ: STEEL ⚔️ */
+/* ============================================ */
+.element-steel {
+    background: linear-gradient(135deg, rgba(184, 184, 208, 0.6) 0%, rgba(140, 140, 170, 0.6) 100%) !important;
+    border: 3px solid #B8B8D0 !important;
+    animation: steelShine 1s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(184, 184, 208, 0.7), inset 0 0 25px rgba(220, 220, 240, 0.5);
+}
+.element-steel .pokemon-sprite { animation: steelGlint 0.5s ease-in-out infinite; filter: drop-shadow(0 0 10px rgba(184,184,208,1)) brightness(1.1) contrast(1.1); }
+.element-steel .tile-number { color: #4682B4 !important; text-shadow: 2px 2px 4px rgba(255,255,255,1), 0 0 15px rgba(184,184,208,1), 0 0 30px rgba(140,140,170,0.8) !important; }
+@keyframes steelShine { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.2); } }
+@keyframes steelGlint { 0%,100% { filter: brightness(1.1); } 50% { filter: brightness(1.3); } }
+.particles-steel::before, .particles-steel::after { content: '✨'; position: absolute; font-size: 12px; animation: steelSparkle 0.8s ease-out infinite; opacity: 0; }
+@keyframes steelSparkle { 0% { opacity: 1; transform: scale(0.5); } 100% { opacity: 0; transform: scale(1.2); } }
+
+/* ============================================ */
+/* СТИХИЯ: FAIRY 🧚 */
+/* ============================================ */
+.element-fairy {
+    background: linear-gradient(135deg, rgba(238, 153, 172, 0.5) 0%, rgba(255, 182, 193, 0.5) 100%) !important;
+    border: 2px solid #EE99AC !important;
+    animation: fairySparkle 1s ease-in-out infinite;
+    box-shadow: 0 0 25px rgba(238, 153, 172, 0.7), inset 0 0 30px rgba(255, 200, 210, 0.4);
+}
+.element-fairy .pokemon-sprite { animation: fairyDance 1.2s ease-in-out infinite; filter: drop-shadow(0 0 12px rgba(238,153,172,1)) brightness(1.1); }
+.element-fairy .tile-number { color: #FF69B4 !important; text-shadow: 2px 2px 4px rgba(255,255,255,1), 0 0 20px rgba(238,153,172,1), 0 0 35px rgba(255,105,180,0.8) !important; }
+@keyframes fairySparkle { 0%,100% { box-shadow: 0 0 25px rgba(238,153,172,0.7); } 50% { box-shadow: 0 0 40px rgba(255,182,193,1); } }
+@keyframes fairyDance { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-5px) rotate(3deg); } }
+.particles-fairy::before, .particles-fairy::after { content: '💖'; position: absolute; font-size: 12px; animation: fairyHeart 1.5s ease-in-out infinite; opacity: 0; }
+@keyframes fairyHeart { 0%,100% { opacity: 0; transform: scale(0.5) translateY(0); } 50% { opacity: 1; transform: scale(1) translateY(-15px); } }
+
+/* ============================================ */
+/* СТИХИЯ: COSMIC 🌌 */
+/* ============================================ */
+.element-cosmic {
+    background: linear-gradient(135deg, rgba(61, 26, 120, 0.7) 0%, rgba(20, 10, 60, 0.7) 100%) !important;
+    border: 2px solid #3D1A78 !important;
+    animation: cosmicWarp 2s ease-in-out infinite;
+    box-shadow: 0 0 35px rgba(100, 50, 200, 0.8), 0 0 70px rgba(50, 20, 150, 0.5), inset 0 0 40px rgba(150, 100, 255, 0.4);
+}
+.element-cosmic .pokemon-sprite { animation: cosmicOrbit 3s linear infinite; filter: drop-shadow(0 0 20px rgba(100,50,200,1)) brightness(1.2); }
+.element-cosmic .tile-number { color: #9370DB !important; text-shadow: 2px 2px 4px rgba(255,255,255,1), 0 0 25px rgba(100,50,200,1), 0 0 50px rgba(150,100,255,0.9) !important; }
+@keyframes cosmicWarp { 0%,100% { transform: scale(1); filter: hue-rotate(0deg); } 50% { transform: scale(1.03); filter: hue-rotate(20deg); } }
+@keyframes cosmicOrbit { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.particles-cosmic::before, .particles-cosmic::after { content: '⭐'; position: absolute; font-size: 10px; animation: cosmicStar 2s linear infinite; opacity: 0; }
+@keyframes cosmicStar { 0% { opacity: 0; transform: scale(0) rotate(0deg); } 50% { opacity: 1; transform: scale(1) rotate(180deg); } 100% { opacity: 0; transform: scale(0) rotate(360deg); } }
+
+/* ============================================ */
+/* СТИХИЯ: SHADOW 🖤 */
+/* ============================================ */
+.element-shadow {
+    background: linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(10, 10, 20, 0.9) 100%) !important;
+    border: 3px solid #1A1A2E !important;
+    animation: shadowConsume 1s ease-in-out infinite;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 1), 0 0 80px rgba(20, 20, 40, 0.8), inset 0 0 50px rgba(50, 50, 80, 0.5);
+}
+.element-shadow .pokemon-sprite { animation: shadowMerge 1.5s ease-in-out infinite; filter: drop-shadow(0 0 25px rgba(0,0,0,1)) brightness(0.8) contrast(1.2); }
+.element-shadow .tile-number { color: #2F2F4F !important; text-shadow: 3px 3px 6px rgba(255,255,255,1), 0 0 30px rgba(50,50,100,1), 0 0 60px rgba(0,0,0,1) !important; }
+@keyframes shadowConsume { 0%,100% { box-shadow: 0 0 40px rgba(0,0,0,1); transform: scale(1); } 50% { box-shadow: 0 0 60px rgba(0,0,0,1), 0 0 100px rgba(20,20,40,0.9); transform: scale(1.02); } }
+@keyframes shadowMerge { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+.particles-shadow::before, .particles-shadow::after { content: '🖤'; position: absolute; font-size: 12px; animation: shadowVoid 1.5s ease-in-out infinite; opacity: 0; }
+@keyframes shadowVoid { 0%,100% { opacity: 0; transform: scale(1.5); } 50% { opacity: 0.8; transform: scale(0.5); } }
+
+/* ============================================ */
+/* СТИХИЯ: LEGENDARY ✨ */
+/* ============================================ */
+.element-legendary {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.6) 0%, rgba(255, 180, 0, 0.6) 50%, rgba(255, 140, 0, 0.6) 100%) !important;
+    border: 4px solid #FFD700 !important;
+    animation: legendaryGlory 1s ease-in-out infinite;
+    box-shadow: 0 0 50px rgba(255, 215, 0, 1), 0 0 100px rgba(255, 180, 0, 0.8), 0 0 150px rgba(255, 140, 0, 0.5), inset 0 0 60px rgba(255, 255, 200, 0.5);
+}
+.element-legendary .pokemon-sprite { animation: legendaryAscend 1s ease-in-out infinite; filter: drop-shadow(0 0 30px rgba(255,215,0,1)) brightness(1.3) saturate(1.2); }
+.element-legendary .tile-number { color: #B8860B !important; text-shadow: 3px 3px 6px rgba(255,255,255,1), 0 0 30px rgba(255,215,0,1), 0 0 60px rgba(255,180,0,1), 0 0 90px rgba(255,140,0,0.8) !important; animation: legendaryText 0.5s ease-in-out infinite alternate; }
+@keyframes legendaryGlory { 0%,100% { transform: scale(1); filter: hue-rotate(0deg); } 50% { transform: scale(1.05); filter: hue-rotate(10deg); } }
+@keyframes legendaryAscend { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-8px) scale(1.1); } }
+@keyframes legendaryText { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
+.particles-legendary::before, .particles-legendary::after { content: '✨'; position: absolute; font-size: 16px; animation: legendarySparkle 0.6s ease-out infinite; opacity: 0; }
+.particles-legendary::before { top: 10%; left: 10%; animation-delay: 0s; }
+.particles-legendary::after { bottom: 10%; right: 10%; animation-delay: 0.3s; content: '🌟'; }
+@keyframes legendarySparkle { 0% { opacity: 1; transform: scale(0.3) rotate(0deg); } 100% { opacity: 0; transform: scale(1.5) rotate(180deg); } }
+
+/* ============================================ */
+/* БЕЙДЖ СТИХИИ */
+/* ============================================ */
+.element-badge {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    font-size: 14px;
+    z-index: 5;
+    animation: badgePulse 1.5s ease-in-out infinite;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+/* Контейнер частиц */
+.element-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 3;
+}
+
+/* ============================================ */
+/* УВЕДОМЛЕНИЕ О СМЕНЕ СТИХИИ */
+/* ============================================ */
+
+.element-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    animation: notificationAppear 0.5s ease-out;
+}
+
+.element-notification.fade-out {
+    animation: notificationFadeOut 0.5s ease-out forwards;
+}
+
+.element-notification-content {
+    padding: 30px 50px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+}
+
+.element-notification-emoji {
+    display: block;
+    font-size: 80px;
+    margin-bottom: 15px;
+    animation: emojiPulse 0.5s ease-in-out infinite alternate;
+}
+
+.element-notification-text {
+    display: block;
+    font-size: 32px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 10px;
+}
+
+.element-notification-score {
+    display: block;
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: bold;
+}
+
+@keyframes notificationAppear {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes notificationFadeOut {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+@keyframes emojiPulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.2); }
+}
+
+/* Стили уведомлений для каждой стихии (22 стихии) */
+.element-notification-content.element-normal { background: linear-gradient(135deg, rgba(168, 168, 120, 0.95), rgba(200, 200, 170, 0.95)); }
+.element-notification-content.element-fire { background: linear-gradient(135deg, rgba(240, 128, 48, 0.95), rgba(255, 80, 0, 0.95)); }
+.element-notification-content.element-water { background: linear-gradient(135deg, rgba(104, 144, 240, 0.95), rgba(0, 100, 200, 0.95)); }
+.element-notification-content.element-electric { background: linear-gradient(135deg, rgba(248, 208, 48, 0.95), rgba(255, 230, 0, 0.95)); }
+.element-notification-content.element-grass { background: linear-gradient(135deg, rgba(120, 200, 80, 0.95), rgba(60, 150, 40, 0.95)); }
+.element-notification-content.element-poison { background: linear-gradient(135deg, rgba(160, 64, 160, 0.95), rgba(100, 40, 130, 0.95)); }
+.element-notification-content.element-ground { background: linear-gradient(135deg, rgba(224, 192, 104, 0.95), rgba(180, 140, 60, 0.95)); }
+.element-notification-content.element-flying { background: linear-gradient(135deg, rgba(168, 144, 240, 0.95), rgba(120, 180, 255, 0.95)); }
+.element-notification-content.element-bug { background: linear-gradient(135deg, rgba(168, 184, 32, 0.95), rgba(120, 140, 20, 0.95)); }
+.element-notification-content.element-rock { background: linear-gradient(135deg, rgba(184, 160, 56, 0.95), rgba(140, 110, 40, 0.95)); }
+.element-notification-content.element-ice { background: linear-gradient(135deg, rgba(152, 216, 216, 0.95), rgba(100, 180, 220, 0.95)); }
+.element-notification-content.element-fighting { background: linear-gradient(135deg, rgba(192, 48, 40, 0.95), rgba(150, 30, 30, 0.95)); }
+.element-notification-content.element-psychic { background: linear-gradient(135deg, rgba(248, 88, 136, 0.95), rgba(180, 60, 180, 0.95)); }
+.element-notification-content.element-ghost { background: linear-gradient(135deg, rgba(112, 88, 152, 0.95), rgba(80, 50, 120, 0.95)); }
+.element-notification-content.element-dark { background: linear-gradient(135deg, rgba(112, 88, 72, 0.95), rgba(40, 30, 30, 0.95)); }
+.element-notification-content.element-steel { background: linear-gradient(135deg, rgba(184, 184, 208, 0.95), rgba(140, 140, 170, 0.95)); }
+.element-notification-content.element-fairy { background: linear-gradient(135deg, rgba(238, 153, 172, 0.95), rgba(255, 182, 193, 0.95)); }
+.element-notification-content.element-dragon { background: linear-gradient(135deg, rgba(112, 56, 248, 0.95), rgba(80, 0, 180, 0.95)); }
+.element-notification-content.element-cosmic { background: linear-gradient(135deg, rgba(61, 26, 120, 0.95), rgba(20, 10, 60, 0.95)); }
+.element-notification-content.element-shadow { background: linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(10, 10, 20, 0.95)); }
+.element-notification-content.element-legendary { background: linear-gradient(135deg, rgba(255, 215, 0, 0.95), rgba(255, 180, 0, 0.95)); animation: legendaryNotification 0.5s ease-in-out infinite alternate; }
+@keyframes legendaryNotification { 0% { box-shadow: 0 0 30px rgba(255,215,0,0.8); } 100% { box-shadow: 0 0 60px rgba(255,215,0,1); } }
+
+/* ============================================ */
+/* ИНДИКАТОР ТЕКУЩЕЙ СТИХИИ */
+/* ============================================ */
+
+.element-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.indicator-emoji {
+    font-size: 24px;
+    animation: indicatorPulse 1.5s ease-in-out infinite;
+}
+
+.indicator-name {
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes indicatorPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+
+/* Цвета индикатора для каждой стихии (22 стихии) */
+.element-indicator-normal { background: linear-gradient(135deg, #A8A878, #C8C8AA); }
+.element-indicator-fire { background: linear-gradient(135deg, #F08030, #FF4500); }
+.element-indicator-water { background: linear-gradient(135deg, #6890F0, #0064C8); }
+.element-indicator-electric { background: linear-gradient(135deg, #F8D030, #FFE600); }
+.element-indicator-grass { background: linear-gradient(135deg, #78C850, #3C9628); }
+.element-indicator-poison { background: linear-gradient(135deg, #A040A0, #642882); }
+.element-indicator-ground { background: linear-gradient(135deg, #E0C068, #B48C3C); }
+.element-indicator-flying { background: linear-gradient(135deg, #A890F0, #78B4FF); }
+.element-indicator-bug { background: linear-gradient(135deg, #A8B820, #788C14); }
+.element-indicator-rock { background: linear-gradient(135deg, #B8A038, #8C6E28); }
+.element-indicator-ice { background: linear-gradient(135deg, #98D8D8, #64B4DC); }
+.element-indicator-fighting { background: linear-gradient(135deg, #C03028, #961E1E); }
+.element-indicator-psychic { background: linear-gradient(135deg, #F85888, #B43CB4); }
+.element-indicator-ghost { background: linear-gradient(135deg, #705898, #503278); }
+.element-indicator-dark { background: linear-gradient(135deg, #705848, #281E1E); }
+.element-indicator-steel { background: linear-gradient(135deg, #B8B8D0, #8C8CAA); }
+.element-indicator-fairy { background: linear-gradient(135deg, #EE99AC, #FFB6C1); }
+.element-indicator-dragon { background: linear-gradient(135deg, #7038F8, #5000B4); }
+.element-indicator-cosmic { background: linear-gradient(135deg, #3D1A78, #140A3C); }
+.element-indicator-shadow { background: linear-gradient(135deg, #1A1A2E, #0A0A14); }
+.element-indicator-legendary { background: linear-gradient(135deg, #FFD700, #FFB400); animation: legendaryIndicator 0.5s ease-in-out infinite alternate; }
+@keyframes legendaryIndicator { 0% { box-shadow: 0 0 15px rgba(255,215,0,0.6); } 100% { box-shadow: 0 0 30px rgba(255,215,0,1); } }
+
+/* ============================================ */
+/* ТЕМЫ ФОНА ДЛЯ GRID ПО СТИХИЯМ (22 стихии) */
+/* ============================================ */
+
+.element-theme-normal { background: #bbada0; }
+.element-theme-fire { background: linear-gradient(135deg, #8B4513, #CD853F); box-shadow: inset 0 0 30px rgba(255, 100, 0, 0.3); }
+.element-theme-water { background: linear-gradient(135deg, #2E5090, #4682B4); box-shadow: inset 0 0 30px rgba(100, 150, 255, 0.3); }
+.element-theme-electric { background: linear-gradient(135deg, #B8860B, #DAA520); box-shadow: inset 0 0 30px rgba(255, 230, 0, 0.3); }
+.element-theme-grass { background: linear-gradient(135deg, #228B22, #32CD32); box-shadow: inset 0 0 30px rgba(100, 200, 100, 0.3); }
+.element-theme-poison { background: linear-gradient(135deg, #6B286B, #9040A0); box-shadow: inset 0 0 30px rgba(160, 64, 160, 0.3); }
+.element-theme-ground { background: linear-gradient(135deg, #8B6914, #C8A848); box-shadow: inset 0 0 30px rgba(200, 160, 80, 0.3); }
+.element-theme-flying { background: linear-gradient(135deg, #6878B0, #A8C0F0); box-shadow: inset 0 0 30px rgba(168, 144, 240, 0.3); }
+.element-theme-bug { background: linear-gradient(135deg, #607010, #90A828); box-shadow: inset 0 0 30px rgba(168, 184, 32, 0.3); }
+.element-theme-rock { background: linear-gradient(135deg, #8B7355, #A0826D); box-shadow: inset 0 0 30px rgba(140, 110, 40, 0.3); }
+.element-theme-ice { background: linear-gradient(135deg, #4682B4, #87CEEB); box-shadow: inset 0 0 30px rgba(200, 240, 255, 0.3); }
+.element-theme-fighting { background: linear-gradient(135deg, #701818, #A03030); box-shadow: inset 0 0 30px rgba(192, 48, 40, 0.3); }
+.element-theme-psychic { background: linear-gradient(135deg, #9932CC, #DA70D6); box-shadow: inset 0 0 30px rgba(250, 100, 200, 0.3); }
+.element-theme-ghost { background: linear-gradient(135deg, #382850, #604878); box-shadow: inset 0 0 30px rgba(112, 88, 152, 0.3); }
+.element-theme-dark { background: linear-gradient(135deg, #181018, #382830); box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5); }
+.element-theme-steel { background: linear-gradient(135deg, #606880, #989CB8); box-shadow: inset 0 0 30px rgba(184, 184, 208, 0.3); }
+.element-theme-fairy { background: linear-gradient(135deg, #C06080, #F0A0B0); box-shadow: inset 0 0 30px rgba(238, 153, 172, 0.3); }
+.element-theme-dragon { background: linear-gradient(135deg, #4B0082, #8A2BE2); box-shadow: inset 0 0 30px rgba(150, 100, 255, 0.3); }
+.element-theme-cosmic { background: linear-gradient(135deg, #100828, #281050); box-shadow: inset 0 0 40px rgba(100, 50, 200, 0.4); }
+.element-theme-shadow { background: linear-gradient(135deg, #080810, #101020); box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8); }
+.element-theme-legendary { background: linear-gradient(135deg, #806000, #C09000); box-shadow: inset 0 0 40px rgba(255, 215, 0, 0.5); animation: legendaryTheme 1s ease-in-out infinite alternate; }
+@keyframes legendaryTheme { 0% { box-shadow: inset 0 0 40px rgba(255, 215, 0, 0.5); } 100% { box-shadow: inset 0 0 60px rgba(255, 215, 0, 0.8); } }
+
+/* Стили ячеек по стихиям (22 стихии) */
+.cell-fire { background: rgba(255, 100, 0, 0.2); }
+.cell-water { background: rgba(100, 150, 255, 0.2); }
+.cell-electric { background: rgba(255, 230, 0, 0.2); }
+.cell-grass { background: rgba(100, 200, 100, 0.2); }
+.cell-poison { background: rgba(160, 64, 160, 0.2); }
+.cell-ground { background: rgba(200, 160, 80, 0.2); }
+.cell-flying { background: rgba(168, 144, 240, 0.2); }
+.cell-bug { background: rgba(168, 184, 32, 0.2); }
+.cell-rock { background: rgba(180, 150, 100, 0.2); }
+.cell-ice { background: rgba(200, 240, 255, 0.2); }
+.cell-fighting { background: rgba(192, 48, 40, 0.2); }
+.cell-psychic { background: rgba(250, 100, 200, 0.2); }
+.cell-ghost { background: rgba(112, 88, 152, 0.2); }
+.cell-dark { background: rgba(40, 30, 30, 0.3); }
+.cell-steel { background: rgba(184, 184, 208, 0.2); }
+.cell-fairy { background: rgba(238, 153, 172, 0.2); }
+.cell-dragon { background: rgba(150, 100, 255, 0.2); }
+.cell-cosmic { background: rgba(100, 50, 200, 0.2); }
+.cell-shadow { background: rgba(0, 0, 0, 0.3); }
+.cell-legendary { background: rgba(255, 215, 0, 0.2); }
 
 .tile-128 .tile-number { font-size: 28px; }
 .tile-256 .tile-number { font-size: 28px; }
@@ -458,6 +1419,22 @@ h1 {
 
 .deploy-btn:hover {
     background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.test-btn {
+    background: linear-gradient(135deg, #F08030 0%, #FF4500 50%, #7038F8 100%);
+    color: white;
+    animation: testBtnGlow 2s ease-in-out infinite;
+}
+
+.test-btn:hover {
+    background: linear-gradient(135deg, #7038F8 0%, #FF4500 50%, #F08030 100%);
+    transform: translateY(-2px) scale(1.05);
+}
+
+@keyframes testBtnGlow {
+    0%, 100% { box-shadow: 0 4px 15px rgba(240, 128, 48, 0.4); }
+    50% { box-shadow: 0 4px 25px rgba(112, 56, 248, 0.6); }
 }
 
 .btn-icon {

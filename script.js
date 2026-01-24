@@ -10,29 +10,123 @@ class Game2048 {
         this.gridContainer = document.getElementById('grid');
         this.scoreElement = document.getElementById('score');
         this.gameOverElement = document.getElementById('game-over');
-        // Маппинг чисел на ID покемонов (популярные покемоны)
+        this.currentElement = 'normal';
+        this.lastElement = 'normal';
+        
+        // Система стихий покемонов ПО ОЧКАМ (score) - до 100к+
+        // Стихия меняется когда игрок набирает определенное количество очков
+        this.scoreElements = [
+            // Начальные стихии (0 - 5000)
+            { type: 'normal',   minScore: 0,      name: 'Normal ⭐',    color: '#A8A878', emoji: '⭐', desc: 'Начало пути' },
+            { type: 'fire',     minScore: 100,    name: 'Fire 🔥',      color: '#F08030', emoji: '🔥', desc: 'Огонь пробуждается!' },
+            { type: 'water',    minScore: 300,    name: 'Water 💧',     color: '#6890F0', emoji: '💧', desc: 'Сила воды!' },
+            { type: 'electric', minScore: 600,    name: 'Electric ⚡',  color: '#F8D030', emoji: '⚡', desc: 'Молния бьёт!' },
+            { type: 'grass',    minScore: 1000,   name: 'Grass 🌿',     color: '#78C850', emoji: '🌿', desc: 'Природа на твоей стороне!' },
+            { type: 'poison',   minScore: 1500,   name: 'Poison ☠️',    color: '#A040A0', emoji: '☠️', desc: 'Токсичная сила!' },
+            { type: 'ground',   minScore: 2000,   name: 'Ground 🌍',    color: '#E0C068', emoji: '🌍', desc: 'Земля дрожит!' },
+            
+            // Средние стихии (2500 - 15000)
+            { type: 'flying',   minScore: 2500,   name: 'Flying 🦅',    color: '#A890F0', emoji: '🦅', desc: 'Взлетаем выше!' },
+            { type: 'bug',      minScore: 3500,   name: 'Bug 🐛',       color: '#A8B820', emoji: '🐛', desc: 'Рой атакует!' },
+            { type: 'rock',     minScore: 5000,   name: 'Rock 🪨',      color: '#B8A038', emoji: '🪨', desc: 'Твёрдый как камень!' },
+            { type: 'ice',      minScore: 7000,   name: 'Ice ❄️',       color: '#98D8D8', emoji: '❄️', desc: 'Ледяная буря!' },
+            { type: 'fighting', minScore: 10000,  name: 'Fighting 🥊',  color: '#C03028', emoji: '🥊', desc: 'Боевой дух!' },
+            { type: 'psychic',  minScore: 15000,  name: 'Psychic 🔮',   color: '#F85888', emoji: '🔮', desc: 'Сила разума!' },
+            
+            // Продвинутые стихии (20000 - 50000)
+            { type: 'ghost',    minScore: 20000,  name: 'Ghost 👻',     color: '#705898', emoji: '👻', desc: 'Призрачная мощь!' },
+            { type: 'dark',     minScore: 25000,  name: 'Dark 🌑',      color: '#705848', emoji: '🌑', desc: 'Тьма поглощает!' },
+            { type: 'steel',    minScore: 30000,  name: 'Steel ⚔️',     color: '#B8B8D0', emoji: '⚔️', desc: 'Стальная воля!' },
+            { type: 'fairy',    minScore: 40000,  name: 'Fairy 🧚',     color: '#EE99AC', emoji: '🧚', desc: 'Магия фей!' },
+            { type: 'dragon',   minScore: 50000,  name: 'Dragon 🐉',    color: '#7038F8', emoji: '🐉', desc: 'Драконья ярость!' },
+            
+            // Легендарные стихии (60000 - 100000+)
+            { type: 'cosmic',   minScore: 60000,  name: 'Cosmic 🌌',    color: '#3D1A78', emoji: '🌌', desc: 'Космическая сила!' },
+            { type: 'shadow',   minScore: 75000,  name: 'Shadow 🖤',    color: '#1A1A2E', emoji: '🖤', desc: 'Теневой властелин!' },
+            { type: 'legendary', minScore: 100000, name: 'Legendary ✨', color: '#FFD700', emoji: '✨', desc: 'ЛЕГЕНДА ПРОБУДИЛАСЬ!' }
+        ];
+        
+        // Маппинг чисел на ID покемонов (будет меняться в зависимости от стихии)
         this.pokemonMap = {
-            2: 1,    // Bulbasaur
-            4: 4,    // Charmander
-            8: 7,    // Squirtle
-            16: 25,  // Pikachu
-            32: 39,  // Jigglypuff
-            64: 52,  // Meowth
-            128: 54, // Psyduck
-            256: 133, // Eevee
-            512: 150, // Mewtwo
-            1024: 151, // Mew
-            2048: 149  // Dragonite
+            2: 16, 4: 39, 8: 52, 16: 133, 32: 19, 64: 20, 128: 21, 256: 22, 512: 35, 1024: 36, 2048: 143
         };
         
-        // Дополнительные покемоны для больших чисел
-        this.pokemonList = [
-            1, 4, 7, 25, 39, 52, 54, 133, 150, 151, 149, // Основные
-            6, 9, 26, 38, 94, 130, 134, 135, 136, 143, // Дополнительные популярные
-            144, 145, 146, 150, 151, 249, 250, 251, // Легендарные
-            3, 5, 8, 10, 11, 12, 13, 14, 15 // Еще покемоны
-        ];
+        // Покемоны по стихиям для плиток (расширенный список)
+        this.elementPokemon = {
+            normal:    { 2: 16, 4: 39, 8: 52, 16: 133, 32: 19, 64: 20, 128: 21, 256: 22, 512: 35, 1024: 36, 2048: 143 },
+            fire:      { 2: 4, 4: 5, 8: 6, 16: 37, 32: 38, 64: 77, 128: 78, 256: 126, 512: 136, 1024: 250, 2048: 146 },
+            water:     { 2: 7, 4: 8, 8: 9, 16: 54, 32: 55, 64: 60, 128: 61, 256: 62, 512: 134, 1024: 130, 2048: 249 },
+            electric:  { 2: 25, 4: 26, 8: 81, 16: 82, 32: 100, 64: 101, 128: 125, 256: 135, 512: 145, 1024: 243, 2048: 310 },
+            grass:     { 2: 1, 4: 2, 8: 3, 16: 43, 32: 44, 64: 45, 128: 69, 256: 70, 512: 71, 1024: 114, 2048: 251 },
+            poison:    { 2: 23, 4: 24, 8: 29, 16: 30, 32: 31, 64: 41, 128: 42, 256: 88, 512: 89, 1024: 110, 2048: 169 },
+            ground:    { 2: 27, 4: 28, 8: 50, 16: 51, 32: 104, 64: 105, 128: 111, 256: 112, 512: 231, 1024: 232, 2048: 383 },
+            flying:    { 2: 16, 4: 17, 8: 18, 16: 21, 32: 22, 64: 83, 128: 84, 256: 85, 512: 142, 1024: 227, 2048: 250 },
+            bug:       { 2: 10, 4: 11, 8: 12, 16: 13, 32: 14, 64: 15, 128: 46, 256: 47, 512: 48, 1024: 49, 2048: 212 },
+            rock:      { 2: 74, 4: 75, 8: 76, 16: 95, 32: 111, 64: 112, 128: 138, 256: 139, 512: 140, 1024: 141, 2048: 142 },
+            ice:       { 2: 87, 4: 91, 8: 124, 16: 131, 32: 144, 64: 215, 128: 220, 256: 221, 512: 361, 1024: 362, 2048: 378 },
+            fighting:  { 2: 56, 4: 57, 8: 66, 16: 67, 32: 68, 64: 106, 128: 107, 256: 236, 512: 237, 1024: 286, 2048: 448 },
+            psychic:   { 2: 63, 4: 64, 8: 65, 16: 79, 32: 80, 64: 96, 128: 97, 256: 122, 512: 196, 1024: 150, 2048: 151 },
+            ghost:     { 2: 92, 4: 93, 8: 94, 16: 200, 32: 353, 64: 354, 128: 355, 256: 356, 512: 426, 1024: 477, 2048: 487 },
+            dark:      { 2: 197, 4: 198, 8: 215, 16: 228, 32: 229, 64: 261, 128: 262, 256: 302, 512: 359, 1024: 430, 2048: 491 },
+            steel:     { 2: 81, 4: 82, 8: 205, 16: 208, 32: 212, 64: 227, 128: 303, 256: 305, 512: 379, 1024: 385, 2048: 483 },
+            fairy:     { 2: 35, 4: 36, 8: 39, 16: 40, 32: 173, 64: 174, 128: 175, 256: 176, 512: 183, 1024: 184, 2048: 282 },
+            dragon:    { 2: 147, 4: 148, 8: 149, 16: 329, 32: 330, 64: 334, 128: 371, 256: 372, 512: 373, 1024: 384, 2048: 483 },
+            cosmic:    { 2: 120, 4: 121, 8: 137, 16: 233, 32: 234, 64: 343, 128: 344, 256: 374, 512: 375, 1024: 376, 2048: 382 },
+            shadow:    { 2: 302, 4: 353, 8: 354, 16: 355, 32: 356, 64: 477, 128: 478, 256: 479, 512: 487, 1024: 491, 2048: 493 },
+            legendary: { 2: 144, 4: 145, 8: 146, 16: 150, 32: 151, 64: 249, 128: 250, 256: 251, 512: 382, 1024: 383, 2048: 384 }
+        };
+        
         this.init();
+    }
+    
+    // Получить текущую стихию по очкам
+    getCurrentElement() {
+        let currentElement = this.scoreElements[0];
+        for (const element of this.scoreElements) {
+            if (this.score >= element.minScore) {
+                currentElement = element;
+            }
+        }
+        return currentElement;
+    }
+    
+    // Проверить и обновить стихию (вызывается при изменении очков)
+    updateElement() {
+        const element = this.getCurrentElement();
+        if (element.type !== this.currentElement) {
+            this.lastElement = this.currentElement;
+            this.currentElement = element.type;
+            
+            // Показываем уведомление о смене стихии
+            this.showElementChange(element);
+            
+            // Обновляем покемонов для новой стихии
+            this.pokemonMap = this.elementPokemon[element.type];
+        }
+        return element;
+    }
+    
+    // Показать анимацию смены стихии
+    showElementChange(element) {
+        // Создаём уведомление
+        const notification = document.createElement('div');
+        notification.className = 'element-notification';
+        notification.innerHTML = `
+            <div class="element-notification-content element-${element.type}">
+                <span class="element-notification-emoji">${element.emoji}</span>
+                <span class="element-notification-text">${element.name}</span>
+                <span class="element-notification-score">${element.minScore}+ очков!</span>
+            </div>
+        `;
+        document.body.appendChild(notification);
+        
+        // Удаляем через 2 секунды
+        setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 500);
+        }, 2000);
+        
+        console.log(`🎉 Стихия изменилась на ${element.name}!`);
     }
 
     init() {
@@ -134,32 +228,44 @@ class Game2048 {
 
     updateScore() {
         this.scoreElement.textContent = this.score;
+        // Проверяем смену стихии при изменении очков
+        this.updateElement();
     }
 
     getPokemonSpriteUrl(pokemonId) {
         // Используем анимированные спрайты из PokeAPI
-        // Для разных поколений есть разные варианты анимаций
         return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${pokemonId}.gif`;
     }
     
     getPokemonIdForValue(value) {
-        // Если есть точное соответствие, используем его
-        if (this.pokemonMap[value]) {
-            return this.pokemonMap[value];
+        // Берём покемона из текущей стихии
+        const elementPokemon = this.elementPokemon[this.currentElement];
+        if (elementPokemon && elementPokemon[value]) {
+            return elementPokemon[value];
         }
-        // Иначе вычисляем покемона на основе значения
-        // Используем индекс из списка покемонов
-        const index = Math.min(Math.floor(Math.log2(value)) - 1, this.pokemonList.length - 1);
-        return this.pokemonList[Math.max(0, index)] || 1;
+        // Fallback - берём ближайшее значение
+        const keys = Object.keys(elementPokemon || {}).map(Number).sort((a, b) => a - b);
+        for (let i = keys.length - 1; i >= 0; i--) {
+            if (value >= keys[i]) {
+                return elementPokemon[keys[i]];
+            }
+        }
+        return elementPokemon ? elementPokemon[2] : 25; // Pikachu по умолчанию
     }
 
     updateDisplay() {
         this.gridContainer.innerHTML = '';
         const cellSize = (this.gridContainer.offsetWidth - 40) / this.size;
         
+        // Получаем ТЕКУЩУЮ стихию по очкам (одна для всех плиток)
+        const currentElement = this.getCurrentElement();
+        
+        // Обновляем класс контейнера для общего стиля
+        this.gridContainer.className = `grid-container element-theme-${currentElement.type}`;
+        
         for (let i = 0; i < this.size * this.size; i++) {
             const cell = document.createElement('div');
-            cell.className = 'cell';
+            cell.className = `cell cell-${currentElement.type}`;
             this.gridContainer.appendChild(cell);
         }
 
@@ -168,9 +274,12 @@ class Game2048 {
                 if (this.grid[row][col] !== 0) {
                     const value = this.grid[row][col];
                     const tile = document.createElement('div');
-                    tile.className = `tile tile-${value}`;
                     
-                    // Получаем ID покемона для этого числа
+                    // ВСЕ плитки используют ТЕКУЩУЮ стихию по очкам
+                    tile.className = `tile tile-${value} element-${currentElement.type}`;
+                    tile.setAttribute('data-element', currentElement.type);
+                    
+                    // Получаем ID покемона для этого числа (из текущей стихии)
                     const pokemonId = this.getPokemonIdForValue(value);
                     const spriteUrl = this.getPokemonSpriteUrl(pokemonId);
                     
@@ -181,23 +290,36 @@ class Game2048 {
                     pokemonImg.alt = `Pokemon ${pokemonId}`;
                     pokemonImg.loading = 'lazy';
                     pokemonImg.onerror = function() {
-                        // Если анимированный спрайт не загрузился, пробуем другие варианты
                         const staticUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`;
                         if (this.src !== staticUrl) {
                             this.src = staticUrl;
                         } else {
-                            // Если и статический не загрузился, используем placeholder
                             this.style.display = 'none';
                         }
                     };
                     
-                    // Цифра прямо на покемоне (без бейджа)
+                    // Добавляем эффект частиц если не Normal стихия
+                    if (currentElement.type !== 'normal') {
+                        const particles = document.createElement('div');
+                        particles.className = `element-particles particles-${currentElement.type}`;
+                        tile.appendChild(particles);
+                    }
+                    
+                    // Цифра
                     const numberLabel = document.createElement('div');
                     numberLabel.className = 'tile-number';
                     numberLabel.textContent = value;
                     
                     tile.appendChild(pokemonImg);
                     tile.appendChild(numberLabel);
+                    
+                    // Бейдж стихии (если не Normal)
+                    if (currentElement.type !== 'normal') {
+                        const elementBadge = document.createElement('div');
+                        elementBadge.className = 'element-badge';
+                        elementBadge.textContent = currentElement.emoji;
+                        tile.appendChild(elementBadge);
+                    }
                     
                     tile.style.width = `${cellSize}px`;
                     tile.style.height = `${cellSize}px`;
@@ -207,6 +329,41 @@ class Game2048 {
                 }
             }
         }
+        
+        // Обновляем индикатор стихии
+        this.updateElementIndicator(currentElement);
+    }
+    
+    // Обновить индикатор текущей стихии
+    updateElementIndicator(element) {
+        let indicator = document.getElementById('element-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'element-indicator';
+            indicator.className = 'element-indicator';
+            const scoreContainer = document.querySelector('.score-container');
+            if (scoreContainer) {
+                scoreContainer.appendChild(indicator);
+            }
+        }
+        indicator.className = `element-indicator element-indicator-${element.type}`;
+        indicator.innerHTML = `<span class="indicator-emoji">${element.emoji}</span><span class="indicator-name">${element.type.toUpperCase()}</span>`;
+    }
+    
+    // Эмодзи для стихий
+    getElementEmoji(elementType) {
+        const emojis = {
+            normal: '⭐',
+            fire: '🔥',
+            water: '💧',
+            electric: '⚡',
+            grass: '🌿',
+            ice: '❄️',
+            rock: '🪨',
+            psychic: '🔮',
+            dragon: '🐉'
+        };
+        return emojis[elementType] || '⭐';
     }
 
     isGameOver() {
@@ -282,6 +439,69 @@ class Game2048 {
 
 // Initialize game
 window.game = new Game2048();
+
+// ============================================
+// Тестирование стихий ПО ОЧКАМ
+// ============================================
+
+let testElementIndex = 0;
+
+// Тестовые очки для каждой стихии (22 стихии до 100к+)
+const testScores = [
+    // Начальные (0 - 5000)
+    { score: 0,      name: '⭐ Normal',    emoji: '⭐',  desc: 'Начало пути' },
+    { score: 100,    name: '🔥 Fire',      emoji: '🔥',  desc: 'Огонь!' },
+    { score: 300,    name: '💧 Water',     emoji: '💧',  desc: 'Вода!' },
+    { score: 600,    name: '⚡ Electric',  emoji: '⚡',  desc: 'Молния!' },
+    { score: 1000,   name: '🌿 Grass',     emoji: '🌿',  desc: 'Природа!' },
+    { score: 1500,   name: '☠️ Poison',    emoji: '☠️',  desc: 'Яд!' },
+    { score: 2000,   name: '🌍 Ground',    emoji: '🌍',  desc: 'Земля!' },
+    
+    // Средние (2500 - 15000)
+    { score: 2500,   name: '🦅 Flying',    emoji: '🦅',  desc: 'Полёт!' },
+    { score: 3500,   name: '🐛 Bug',       emoji: '🐛',  desc: 'Жуки!' },
+    { score: 5000,   name: '🪨 Rock',      emoji: '🪨',  desc: 'Камень!' },
+    { score: 7000,   name: '❄️ Ice',       emoji: '❄️',  desc: 'Лёд!' },
+    { score: 10000,  name: '🥊 Fighting',  emoji: '🥊',  desc: 'Бой!' },
+    { score: 15000,  name: '🔮 Psychic',   emoji: '🔮',  desc: 'Психика!' },
+    
+    // Продвинутые (20000 - 50000)
+    { score: 20000,  name: '👻 Ghost',     emoji: '👻',  desc: 'Призрак!' },
+    { score: 25000,  name: '🌑 Dark',      emoji: '🌑',  desc: 'Тьма!' },
+    { score: 30000,  name: '⚔️ Steel',     emoji: '⚔️',  desc: 'Сталь!' },
+    { score: 40000,  name: '🧚 Fairy',     emoji: '🧚',  desc: 'Фея!' },
+    { score: 50000,  name: '🐉 Dragon',    emoji: '🐉',  desc: 'Дракон!' },
+    
+    // Легендарные (60000 - 100000+)
+    { score: 60000,  name: '🌌 Cosmic',    emoji: '🌌',  desc: 'Космос!' },
+    { score: 75000,  name: '🖤 Shadow',    emoji: '🖤',  desc: 'Тень!' },
+    { score: 100000, name: '✨ Legendary', emoji: '✨',  desc: 'ЛЕГЕНДА!' }
+];
+
+function testElements() {
+    const testData = testScores[testElementIndex];
+    
+    // Устанавливаем тестовые плитки
+    window.game.grid = [
+        [2, 4, 8, 16],
+        [32, 64, 128, 256],
+        [512, 1024, 2048, 0],
+        [0, 0, 0, 0]
+    ];
+    
+    // Устанавливаем очки для нужной стихии
+    window.game.score = testData.score;
+    window.game.updateScore();
+    window.game.updateDisplay();
+    
+    // Показываем уведомление о стихии
+    showStatus(`${testData.emoji} ${testData.name} (${testData.score.toLocaleString()}+ очков) - ${testData.desc}`, 'success');
+    
+    // Переходим к следующей стихии
+    testElementIndex = (testElementIndex + 1) % testScores.length;
+}
+
+window.testElements = testElements;
 
 // ============================================
 // Система локализации
