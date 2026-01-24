@@ -2,56 +2,100 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Создание embed-image с грозным покемоном</title>
+    <title>🔥 Pokemon 2048 - Создание яркой картинки</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a2e; color: white; }
+        body { font-family: Arial, sans-serif; padding: 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: white; min-height: 100vh; }
         .container { max-width: 1300px; margin: 0 auto; }
-        button { background: #f08030; color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-size: 18px; margin: 10px 5px; }
-        button:hover { background: #c03028; transform: scale(1.05); }
-        canvas { border: 3px solid #f08030; border-radius: 8px; display: block; margin: 20px auto; }
+        button { background: linear-gradient(45deg, #ffcb05, #f08030); color: #1a1a2e; border: none; padding: 15px 30px; border-radius: 12px; cursor: pointer; font-size: 18px; margin: 10px 5px; font-weight: bold; box-shadow: 0 4px 15px rgba(255,203,5,0.4); transition: all 0.3s; }
+        button:hover { transform: scale(1.05); box-shadow: 0 6px 25px rgba(255,203,5,0.6); }
+        canvas { border: 4px solid #ffcb05; border-radius: 12px; display: block; margin: 20px auto; box-shadow: 0 0 30px rgba(255,203,5,0.3); }
         .pokemon-select { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 20px 0; }
-        .pokemon-btn { background: #333; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
-        .pokemon-btn:hover, .pokemon-btn.active { background: #f08030; transform: scale(1.1); }
-        h1 { text-align: center; color: #f08030; }
-        #status { text-align: center; margin: 20px 0; font-size: 18px; }
+        .pokemon-btn { background: rgba(255,255,255,0.1); padding: 12px 20px; border-radius: 10px; cursor: pointer; transition: all 0.3s; border: 2px solid transparent; }
+        .pokemon-btn:hover, .pokemon-btn.active { background: linear-gradient(45deg, #ffcb05, #f08030); color: #1a1a2e; transform: scale(1.1); border-color: #fff; }
+        h1 { text-align: center; color: #ffcb05; text-shadow: 0 0 20px rgba(255,203,5,0.5); font-size: 2.5em; }
+        #status { text-align: center; margin: 20px 0; font-size: 20px; color: #ffcb05; }
+        .style-select { display: flex; gap: 10px; justify-content: center; margin: 15px 0; }
+        .style-btn { background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .style-btn:hover, .style-btn.active { background: #3b4cca; color: #ffcb05; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔥 Создание embed-image с грозным покемоном</h1>
+        <h1>⚡ Pokemon 2048 - Создай яркую картинку!</h1>
+        
+        <p style="text-align:center; font-size: 16px; opacity: 0.8;">Выбери покемона для привлечения внимания:</p>
         
         <div class="pokemon-select">
-            <div class="pokemon-btn active" onclick="selectPokemon(130, 'Gyarados')">🐉 Gyarados</div>
+            <div class="pokemon-btn active" onclick="selectPokemon(25, 'Pikachu')">⚡ Pikachu</div>
             <div class="pokemon-btn" onclick="selectPokemon(6, 'Charizard')">🔥 Charizard</div>
             <div class="pokemon-btn" onclick="selectPokemon(150, 'Mewtwo')">🔮 Mewtwo</div>
-            <div class="pokemon-btn" onclick="selectPokemon(384, 'Rayquaza')">🐲 Rayquaza</div>
-            <div class="pokemon-btn" onclick="selectPokemon(149, 'Dragonite')">🐉 Dragonite</div>
-            <div class="pokemon-btn" onclick="selectPokemon(248, 'Tyranitar')">🦖 Tyranitar</div>
-            <div class="pokemon-btn" onclick="selectPokemon(483, 'Dialga')">💎 Dialga</div>
-            <div class="pokemon-btn" onclick="selectPokemon(487, 'Giratina')">👻 Giratina</div>
+            <div class="pokemon-btn" onclick="selectPokemon(130, 'Gyarados')">🐉 Gyarados</div>
+            <div class="pokemon-btn" onclick="selectPokemon(149, 'Dragonite')">🐲 Dragonite</div>
+            <div class="pokemon-btn" onclick="selectPokemon(384, 'Rayquaza')">💚 Rayquaza</div>
+            <div class="pokemon-btn" onclick="selectPokemon(94, 'Gengar')">👻 Gengar</div>
+            <div class="pokemon-btn" onclick="selectPokemon(133, 'Eevee')">🦊 Eevee</div>
+        </div>
+        
+        <p style="text-align:center; font-size: 16px; opacity: 0.8;">Стиль фона:</p>
+        <div class="style-select">
+            <div class="style-btn active" onclick="selectStyle('pokemon')">🎮 Pokemon Classic</div>
+            <div class="style-btn" onclick="selectStyle('fire')">🔥 Fire</div>
+            <div class="style-btn" onclick="selectStyle('electric')">⚡ Electric</div>
+            <div class="style-btn" onclick="selectStyle('dark')">🌙 Dark</div>
         </div>
         
         <div style="text-align: center;">
-            <button onclick="createEmbed()">✨ Создать embed-image.png</button>
-            <button onclick="downloadImage()">💾 Скачать</button>
+            <button onclick="createEmbed()">✨ Создать картинку</button>
+            <button onclick="downloadImage()">💾 Скачать embed-image.png</button>
         </div>
         
-        <div id="status">Выбран: Gyarados (#130)</div>
+        <div id="status">⚡ Выбран: Pikachu - самый узнаваемый покемон!</div>
         
         <canvas id="canvas" width="1200" height="630"></canvas>
     </div>
 
     <script>
-        let selectedPokemon = 130;
-        let selectedName = 'Gyarados';
+        let selectedPokemon = 25;
+        let selectedName = 'Pikachu';
+        let selectedStyle = 'pokemon';
         let pokemonImage = null;
+        
+        const styles = {
+            pokemon: {
+                colors: ['#3b4cca', '#2a75bb', '#ffcb05'],
+                glow: '#ffcb05',
+                accent: '#ff0000'
+            },
+            fire: {
+                colors: ['#ff4500', '#ff6b35', '#ffd700'],
+                glow: '#ff6b35',
+                accent: '#ffcb05'
+            },
+            electric: {
+                colors: ['#ffd700', '#ffcb05', '#fff8dc'],
+                glow: '#ffcb05',
+                accent: '#3b4cca'
+            },
+            dark: {
+                colors: ['#1a1a2e', '#16213e', '#0f3460'],
+                glow: '#9b59b6',
+                accent: '#e74c3c'
+            }
+        };
         
         function selectPokemon(id, name) {
             selectedPokemon = id;
             selectedName = name;
             document.querySelectorAll('.pokemon-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-            document.getElementById('status').textContent = `Выбран: ${name} (#${id})`;
+            document.getElementById('status').textContent = `⚡ Выбран: ${name}`;
+            createEmbed();
+        }
+        
+        function selectStyle(style) {
+            selectedStyle = style;
+            document.querySelectorAll('.style-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
             createEmbed();
         }
         
@@ -59,85 +103,117 @@
             const canvas = document.getElementById('canvas');
             const ctx = canvas.getContext('2d');
             const w = 1200, h = 630;
+            const style = styles[selectedStyle];
             
-            // Грозный градиент фон
+            // Яркий градиентный фон
             const gradient = ctx.createLinearGradient(0, 0, w, h);
-            gradient.addColorStop(0, '#1a1a2e');
-            gradient.addColorStop(0.5, '#16213e');
-            gradient.addColorStop(1, '#0f3460');
+            gradient.addColorStop(0, style.colors[0]);
+            gradient.addColorStop(0.5, style.colors[1]);
+            gradient.addColorStop(1, style.colors[2]);
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, w, h);
             
-            // Огненные/энергетические эффекты по краям
-            const edgeGradient = ctx.createRadialGradient(w/2, h/2, 100, w/2, h/2, 600);
-            edgeGradient.addColorStop(0, 'transparent');
-            edgeGradient.addColorStop(0.7, 'transparent');
-            edgeGradient.addColorStop(1, 'rgba(240, 128, 48, 0.3)');
-            ctx.fillStyle = edgeGradient;
+            // Декоративные круги/покеболы
+            ctx.globalAlpha = 0.1;
+            for(let i = 0; i < 8; i++) {
+                ctx.beginPath();
+                ctx.arc(Math.random() * w, Math.random() * h, 50 + Math.random() * 100, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+            
+            // Свечение вокруг центра
+            const glowGradient = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, 400);
+            glowGradient.addColorStop(0, 'rgba(255,255,255,0.3)');
+            glowGradient.addColorStop(0.5, 'rgba(255,255,255,0.1)');
+            glowGradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = glowGradient;
             ctx.fillRect(0, 0, w, h);
             
-            // Заголовок
+            // Главный заголовок с эффектом
+            ctx.save();
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 90px Arial';
+            ctx.font = 'bold 100px Arial';
             ctx.textAlign = 'center';
-            ctx.shadowColor = '#f08030';
-            ctx.shadowBlur = 20;
-            ctx.fillText('GAME 2048', w/2, 120);
+            ctx.shadowColor = style.glow;
+            ctx.shadowBlur = 30;
+            ctx.fillText('POKEMON', w/2, 100);
+            
+            // 2048 большими буквами
+            ctx.font = 'bold 140px Arial';
+            ctx.shadowColor = style.accent;
+            ctx.shadowBlur = 40;
+            ctx.fillText('2048', w/2, 230);
+            ctx.restore();
             
             // Подзаголовок
-            ctx.font = 'bold 36px Arial';
-            ctx.shadowBlur = 10;
-            ctx.fillText('Pokemon Edition', w/2, 180);
-            
-            // Кнопка Play
-            ctx.shadowBlur = 0;
-            const btnW = 280, btnH = 70;
-            const btnX = w/2 - btnW/2, btnY = h - 130;
-            
-            const btnGradient = ctx.createLinearGradient(btnX, btnY, btnX, btnY + btnH);
-            btnGradient.addColorStop(0, '#f08030');
-            btnGradient.addColorStop(1, '#c03028');
-            ctx.fillStyle = btnGradient;
-            ctx.beginPath();
-            ctx.roundRect(btnX, btnY, btnW, btnH, 15);
-            ctx.fill();
-            
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 32px Arial';
-            ctx.fillText('▶ PLAY NOW', w/2, btnY + 48);
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 10;
+            ctx.fillText('Собери их всех! Объединяй покемонов!', w/2, 280);
             
-            // Имя покемона
-            ctx.font = 'bold 28px Arial';
-            ctx.fillStyle = '#f8d030';
-            ctx.shadowColor = '#000';
+            // Кнопка Play - яркая и заметная
+            ctx.shadowBlur = 0;
+            const btnW = 320, btnH = 80;
+            const btnX = w/2 - btnW/2, btnY = h - 120;
+            
+            // Тень кнопки
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath();
+            ctx.roundRect(btnX + 5, btnY + 5, btnW, btnH, 20);
+            ctx.fill();
+            
+            // Кнопка
+            const btnGradient = ctx.createLinearGradient(btnX, btnY, btnX, btnY + btnH);
+            btnGradient.addColorStop(0, '#ff0000');
+            btnGradient.addColorStop(0.5, '#cc0000');
+            btnGradient.addColorStop(1, '#990000');
+            ctx.fillStyle = btnGradient;
+            ctx.beginPath();
+            ctx.roundRect(btnX, btnY, btnW, btnH, 20);
+            ctx.fill();
+            
+            // Белая полоса на кнопке (как покебол)
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(btnX, btnY + btnH/2 - 3, btnW, 6);
+            
+            // Текст кнопки
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 36px Arial';
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
             ctx.shadowBlur = 5;
-            ctx.fillText(selectedName.toUpperCase(), w/2, h - 40);
+            ctx.fillText('⚡ PLAY NOW!', w/2, btnY + 52);
             
             // Загружаем покемона
             document.getElementById('status').textContent = `Загрузка ${selectedName}...`;
             
             const img = new Image();
             img.crossOrigin = 'anonymous';
-            // Используем официальный арт покемона (большой и качественный)
             img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${selectedPokemon}.png`;
             
             img.onload = function() {
-                ctx.shadowBlur = 30;
-                ctx.shadowColor = '#f08030';
+                // Свечение вокруг покемона
+                ctx.shadowBlur = 50;
+                ctx.shadowColor = style.glow;
                 
-                // Рисуем покемона по центру
-                const size = 380;
+                // Рисуем покемона - большой и по центру
+                const size = 320;
                 const x = w/2 - size/2;
-                const y = 180;
+                const y = 260;
                 ctx.drawImage(img, x, y, size, size);
                 
+                // Рамка свечения
+                ctx.shadowBlur = 0;
+                
                 pokemonImage = img;
-                document.getElementById('status').textContent = `✅ ${selectedName} готов! Нажми "Скачать"`;
+                document.getElementById('status').textContent = `✅ ${selectedName} готов! Нажми "Скачать" и замени embed-image.png в папке проекта!`;
             };
             
             img.onerror = function() {
-                // Fallback на анимированный спрайт
-                img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${selectedPokemon}.gif`;
+                img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${selectedPokemon}.png`;
             };
         }
         
@@ -147,7 +223,7 @@
             link.download = 'embed-image.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
-            document.getElementById('status').textContent = '💾 Скачано! Замени файл в папке проекта и запуш!';
+            document.getElementById('status').textContent = '💾 Скачано! Замени embed-image.png в папке проекта и запуш на GitHub!';
         }
         
         // Создаём при загрузке
