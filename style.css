@@ -623,6 +623,386 @@ h1 {
     font-weight: 500;
 }
 
+/* ============================================ */
+/* Мотивирующие покемоны */
+/* ============================================ */
+
+.game-wrapper {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 900px;
+}
+
+.motivator-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-width: 140px;
+    max-width: 160px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    animation: motivatorFloat 3s ease-in-out infinite;
+}
+
+.motivator-left {
+    animation-delay: 0s;
+}
+
+.motivator-right {
+    animation-delay: 1.5s;
+}
+
+@keyframes motivatorFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.motivator-container:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.motivator-bubble {
+    background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+    border-radius: 20px;
+    padding: 12px 16px;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 2px solid #ffd54f;
+    max-width: 140px;
+    text-align: center;
+    animation: bubblePulse 2s ease-in-out infinite;
+}
+
+@keyframes bubblePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+.motivator-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-top: 12px solid #fff59d;
+}
+
+.motivator-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 14px solid #ffd54f;
+}
+
+.bubble-text {
+    font-size: 13px;
+    font-weight: bold;
+    color: #333;
+    line-height: 1.4;
+    display: block;
+}
+
+.motivator-pokemon {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: pokemonBounce 1s ease-in-out infinite;
+}
+
+@keyframes pokemonBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.motivator-sprite {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    transition: all 0.3s ease;
+}
+
+.motivator-container:hover .motivator-sprite {
+    transform: scale(1.15);
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
+}
+
+.motivator-name {
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Стили для разных уровней мотивации */
+.motivator-container.level-starter .motivator-bubble {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-color: #64b5f6;
+}
+.motivator-container.level-starter .motivator-bubble::after {
+    border-top-color: #bbdefb;
+}
+.motivator-container.level-starter .motivator-bubble::before {
+    border-top-color: #64b5f6;
+}
+
+.motivator-container.level-good .motivator-bubble {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border-color: #81c784;
+}
+.motivator-container.level-good .motivator-bubble::after {
+    border-top-color: #c8e6c9;
+}
+.motivator-container.level-good .motivator-bubble::before {
+    border-top-color: #81c784;
+}
+
+.motivator-container.level-great .motivator-bubble {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%);
+    border-color: #ffb74d;
+}
+.motivator-container.level-great .motivator-bubble::after {
+    border-top-color: #ffcc80;
+}
+.motivator-container.level-great .motivator-bubble::before {
+    border-top-color: #ffb74d;
+}
+
+.motivator-container.level-amazing .motivator-bubble {
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+    border-color: #f48fb1;
+}
+.motivator-container.level-amazing .motivator-bubble::after {
+    border-top-color: #f8bbd9;
+}
+.motivator-container.level-amazing .motivator-bubble::before {
+    border-top-color: #f48fb1;
+}
+
+.motivator-container.level-legendary .motivator-bubble {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+    border-color: #ba68c8;
+    animation: legendaryGlow 1.5s ease-in-out infinite;
+}
+.motivator-container.level-legendary .motivator-bubble::after {
+    border-top-color: #e1bee7;
+}
+.motivator-container.level-legendary .motivator-bubble::before {
+    border-top-color: #ba68c8;
+}
+
+.motivator-container.level-god .motivator-bubble {
+    background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+    border-color: #ffd54f;
+    animation: godGlow 1s ease-in-out infinite;
+}
+.motivator-container.level-god .motivator-bubble::after {
+    border-top-color: #ffecb3;
+}
+.motivator-container.level-god .motivator-bubble::before {
+    border-top-color: #ffd54f;
+}
+
+@keyframes legendaryGlow {
+    0%, 100% { box-shadow: 0 0 10px rgba(186, 104, 200, 0.5); }
+    50% { box-shadow: 0 0 25px rgba(186, 104, 200, 0.8); }
+}
+
+@keyframes godGlow {
+    0%, 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
+    50% { box-shadow: 0 0 35px rgba(255, 215, 0, 1); }
+}
+
+/* ============================================ */
+/* Переключатель языков */
+/* ============================================ */
+
+.language-selector {
+    position: relative;
+    margin-top: 10px;
+}
+
+.lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 20px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.lang-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.lang-icon {
+    font-size: 16px;
+}
+
+.lang-current {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.lang-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    padding: 8px 0;
+    margin-top: 8px;
+    z-index: 100;
+    display: none;
+    min-width: 140px;
+    max-height: 300px;
+    overflow-y: auto;
+    animation: dropdownFadeIn 0.2s ease;
+}
+
+.lang-dropdown.show {
+    display: block;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.lang-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.lang-dropdown::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.lang-dropdown::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.lang-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+.lang-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-size: 13px;
+    color: #333;
+}
+
+.lang-option:hover {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+}
+
+.lang-option.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.lang-option-flag {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.lang-option-name {
+    font-weight: 500;
+}
+
+.lang-option-code {
+    font-size: 10px;
+    opacity: 0.7;
+    margin-left: auto;
+    text-transform: uppercase;
+}
+
+/* Скрываем мотиваторы на маленьких экранах */
+@media (max-width: 800px) {
+    .game-wrapper {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .motivator-container {
+        display: none;
+    }
+    
+    .motivator-right {
+        display: flex;
+        flex-direction: row;
+        max-width: 100%;
+        min-width: auto;
+        padding: 10px 20px;
+    }
+    
+    .motivator-right .motivator-pokemon {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .motivator-right .motivator-sprite {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .motivator-right .motivator-bubble {
+        max-width: 200px;
+    }
+}
+
 @media (max-width: 500px) {
     h1 {
         font-size: 36px;
@@ -637,4 +1017,8 @@ h1 {
     .tile-512 .tile-number { font-size: 20px; }
     .tile-1024 .tile-number { font-size: 18px; }
     .tile-2048 .tile-number { font-size: 16px; }
+    
+    .motivator-container {
+        display: none;
+    }
 }

@@ -284,6 +284,1642 @@ class Game2048 {
 window.game = new Game2048();
 
 // ============================================
+// Система локализации
+// ============================================
+
+const localization = {
+    currentLang: 'ru',
+    
+    languages: {
+        ru: { name: 'Русский', flag: '🇷🇺', code: 'RU' },
+        en: { name: 'English', flag: '🇬🇧', code: 'EN' },
+        es: { name: 'Español', flag: '🇪🇸', code: 'ES' },
+        de: { name: 'Deutsch', flag: '🇩🇪', code: 'DE' },
+        fr: { name: 'Français', flag: '🇫🇷', code: 'FR' },
+        pt: { name: 'Português', flag: '🇧🇷', code: 'PT' },
+        it: { name: 'Italiano', flag: '🇮🇹', code: 'IT' },
+        ja: { name: '日本語', flag: '🇯🇵', code: 'JA' },
+        ko: { name: '한국어', flag: '🇰🇷', code: 'KO' },
+        zh: { name: '中文', flag: '🇨🇳', code: 'ZH' },
+        pl: { name: 'Polski', flag: '🇵🇱', code: 'PL' },
+        tr: { name: 'Türkçe', flag: '🇹🇷', code: 'TR' },
+        ar: { name: 'العربية', flag: '🇸🇦', code: 'AR' },
+        hi: { name: 'हिन्दी', flag: '🇮🇳', code: 'HI' },
+        nl: { name: 'Nederlands', flag: '🇳🇱', code: 'NL' }
+    },
+
+    // Фразы на всех языках
+    phrases: {
+        // ===== РУССКИЙ =====
+        ru: {
+            starter: [
+                "Начни играть! 🎮",
+                "Давай! Ты сможешь!",
+                "Го-го-го! 💪",
+                "Удачи тебе!",
+                "Верю в тебя!",
+                "Жги! 🔥"
+            ],
+            level1: [
+                "100 очков! Неплохо! 👍",
+                "Разогрев! Давай дальше!",
+                "Первая сотня - легко!",
+                "Молодец! Продолжай!",
+                "Хороший старт! 🌟",
+                "Это только начало!",
+                "Вперёд к победе!",
+                "Отличный темп!"
+            ],
+            level2: [
+                "250! Ты в ударе! 💥",
+                "Супер играешь!",
+                "Вау! Так держать!",
+                "Мощно! Не останавливайся!",
+                "Красава! 🌈",
+                "Огонь! 🔥🔥",
+                "Круто идёшь!",
+                "Уже 250+! Респект!"
+            ],
+            level3: [
+                "500! Мастер! 🏆",
+                "Полтысячи! Легенда!",
+                "Бог игры! 👑",
+                "Нереально круто!",
+                "Ты машина! 🤖",
+                "Impossible! 💫",
+                "Элита! 🌟🌟",
+                "Pro gamer alert!",
+                "Непобедим!"
+            ],
+            level4: [
+                "1000!!! ЛЕГЕНДА! 👑👑",
+                "Тысяча! Это база!",
+                "Ультра скилл! 🚀",
+                "Топ-1 материал!",
+                "GG! Ты лучший!",
+                "Мега-мозг! 🧠",
+                "1К+ Красавчик!",
+                "Абсолют! 💎",
+                "Гений 2048!"
+            ],
+            level5: [
+                "2000! БОЖЕСТВО! ⚡",
+                "Киберспорт? 🎯",
+                "Нечеловеческий скилл!",
+                "MVP! MVP! MVP!",
+                "Ты сломал игру! 😱",
+                "Читер? Не, просто бог!",
+                "2К+ Это нереально!",
+                "Телепат! 🔮",
+                "Матрица взломана!"
+            ],
+            legendary: [
+                "5000!!! СОЗДАТЕЛЬ! 🌌",
+                "Ты... ты кто?! 😲",
+                "Это вообще законно?!",
+                "Бог 2048 спустился!",
+                "Легендарный! 🐉",
+                "Запредельно!",
+                "Мифический уровень!",
+                "Космос! 🚀🌟",
+                "Ты изменил реальность!"
+            ],
+            god: [
+                "10000!!! ТЫ СОЗДАЛ ВСЕЛЕННУЮ! 🌌✨",
+                "Поклоняюсь тебе! 🙇",
+                "Это невозможно... но ты смог!",
+                "Ты переписал законы физики!",
+                "Новая эра 2048! 👑💎",
+                "Божественный уровень!",
+                "Альфа и Омега!",
+                "За пределами понимания!",
+                "Ты сам стал 2048! 🔥🔥🔥"
+            ]
+        },
+
+        // ===== ENGLISH =====
+        en: {
+            starter: [
+                "Start playing! 🎮",
+                "You got this!",
+                "Let's go! 💪",
+                "Good luck!",
+                "I believe in you!",
+                "Let's rock! 🔥"
+            ],
+            level1: [
+                "100 points! Nice! 👍",
+                "Warming up! Keep going!",
+                "First hundred - easy!",
+                "Great job! Continue!",
+                "Good start! 🌟",
+                "This is just the beginning!",
+                "Onwards to victory!",
+                "Great pace!"
+            ],
+            level2: [
+                "250! You're on fire! 💥",
+                "Playing great!",
+                "Wow! Keep it up!",
+                "Powerful! Don't stop!",
+                "Awesome! 🌈",
+                "Fire! 🔥🔥",
+                "Going strong!",
+                "Already 250+! Respect!"
+            ],
+            level3: [
+                "500! Master! 🏆",
+                "Half a thousand! Legend!",
+                "Gaming god! 👑",
+                "Incredibly cool!",
+                "You're a machine! 🤖",
+                "Impossible! 💫",
+                "Elite! 🌟🌟",
+                "Pro gamer alert!",
+                "Invincible!"
+            ],
+            level4: [
+                "1000!!! LEGEND! 👑👑",
+                "One thousand! That's based!",
+                "Ultra skill! 🚀",
+                "Top-1 material!",
+                "GG! You're the best!",
+                "Mega brain! 🧠",
+                "1K+ Champion!",
+                "Absolute! 💎",
+                "2048 Genius!"
+            ],
+            level5: [
+                "2000! DEITY! ⚡",
+                "Esports? 🎯",
+                "Inhuman skill!",
+                "MVP! MVP! MVP!",
+                "You broke the game! 😱",
+                "Cheater? No, just a god!",
+                "2K+ Unreal!",
+                "Telepath! 🔮",
+                "Matrix hacked!"
+            ],
+            legendary: [
+                "5000!!! CREATOR! 🌌",
+                "Who... are you?! 😲",
+                "Is this even legal?!",
+                "The 2048 God descended!",
+                "Legendary! 🐉",
+                "Beyond limits!",
+                "Mythical level!",
+                "Cosmic! 🚀🌟",
+                "You changed reality!"
+            ],
+            god: [
+                "10000!!! YOU CREATED THE UNIVERSE! 🌌✨",
+                "I bow to you! 🙇",
+                "This is impossible... but you did it!",
+                "You rewrote physics!",
+                "New era of 2048! 👑💎",
+                "Divine level!",
+                "Alpha and Omega!",
+                "Beyond comprehension!",
+                "You became 2048! 🔥🔥🔥"
+            ]
+        },
+
+        // ===== ESPAÑOL =====
+        es: {
+            starter: [
+                "¡A jugar! 🎮",
+                "¡Tú puedes!",
+                "¡Vamos! 💪",
+                "¡Buena suerte!",
+                "¡Creo en ti!",
+                "¡A quemar! 🔥"
+            ],
+            level1: [
+                "¡100 puntos! ¡Bien! 👍",
+                "¡Calentando! ¡Sigue!",
+                "¡Primera centena - fácil!",
+                "¡Muy bien! ¡Continúa!",
+                "¡Buen comienzo! 🌟",
+                "¡Esto es solo el principio!",
+                "¡Hacia la victoria!",
+                "¡Excelente ritmo!"
+            ],
+            level2: [
+                "¡250! ¡Estás en racha! 💥",
+                "¡Juegas genial!",
+                "¡Guau! ¡Sigue así!",
+                "¡Potente! ¡No pares!",
+                "¡Increíble! 🌈",
+                "¡Fuego! 🔥🔥",
+                "¡Vas muy bien!",
+                "¡Ya 250+! ¡Respeto!"
+            ],
+            level3: [
+                "¡500! ¡Maestro! 🏆",
+                "¡Quinientos! ¡Leyenda!",
+                "¡Dios del juego! 👑",
+                "¡Increíblemente genial!",
+                "¡Eres una máquina! 🤖",
+                "¡Imposible! 💫",
+                "¡Élite! 🌟🌟",
+                "¡Alerta pro gamer!",
+                "¡Invencible!"
+            ],
+            level4: [
+                "¡1000!!! ¡LEYENDA! 👑👑",
+                "¡Mil! ¡Eso es base!",
+                "¡Ultra habilidad! 🚀",
+                "¡Material top-1!",
+                "¡GG! ¡Eres el mejor!",
+                "¡Mega cerebro! 🧠",
+                "¡1K+ Campeón!",
+                "¡Absoluto! 💎",
+                "¡Genio 2048!"
+            ],
+            level5: [
+                "¡2000! ¡DEIDAD! ⚡",
+                "¿Esports? 🎯",
+                "¡Habilidad inhumana!",
+                "¡MVP! ¡MVP! ¡MVP!",
+                "¡Rompiste el juego! 😱",
+                "¿Cheater? ¡No, solo un dios!",
+                "¡2K+ Irreal!",
+                "¡Telépata! 🔮",
+                "¡Matrix hackeada!"
+            ],
+            legendary: [
+                "¡5000!!! ¡CREADOR! 🌌",
+                "¿Quién... eres?! 😲",
+                "¿¡Esto es legal!?",
+                "¡El dios 2048 descendió!",
+                "¡Legendario! 🐉",
+                "¡Más allá de los límites!",
+                "¡Nivel mítico!",
+                "¡Cósmico! 🚀🌟",
+                "¡Cambiaste la realidad!"
+            ],
+            god: [
+                "¡10000!!! ¡CREASTE EL UNIVERSO! 🌌✨",
+                "¡Me inclino ante ti! 🙇",
+                "Esto es imposible... ¡pero lo hiciste!",
+                "¡Reescribiste la física!",
+                "¡Nueva era de 2048! 👑💎",
+                "¡Nivel divino!",
+                "¡Alfa y Omega!",
+                "¡Más allá de la comprensión!",
+                "¡Te convertiste en 2048! 🔥🔥🔥"
+            ]
+        },
+
+        // ===== DEUTSCH =====
+        de: {
+            starter: [
+                "Los geht's! 🎮",
+                "Du schaffst das!",
+                "Auf geht's! 💪",
+                "Viel Glück!",
+                "Ich glaube an dich!",
+                "Feuer frei! 🔥"
+            ],
+            level1: [
+                "100 Punkte! Nicht schlecht! 👍",
+                "Aufwärmen! Weiter so!",
+                "Erste Hundert - easy!",
+                "Toll! Weitermachen!",
+                "Guter Start! 🌟",
+                "Das ist erst der Anfang!",
+                "Auf zum Sieg!",
+                "Super Tempo!"
+            ],
+            level2: [
+                "250! Du bist im Flow! 💥",
+                "Super gespielt!",
+                "Wow! Weiter so!",
+                "Stark! Nicht aufhören!",
+                "Hammer! 🌈",
+                "Feuer! 🔥🔥",
+                "Läuft richtig gut!",
+                "Schon 250+! Respekt!"
+            ],
+            level3: [
+                "500! Meister! 🏆",
+                "Fünfhundert! Legende!",
+                "Spielgott! 👑",
+                "Unglaublich cool!",
+                "Du bist eine Maschine! 🤖",
+                "Unmöglich! 💫",
+                "Elite! 🌟🌟",
+                "Pro Gamer Alarm!",
+                "Unbesiegbar!"
+            ],
+            level4: [
+                "1000!!! LEGENDE! 👑👑",
+                "Tausend! Das ist die Basis!",
+                "Ultra Skill! 🚀",
+                "Top-1 Material!",
+                "GG! Du bist der Beste!",
+                "Mega-Hirn! 🧠",
+                "1K+ Champion!",
+                "Absolut! 💎",
+                "2048 Genie!"
+            ],
+            level5: [
+                "2000! GOTTHEIT! ⚡",
+                "Esports? 🎯",
+                "Unmenschlicher Skill!",
+                "MVP! MVP! MVP!",
+                "Du hast das Spiel zerstört! 😱",
+                "Cheater? Nein, einfach ein Gott!",
+                "2K+ Unwirklich!",
+                "Telepath! 🔮",
+                "Matrix gehackt!"
+            ],
+            legendary: [
+                "5000!!! SCHÖPFER! 🌌",
+                "Wer... bist du?! 😲",
+                "Ist das überhaupt legal?!",
+                "Der 2048-Gott ist herabgestiegen!",
+                "Legendär! 🐉",
+                "Jenseits der Grenzen!",
+                "Mythisches Level!",
+                "Kosmisch! 🚀🌟",
+                "Du hast die Realität verändert!"
+            ],
+            god: [
+                "10000!!! DU HAST DAS UNIVERSUM ERSCHAFFEN! 🌌✨",
+                "Ich verbeuge mich! 🙇",
+                "Das ist unmöglich... aber du hast es geschafft!",
+                "Du hast die Physik umgeschrieben!",
+                "Neue Ära von 2048! 👑💎",
+                "Göttliches Level!",
+                "Alpha und Omega!",
+                "Jenseits des Verstehens!",
+                "Du wurdest 2048! 🔥🔥🔥"
+            ]
+        },
+
+        // ===== FRANÇAIS =====
+        fr: {
+            starter: [
+                "C'est parti! 🎮",
+                "Tu peux le faire!",
+                "Allons-y! 💪",
+                "Bonne chance!",
+                "Je crois en toi!",
+                "En feu! 🔥"
+            ],
+            level1: [
+                "100 points! Pas mal! 👍",
+                "Échauffement! Continue!",
+                "Première centaine - facile!",
+                "Bravo! Continue!",
+                "Bon début! 🌟",
+                "Ce n'est que le début!",
+                "Vers la victoire!",
+                "Super rythme!"
+            ],
+            level2: [
+                "250! Tu es en feu! 💥",
+                "Tu joues super bien!",
+                "Wow! Continue comme ça!",
+                "Puissant! N'arrête pas!",
+                "Génial! 🌈",
+                "En flammes! 🔥🔥",
+                "Ça roule!",
+                "Déjà 250+! Respect!"
+            ],
+            level3: [
+                "500! Maître! 🏆",
+                "Cinq cents! Légende!",
+                "Dieu du jeu! 👑",
+                "Incroyablement cool!",
+                "Tu es une machine! 🤖",
+                "Impossible! 💫",
+                "Élite! 🌟🌟",
+                "Alerte pro gamer!",
+                "Invincible!"
+            ],
+            level4: [
+                "1000!!! LÉGENDE! 👑👑",
+                "Mille! C'est la base!",
+                "Ultra compétence! 🚀",
+                "Matériel top-1!",
+                "GG! Tu es le meilleur!",
+                "Méga cerveau! 🧠",
+                "1K+ Champion!",
+                "Absolu! 💎",
+                "Génie 2048!"
+            ],
+            level5: [
+                "2000! DIVINITÉ! ⚡",
+                "Esport? 🎯",
+                "Compétence inhumaine!",
+                "MVP! MVP! MVP!",
+                "Tu as cassé le jeu! 😱",
+                "Tricheur? Non, juste un dieu!",
+                "2K+ Irréel!",
+                "Télépathe! 🔮",
+                "Matrice piratée!"
+            ],
+            legendary: [
+                "5000!!! CRÉATEUR! 🌌",
+                "Qui... es-tu?! 😲",
+                "C'est même légal?!",
+                "Le dieu 2048 est descendu!",
+                "Légendaire! 🐉",
+                "Au-delà des limites!",
+                "Niveau mythique!",
+                "Cosmique! 🚀🌟",
+                "Tu as changé la réalité!"
+            ],
+            god: [
+                "10000!!! TU AS CRÉÉ L'UNIVERS! 🌌✨",
+                "Je m'incline! 🙇",
+                "C'est impossible... mais tu l'as fait!",
+                "Tu as réécrit la physique!",
+                "Nouvelle ère de 2048! 👑💎",
+                "Niveau divin!",
+                "Alpha et Oméga!",
+                "Au-delà de la compréhension!",
+                "Tu es devenu 2048! 🔥🔥🔥"
+            ]
+        },
+
+        // ===== PORTUGUÊS =====
+        pt: {
+            starter: [
+                "Vamos jogar! 🎮",
+                "Você consegue!",
+                "Bora! 💪",
+                "Boa sorte!",
+                "Acredito em você!",
+                "Arrasando! 🔥"
+            ],
+            level1: [
+                "100 pontos! Legal! 👍",
+                "Aquecendo! Continue!",
+                "Primeira centena - fácil!",
+                "Muito bem! Continue!",
+                "Bom começo! 🌟",
+                "Isso é só o começo!",
+                "Rumo à vitória!",
+                "Ótimo ritmo!"
+            ],
+            level2: [
+                "250! Você está on fire! 💥",
+                "Jogando demais!",
+                "Uau! Continue assim!",
+                "Poderoso! Não pare!",
+                "Incrível! 🌈",
+                "Fogo! 🔥🔥",
+                "Mandando bem!",
+                "Já 250+! Respeito!"
+            ],
+            level3: [
+                "500! Mestre! 🏆",
+                "Quinhentos! Lenda!",
+                "Deus do jogo! 👑",
+                "Incrivelmente legal!",
+                "Você é uma máquina! 🤖",
+                "Impossível! 💫",
+                "Elite! 🌟🌟",
+                "Alerta pro gamer!",
+                "Invencível!"
+            ],
+            level4: [
+                "1000!!! LENDA! 👑👑",
+                "Mil! Isso é base!",
+                "Ultra habilidade! 🚀",
+                "Material top-1!",
+                "GG! Você é o melhor!",
+                "Mega cérebro! 🧠",
+                "1K+ Campeão!",
+                "Absoluto! 💎",
+                "Gênio 2048!"
+            ],
+            level5: [
+                "2000! DIVINDADE! ⚡",
+                "Esports? 🎯",
+                "Habilidade desumana!",
+                "MVP! MVP! MVP!",
+                "Você quebrou o jogo! 😱",
+                "Cheater? Não, só um deus!",
+                "2K+ Irreal!",
+                "Telepata! 🔮",
+                "Matrix hackeada!"
+            ],
+            legendary: [
+                "5000!!! CRIADOR! 🌌",
+                "Quem... é você?! 😲",
+                "Isso é legal?!",
+                "O deus 2048 desceu!",
+                "Lendário! 🐉",
+                "Além dos limites!",
+                "Nível mítico!",
+                "Cósmico! 🚀🌟",
+                "Você mudou a realidade!"
+            ],
+            god: [
+                "10000!!! VOCÊ CRIOU O UNIVERSO! 🌌✨",
+                "Me curvo a você! 🙇",
+                "Isso é impossível... mas você conseguiu!",
+                "Você reescreveu a física!",
+                "Nova era de 2048! 👑💎",
+                "Nível divino!",
+                "Alfa e Ômega!",
+                "Além da compreensão!",
+                "Você se tornou 2048! 🔥🔥🔥"
+            ]
+        },
+
+        // ===== ITALIANO =====
+        it: {
+            starter: [
+                "Iniziamo! 🎮",
+                "Ce la puoi fare!",
+                "Andiamo! 💪",
+                "Buona fortuna!",
+                "Credo in te!",
+                "Spacca! 🔥"
+            ],
+            level1: [
+                "100 punti! Bene! 👍",
+                "Riscaldamento! Continua!",
+                "Prima centinaia - facile!",
+                "Bravo! Continua!",
+                "Buon inizio! 🌟",
+                "Questo è solo l'inizio!",
+                "Verso la vittoria!",
+                "Ottimo ritmo!"
+            ],
+            level2: [
+                "250! Sei in fiamme! 💥",
+                "Stai giocando alla grande!",
+                "Wow! Continua così!",
+                "Potente! Non fermarti!",
+                "Fantastico! 🌈",
+                "Fuoco! 🔥🔥",
+                "Stai andando forte!",
+                "Già 250+! Rispetto!"
+            ],
+            level3: [
+                "500! Maestro! 🏆",
+                "Cinquecento! Leggenda!",
+                "Dio del gioco! 👑",
+                "Incredibilmente figo!",
+                "Sei una macchina! 🤖",
+                "Impossibile! 💫",
+                "Elite! 🌟🌟",
+                "Allerta pro gamer!",
+                "Invincibile!"
+            ],
+            level4: [
+                "1000!!! LEGGENDA! 👑👑",
+                "Mille! Questa è la base!",
+                "Ultra abilità! 🚀",
+                "Materiale top-1!",
+                "GG! Sei il migliore!",
+                "Mega cervello! 🧠",
+                "1K+ Campione!",
+                "Assoluto! 💎",
+                "Genio 2048!"
+            ],
+            level5: [
+                "2000! DIVINITÀ! ⚡",
+                "Esports? 🎯",
+                "Abilità inumana!",
+                "MVP! MVP! MVP!",
+                "Hai rotto il gioco! 😱",
+                "Cheater? No, solo un dio!",
+                "2K+ Irreale!",
+                "Telepate! 🔮",
+                "Matrix hackerata!"
+            ],
+            legendary: [
+                "5000!!! CREATORE! 🌌",
+                "Chi... sei?! 😲",
+                "È legale?!",
+                "Il dio 2048 è sceso!",
+                "Leggendario! 🐉",
+                "Oltre i limiti!",
+                "Livello mitico!",
+                "Cosmico! 🚀🌟",
+                "Hai cambiato la realtà!"
+            ],
+            god: [
+                "10000!!! HAI CREATO L'UNIVERSO! 🌌✨",
+                "Mi inchino a te! 🙇",
+                "È impossibile... ma ce l'hai fatta!",
+                "Hai riscritto la fisica!",
+                "Nuova era di 2048! 👑💎",
+                "Livello divino!",
+                "Alfa e Omega!",
+                "Oltre la comprensione!",
+                "Sei diventato 2048! 🔥🔥🔥"
+            ]
+        },
+
+        // ===== 日本語 (JAPANESE) =====
+        ja: {
+            starter: [
+                "さあ始めよう！🎮",
+                "君ならできる！",
+                "行くぞ！💪",
+                "頑張って！",
+                "信じてるよ！",
+                "燃えろ！🔥"
+            ],
+            level1: [
+                "100点！いいね！👍",
+                "ウォーミングアップ！続けて！",
+                "最初の100 - 簡単！",
+                "よくやった！続けて！",
+                "いいスタート！🌟",
+                "これはまだ始まり！",
+                "勝利へ向かえ！",
+                "素晴らしいペース！"
+            ],
+            level2: [
+                "250！絶好調！💥",
+                "すごいプレイ！",
+                "ワオ！その調子！",
+                "パワフル！止まるな！",
+                "最高！🌈",
+                "ファイヤー！🔥🔥",
+                "好調だね！",
+                "もう250+！リスペクト！"
+            ],
+            level3: [
+                "500！マスター！🏆",
+                "500！レジェンド！",
+                "ゲームの神！👑",
+                "信じられないほどクール！",
+                "君はマシンだ！🤖",
+                "不可能！💫",
+                "エリート！🌟🌟",
+                "プロゲーマー警報！",
+                "無敵！"
+            ],
+            level4: [
+                "1000！！！レジェンド！👑👑",
+                "千！これがベース！",
+                "ウルトラスキル！🚀",
+                "トップ1素材！",
+                "GG！君が最高！",
+                "メガ脳！🧠",
+                "1K+チャンピオン！",
+                "アブソリュート！💎",
+                "2048の天才！"
+            ],
+            level5: [
+                "2000！神！⚡",
+                "eスポーツ？🎯",
+                "人間離れしたスキル！",
+                "MVP！MVP！MVP！",
+                "ゲームを壊した！😱",
+                "チーター？いや、ただの神！",
+                "2K+非現実！",
+                "テレパス！🔮",
+                "マトリックスハック！"
+            ],
+            legendary: [
+                "5000！！！創造主！🌌",
+                "君は...誰？！😲",
+                "これ合法？！",
+                "2048の神が降臨！",
+                "レジェンダリー！🐉",
+                "限界を超えた！",
+                "神話レベル！",
+                "宇宙的！🚀🌟",
+                "現実を変えた！"
+            ],
+            god: [
+                "10000！！！宇宙を創造した！🌌✨",
+                "ひれ伏します！🙇",
+                "不可能...でも君はやった！",
+                "物理法則を書き換えた！",
+                "2048の新時代！👑💎",
+                "神のレベル！",
+                "アルファとオメガ！",
+                "理解を超えた！",
+                "君が2048になった！🔥🔥🔥"
+            ]
+        },
+
+        // ===== 한국어 (KOREAN) =====
+        ko: {
+            starter: [
+                "시작해! 🎮",
+                "넌 할 수 있어!",
+                "가자! 💪",
+                "행운을 빌어!",
+                "널 믿어!",
+                "불태워! 🔥"
+            ],
+            level1: [
+                "100점! 좋아! 👍",
+                "워밍업! 계속해!",
+                "첫 백점 - 쉬워!",
+                "잘했어! 계속!",
+                "좋은 시작! 🌟",
+                "이건 시작일 뿐!",
+                "승리를 향해!",
+                "훌륭한 속도!"
+            ],
+            level2: [
+                "250! 달리고 있어! 💥",
+                "플레이 짱!",
+                "와우! 계속 그렇게!",
+                "강력해! 멈추지 마!",
+                "대단해! 🌈",
+                "불이야! 🔥🔥",
+                "잘 나가고 있어!",
+                "벌써 250+! 리스펙!"
+            ],
+            level3: [
+                "500! 마스터! 🏆",
+                "오백! 레전드!",
+                "게임의 신! 👑",
+                "믿기 어려울 정도로 쿨!",
+                "넌 기계야! 🤖",
+                "불가능! 💫",
+                "엘리트! 🌟🌟",
+                "프로 게이머 경보!",
+                "무적!"
+            ],
+            level4: [
+                "1000!!! 레전드! 👑👑",
+                "천점! 이게 기본!",
+                "울트라 스킬! 🚀",
+                "탑-1 재료!",
+                "GG! 넌 최고야!",
+                "메가 브레인! 🧠",
+                "1K+ 챔피언!",
+                "앱솔루트! 💎",
+                "2048 천재!"
+            ],
+            level5: [
+                "2000! 신! ⚡",
+                "e스포츠? 🎯",
+                "비인간적 스킬!",
+                "MVP! MVP! MVP!",
+                "게임을 깼어! 😱",
+                "치터? 아니, 그냥 신!",
+                "2K+ 비현실!",
+                "텔레파스! 🔮",
+                "매트릭스 해킹!"
+            ],
+            legendary: [
+                "5000!!! 창조주! 🌌",
+                "넌... 누구야?! 😲",
+                "이게 합법이야?!",
+                "2048의 신이 강림했다!",
+                "레전더리! 🐉",
+                "한계를 넘어서!",
+                "신화 레벨!",
+                "우주적! 🚀🌟",
+                "현실을 바꿨어!"
+            ],
+            god: [
+                "10000!!! 우주를 창조했어! 🌌✨",
+                "경배합니다! 🙇",
+                "이건 불가능... 근데 넌 해냈어!",
+                "물리 법칙을 다시 썼어!",
+                "2048의 새 시대! 👑💎",
+                "신성한 레벨!",
+                "알파와 오메가!",
+                "이해를 초월!",
+                "넌 2048이 됐어! 🔥🔥🔥"
+            ]
+        },
+
+        // ===== 中文 (CHINESE) =====
+        zh: {
+            starter: [
+                "开始玩吧！🎮",
+                "你可以的！",
+                "冲啊！💪",
+                "祝你好运！",
+                "我相信你！",
+                "燃起来！🔥"
+            ],
+            level1: [
+                "100分！不错！👍",
+                "热身中！继续！",
+                "第一个百分 - 简单！",
+                "做得好！继续！",
+                "好的开始！🌟",
+                "这只是开始！",
+                "向胜利前进！",
+                "节奏很棒！"
+            ],
+            level2: [
+                "250！你火了！💥",
+                "玩得太棒了！",
+                "哇！继续保持！",
+                "强大！不要停！",
+                "太棒了！🌈",
+                "着火了！🔥🔥",
+                "势头很猛！",
+                "已经250+！尊重！"
+            ],
+            level3: [
+                "500！大师！🏆",
+                "五百！传奇！",
+                "游戏之神！👑",
+                "难以置信的酷！",
+                "你是机器！🤖",
+                "不可能！💫",
+                "精英！🌟🌟",
+                "职业玩家警报！",
+                "无敌！"
+            ],
+            level4: [
+                "1000！！！传奇！👑👑",
+                "一千！这就是基础！",
+                "超级技能！🚀",
+                "顶级材料！",
+                "GG！你是最棒的！",
+                "超级大脑！🧠",
+                "1K+冠军！",
+                "绝对！💎",
+                "2048天才！"
+            ],
+            level5: [
+                "2000！神！⚡",
+                "电竞？🎯",
+                "非人类技能！",
+                "MVP！MVP！MVP！",
+                "你打破了游戏！😱",
+                "开挂？不，只是神！",
+                "2K+不真实！",
+                "心灵感应！🔮",
+                "矩阵被黑了！"
+            ],
+            legendary: [
+                "5000！！！创造者！🌌",
+                "你...是谁？！😲",
+                "这合法吗？！",
+                "2048之神降临了！",
+                "传说中的！🐉",
+                "超越极限！",
+                "神话级别！",
+                "宇宙级！🚀🌟",
+                "你改变了现实！"
+            ],
+            god: [
+                "10000！！！你创造了宇宙！🌌✨",
+                "我向你鞠躬！🙇",
+                "这是不可能的...但你做到了！",
+                "你重写了物理定律！",
+                "2048新纪元！👑💎",
+                "神圣级别！",
+                "阿尔法和欧米茄！",
+                "超越理解！",
+                "你成为了2048！🔥🔥🔥"
+            ]
+        },
+
+        // ===== POLSKI =====
+        pl: {
+            starter: [
+                "Zaczynamy! 🎮",
+                "Dasz radę!",
+                "Do dzieła! 💪",
+                "Powodzenia!",
+                "Wierzę w ciebie!",
+                "Ognia! 🔥"
+            ],
+            level1: [
+                "100 punktów! Nieźle! 👍",
+                "Rozgrzewka! Dalej!",
+                "Pierwsza setka - łatwo!",
+                "Świetnie! Kontynuuj!",
+                "Dobry start! 🌟",
+                "To dopiero początek!",
+                "Do zwycięstwa!",
+                "Świetne tempo!"
+            ],
+            level2: [
+                "250! Jesteś w formie! 💥",
+                "Super grasz!",
+                "Wow! Tak trzymaj!",
+                "Potężnie! Nie zatrzymuj się!",
+                "Niesamowite! 🌈",
+                "Ogień! 🔥🔥",
+                "Idzie ci świetnie!",
+                "Już 250+! Szacun!"
+            ],
+            level3: [
+                "500! Mistrz! 🏆",
+                "Pięćset! Legenda!",
+                "Bóg gry! 👑",
+                "Niesamowicie fajne!",
+                "Jesteś maszyną! 🤖",
+                "Niemożliwe! 💫",
+                "Elita! 🌟🌟",
+                "Alert pro gamera!",
+                "Niezwyciężony!"
+            ],
+            level4: [
+                "1000!!! LEGENDA! 👑👑",
+                "Tysiąc! To jest baza!",
+                "Ultra umiejętność! 🚀",
+                "Materiał na top-1!",
+                "GG! Jesteś najlepszy!",
+                "Mega mózg! 🧠",
+                "1K+ Mistrz!",
+                "Absolutny! 💎",
+                "Geniusz 2048!"
+            ],
+            level5: [
+                "2000! BÓSTWO! ⚡",
+                "Esport? 🎯",
+                "Nieludzka umiejętność!",
+                "MVP! MVP! MVP!",
+                "Zepsułeś grę! 😱",
+                "Cheater? Nie, po prostu bóg!",
+                "2K+ Nierealne!",
+                "Telepata! 🔮",
+                "Matrix zhakowany!"
+            ],
+            legendary: [
+                "5000!!! STWÓRCA! 🌌",
+                "Kim... jesteś?! 😲",
+                "Czy to w ogóle legalne?!",
+                "Bóg 2048 zstąpił!",
+                "Legendarny! 🐉",
+                "Poza granicami!",
+                "Mityczny poziom!",
+                "Kosmiczny! 🚀🌟",
+                "Zmieniłeś rzeczywistość!"
+            ],
+            god: [
+                "10000!!! STWORZYŁEŚ WSZECHŚWIAT! 🌌✨",
+                "Kłaniam się! 🙇",
+                "To niemożliwe... ale ci się udało!",
+                "Przepisałeś prawa fizyki!",
+                "Nowa era 2048! 👑💎",
+                "Boski poziom!",
+                "Alfa i Omega!",
+                "Poza zrozumieniem!",
+                "Stałeś się 2048! 🔥🔥🔥"
+            ]
+        },
+
+        // ===== TÜRKÇE =====
+        tr: {
+            starter: [
+                "Haydi başla! 🎮",
+                "Yapabilirsin!",
+                "Hadi gidelim! 💪",
+                "İyi şanslar!",
+                "Sana inanıyorum!",
+                "Yak! 🔥"
+            ],
+            level1: [
+                "100 puan! Güzel! 👍",
+                "Isınma! Devam et!",
+                "İlk yüz - kolay!",
+                "Harika! Devam!",
+                "İyi başlangıç! 🌟",
+                "Bu sadece başlangıç!",
+                "Zafere doğru!",
+                "Harika tempo!"
+            ],
+            level2: [
+                "250! Ateştesin! 💥",
+                "Süper oynuyorsun!",
+                "Vay! Böyle devam!",
+                "Güçlü! Durma!",
+                "Müthiş! 🌈",
+                "Ateş! 🔥🔥",
+                "Çok iyi gidiyorsun!",
+                "Şimdiden 250+! Saygılar!"
+            ],
+            level3: [
+                "500! Usta! 🏆",
+                "Beş yüz! Efsane!",
+                "Oyun tanrısı! 👑",
+                "İnanılmaz havalı!",
+                "Sen bir makinesin! 🤖",
+                "İmkansız! 💫",
+                "Elit! 🌟🌟",
+                "Pro gamer alarmı!",
+                "Yenilmez!"
+            ],
+            level4: [
+                "1000!!! EFSANE! 👑👑",
+                "Bin! Bu temel!",
+                "Ultra beceri! 🚀",
+                "Top-1 malzemesi!",
+                "GG! En iyisisin!",
+                "Mega beyin! 🧠",
+                "1K+ Şampiyon!",
+                "Mutlak! 💎",
+                "2048 Dahisi!"
+            ],
+            level5: [
+                "2000! TANRILIK! ⚡",
+                "E-spor mu? 🎯",
+                "İnsanüstü beceri!",
+                "MVP! MVP! MVP!",
+                "Oyunu bozdun! 😱",
+                "Hile mi? Hayır, sadece tanrı!",
+                "2K+ Gerçek dışı!",
+                "Telepat! 🔮",
+                "Matrix hacklendi!"
+            ],
+            legendary: [
+                "5000!!! YARATICI! 🌌",
+                "Sen... kimsin?! 😲",
+                "Bu yasal mı?!",
+                "2048 tanrısı indi!",
+                "Efsanevi! 🐉",
+                "Sınırların ötesinde!",
+                "Mitolojik seviye!",
+                "Kozmik! 🚀🌟",
+                "Gerçekliği değiştirdin!"
+            ],
+            god: [
+                "10000!!! EVRENİ YARATTIN! 🌌✨",
+                "Önünde eğiliyorum! 🙇",
+                "Bu imkansız... ama yaptın!",
+                "Fizik yasalarını yeniden yazdın!",
+                "2048'in yeni çağı! 👑💎",
+                "İlahi seviye!",
+                "Alfa ve Omega!",
+                "Anlayışın ötesinde!",
+                "2048 oldun! 🔥🔥🔥"
+            ]
+        },
+
+        // ===== العربية (ARABIC) =====
+        ar: {
+            starter: [
+                "هيا نلعب! 🎮",
+                "يمكنك فعلها!",
+                "انطلق! 💪",
+                "حظاً موفقاً!",
+                "أؤمن بك!",
+                "احرق! 🔥"
+            ],
+            level1: [
+                "100 نقطة! جيد! 👍",
+                "إحماء! استمر!",
+                "المئة الأولى - سهل!",
+                "أحسنت! تابع!",
+                "بداية جيدة! 🌟",
+                "هذه مجرد البداية!",
+                "نحو النصر!",
+                "إيقاع رائع!"
+            ],
+            level2: [
+                "250! أنت مشتعل! 💥",
+                "لعب رائع!",
+                "واو! استمر هكذا!",
+                "قوي! لا تتوقف!",
+                "مذهل! 🌈",
+                "نار! 🔥🔥",
+                "تسير بشكل رائع!",
+                "بالفعل 250+! احترام!"
+            ],
+            level3: [
+                "500! سيد! 🏆",
+                "خمسمئة! أسطورة!",
+                "إله اللعبة! 👑",
+                "رائع بشكل لا يصدق!",
+                "أنت آلة! 🤖",
+                "مستحيل! 💫",
+                "نخبة! 🌟🌟",
+                "تنبيه لاعب محترف!",
+                "لا يقهر!"
+            ],
+            level4: [
+                "1000!!! أسطورة! 👑👑",
+                "ألف! هذا الأساس!",
+                "مهارة فائقة! 🚀",
+                "مادة القمة!",
+                "GG! أنت الأفضل!",
+                "عقل خارق! 🧠",
+                "1K+ بطل!",
+                "مطلق! 💎",
+                "عبقري 2048!"
+            ],
+            level5: [
+                "2000! إله! ⚡",
+                "رياضات إلكترونية؟ 🎯",
+                "مهارة غير بشرية!",
+                "MVP! MVP! MVP!",
+                "كسرت اللعبة! 😱",
+                "غشاش؟ لا، فقط إله!",
+                "2K+ غير واقعي!",
+                "تخاطر! 🔮",
+                "تم اختراق الماتريكس!"
+            ],
+            legendary: [
+                "5000!!! الخالق! 🌌",
+                "من... أنت؟! 😲",
+                "هل هذا قانوني؟!",
+                "نزل إله 2048!",
+                "أسطوري! 🐉",
+                "ما وراء الحدود!",
+                "مستوى أسطوري!",
+                "كوني! 🚀🌟",
+                "غيرت الواقع!"
+            ],
+            god: [
+                "10000!!! خلقت الكون! 🌌✨",
+                "أنحني لك! 🙇",
+                "هذا مستحيل... لكنك فعلتها!",
+                "أعدت كتابة الفيزياء!",
+                "عصر جديد لـ 2048! 👑💎",
+                "مستوى إلهي!",
+                "ألفا وأوميغا!",
+                "ما وراء الفهم!",
+                "أصبحت 2048! 🔥🔥🔥"
+            ]
+        },
+
+        // ===== हिन्दी (HINDI) =====
+        hi: {
+            starter: [
+                "शुरू करो! 🎮",
+                "तुम कर सकते हो!",
+                "चलो! 💪",
+                "शुभकामनाएं!",
+                "मुझे तुम पर विश्वास है!",
+                "जला दो! 🔥"
+            ],
+            level1: [
+                "100 अंक! बढ़िया! 👍",
+                "वार्मअप! जारी रखो!",
+                "पहला सौ - आसान!",
+                "शाबाश! जारी रखो!",
+                "अच्छी शुरुआत! 🌟",
+                "यह तो बस शुरुआत है!",
+                "जीत की ओर!",
+                "बेहतरीन गति!"
+            ],
+            level2: [
+                "250! आग लगी है! 💥",
+                "शानदार खेल!",
+                "वाह! ऐसे ही चलो!",
+                "ताकतवर! रुको मत!",
+                "कमाल! 🌈",
+                "आग! 🔥🔥",
+                "बढ़िया चल रहे हो!",
+                "पहले ही 250+! सम्मान!"
+            ],
+            level3: [
+                "500! उस्ताद! 🏆",
+                "पांच सौ! किंवदंती!",
+                "खेल के भगवान! 👑",
+                "अविश्वसनीय रूप से कूल!",
+                "तुम मशीन हो! 🤖",
+                "असंभव! 💫",
+                "एलीट! 🌟🌟",
+                "प्रो गेमर अलर्ट!",
+                "अजेय!"
+            ],
+            level4: [
+                "1000!!! किंवदंती! 👑👑",
+                "हजार! यही बेस है!",
+                "अल्ट्रा स्किल! 🚀",
+                "टॉप-1 मटेरियल!",
+                "GG! तुम सबसे अच्छे हो!",
+                "मेगा ब्रेन! 🧠",
+                "1K+ चैंपियन!",
+                "एब्सोल्यूट! 💎",
+                "2048 जीनियस!"
+            ],
+            level5: [
+                "2000! देवता! ⚡",
+                "ई-स्पोर्ट्स? 🎯",
+                "अमानवीय कौशल!",
+                "MVP! MVP! MVP!",
+                "गेम तोड़ दिया! 😱",
+                "चीटर? नहीं, बस भगवान!",
+                "2K+ अवास्तविक!",
+                "टेलीपैथ! 🔮",
+                "मैट्रिक्स हैक!"
+            ],
+            legendary: [
+                "5000!!! निर्माता! 🌌",
+                "तुम... कौन हो?! 😲",
+                "क्या यह कानूनी है?!",
+                "2048 के भगवान उतरे!",
+                "पौराणिक! 🐉",
+                "सीमाओं से परे!",
+                "मिथकीय स्तर!",
+                "ब्रह्मांडीय! 🚀🌟",
+                "तुमने वास्तविकता बदल दी!"
+            ],
+            god: [
+                "10000!!! ब्रह्मांड बनाया! 🌌✨",
+                "मैं झुकता हूं! 🙇",
+                "यह असंभव है... पर तुमने किया!",
+                "भौतिकी के नियम बदल दिए!",
+                "2048 का नया युग! 👑💎",
+                "दिव्य स्तर!",
+                "अल्फा और ओमेगा!",
+                "समझ से परे!",
+                "तुम 2048 बन गए! 🔥🔥🔥"
+            ]
+        },
+
+        // ===== NEDERLANDS =====
+        nl: {
+            starter: [
+                "Laten we spelen! 🎮",
+                "Je kunt het!",
+                "Kom op! 💪",
+                "Succes!",
+                "Ik geloof in je!",
+                "Stook het op! 🔥"
+            ],
+            level1: [
+                "100 punten! Netjes! 👍",
+                "Opwarmen! Ga door!",
+                "Eerste honderd - makkelijk!",
+                "Goed zo! Doorgaan!",
+                "Goede start! 🌟",
+                "Dit is nog maar het begin!",
+                "Op naar de overwinning!",
+                "Geweldig tempo!"
+            ],
+            level2: [
+                "250! Je staat in brand! 💥",
+                "Super gespeeld!",
+                "Wow! Zo doorgaan!",
+                "Krachtig! Niet stoppen!",
+                "Geweldig! 🌈",
+                "Vuur! 🔥🔥",
+                "Het gaat lekker!",
+                "Al 250+! Respect!"
+            ],
+            level3: [
+                "500! Meester! 🏆",
+                "Vijfhonderd! Legende!",
+                "Spelgod! 👑",
+                "Ongelooflijk cool!",
+                "Je bent een machine! 🤖",
+                "Onmogelijk! 💫",
+                "Elite! 🌟🌟",
+                "Pro gamer alert!",
+                "Onoverwinnelijk!"
+            ],
+            level4: [
+                "1000!!! LEGENDE! 👑👑",
+                "Duizend! Dat is basis!",
+                "Ultra vaardigheid! 🚀",
+                "Top-1 materiaal!",
+                "GG! Je bent de beste!",
+                "Mega brein! 🧠",
+                "1K+ Kampioen!",
+                "Absoluut! 💎",
+                "2048 Genie!"
+            ],
+            level5: [
+                "2000! GODHEID! ⚡",
+                "Esports? 🎯",
+                "Onmenselijke vaardigheid!",
+                "MVP! MVP! MVP!",
+                "Je hebt het spel gebroken! 😱",
+                "Cheater? Nee, gewoon een god!",
+                "2K+ Onwerkelijk!",
+                "Telepaat! 🔮",
+                "Matrix gehackt!"
+            ],
+            legendary: [
+                "5000!!! SCHEPPER! 🌌",
+                "Wie... ben jij?! 😲",
+                "Is dit legaal?!",
+                "De 2048-god is neergedaald!",
+                "Legendarisch! 🐉",
+                "Voorbij de grenzen!",
+                "Mythisch niveau!",
+                "Kosmisch! 🚀🌟",
+                "Je hebt de realiteit veranderd!"
+            ],
+            god: [
+                "10000!!! JE HEBT HET UNIVERSUM GECREËERD! 🌌✨",
+                "Ik buig voor je! 🙇",
+                "Dit is onmogelijk... maar je deed het!",
+                "Je herschreef de fysica!",
+                "Nieuw tijdperk van 2048! 👑💎",
+                "Goddelijk niveau!",
+                "Alpha en Omega!",
+                "Voorbij begrip!",
+                "Je werd 2048! 🔥🔥🔥"
+            ]
+        }
+    },
+
+    init() {
+        // Загружаем сохранённый язык
+        const savedLang = localStorage.getItem('pokemon_motivator_lang');
+        if (savedLang && this.languages[savedLang]) {
+            this.currentLang = savedLang;
+        } else {
+            // Определяем язык браузера
+            const browserLang = navigator.language.split('-')[0];
+            if (this.languages[browserLang]) {
+                this.currentLang = browserLang;
+            }
+        }
+        
+        // Создаём выпадающие меню
+        this.createDropdowns();
+        this.updateLanguageButtons();
+        
+        console.log('Localization initialized. Language:', this.currentLang);
+    },
+
+    createDropdowns() {
+        ['left', 'right'].forEach(side => {
+            const dropdown = document.getElementById(`lang-dropdown-${side}`);
+            if (!dropdown) return;
+            
+            dropdown.innerHTML = '';
+            
+            Object.entries(this.languages).forEach(([code, lang]) => {
+                const option = document.createElement('button');
+                option.className = `lang-option ${code === this.currentLang ? 'active' : ''}`;
+                option.innerHTML = `
+                    <span class="lang-option-flag">${lang.flag}</span>
+                    <span class="lang-option-name">${lang.name}</span>
+                    <span class="lang-option-code">${lang.code}</span>
+                `;
+                option.onclick = (e) => {
+                    e.stopPropagation();
+                    this.setLanguage(code);
+                };
+                dropdown.appendChild(option);
+            });
+        });
+    },
+
+    updateLanguageButtons() {
+        const lang = this.languages[this.currentLang];
+        ['left', 'right'].forEach(side => {
+            const btn = document.getElementById(`lang-current-${side}`);
+            if (btn) btn.textContent = lang.code;
+            
+            // Обновляем активный элемент в dropdown
+            const dropdown = document.getElementById(`lang-dropdown-${side}`);
+            if (dropdown) {
+                dropdown.querySelectorAll('.lang-option').forEach(opt => {
+                    const code = opt.querySelector('.lang-option-code').textContent.toLowerCase();
+                    opt.classList.toggle('active', code === this.currentLang);
+                });
+            }
+        });
+    },
+
+    setLanguage(langCode) {
+        if (!this.languages[langCode]) return;
+        
+        this.currentLang = langCode;
+        localStorage.setItem('pokemon_motivator_lang', langCode);
+        
+        this.updateLanguageButtons();
+        this.closeAllDropdowns();
+        
+        // Обновляем фразы покемонов
+        if (window.motivatorSystem) {
+            motivatorSystem.lastScore = -1; // Форсируем обновление
+            motivatorSystem.updateMotivators(window.game ? window.game.score : 0);
+        }
+        
+        console.log('Language changed to:', langCode);
+    },
+
+    closeAllDropdowns() {
+        document.querySelectorAll('.lang-dropdown').forEach(d => d.classList.remove('show'));
+    },
+
+    getPhrases(level) {
+        const langPhrases = this.phrases[this.currentLang];
+        if (langPhrases && langPhrases[level]) {
+            return langPhrases[level];
+        }
+        // Fallback на английский
+        return this.phrases.en[level] || this.phrases.en.starter;
+    }
+};
+
+// Функция для переключения меню языков
+function toggleLanguageMenu(side) {
+    const dropdown = document.getElementById(`lang-dropdown-${side}`);
+    const otherSide = side === 'left' ? 'right' : 'left';
+    const otherDropdown = document.getElementById(`lang-dropdown-${otherSide}`);
+    
+    // Закрываем другое меню
+    if (otherDropdown) otherDropdown.classList.remove('show');
+    
+    // Переключаем текущее
+    if (dropdown) dropdown.classList.toggle('show');
+}
+
+// Закрытие меню при клике вне
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.language-selector')) {
+        localization.closeAllDropdowns();
+    }
+});
+
+// ============================================
+// Мотивирующие покемоны
+// ============================================
+
+const motivatorSystem = {
+    // Покемоны для разных уровней очков
+    pokemonLevels: {
+        starter: [ // 0-99
+            { id: 25, name: 'Pikachu' },
+            { id: 133, name: 'Eevee' },
+            { id: 39, name: 'Jigglypuff' }
+        ],
+        level1: [ // 100-249
+            { id: 1, name: 'Bulbasaur' },
+            { id: 4, name: 'Charmander' },
+            { id: 7, name: 'Squirtle' },
+            { id: 152, name: 'Chikorita' }
+        ],
+        level2: [ // 250-499
+            { id: 54, name: 'Psyduck' },
+            { id: 52, name: 'Meowth' },
+            { id: 35, name: 'Clefairy' },
+            { id: 175, name: 'Togepi' }
+        ],
+        level3: [ // 500-999
+            { id: 6, name: 'Charizard' },
+            { id: 9, name: 'Blastoise' },
+            { id: 3, name: 'Venusaur' },
+            { id: 131, name: 'Lapras' }
+        ],
+        level4: [ // 1000-1999
+            { id: 143, name: 'Snorlax' },
+            { id: 130, name: 'Gyarados' },
+            { id: 149, name: 'Dragonite' },
+            { id: 134, name: 'Vaporeon' }
+        ],
+        level5: [ // 2000-4999
+            { id: 150, name: 'Mewtwo' },
+            { id: 151, name: 'Mew' },
+            { id: 144, name: 'Articuno' },
+            { id: 145, name: 'Zapdos' }
+        ],
+        legendary: [ // 5000-9999
+            { id: 249, name: 'Lugia' },
+            { id: 250, name: 'Ho-Oh' },
+            { id: 146, name: 'Moltres' },
+            { id: 243, name: 'Raikou' }
+        ],
+        god: [ // 10000+
+            { id: 384, name: 'Rayquaza' },
+            { id: 483, name: 'Dialga' },
+            { id: 484, name: 'Palkia' },
+            { id: 487, name: 'Giratina' }
+        ]
+    },
+
+    lastScore: 0,
+    lastPhraseIndex: { left: -1, right: -1 },
+    
+    getLevel(score) {
+        if (score >= 10000) return 'god';
+        if (score >= 5000) return 'legendary';
+        if (score >= 2000) return 'level5';
+        if (score >= 1000) return 'level4';
+        if (score >= 500) return 'level3';
+        if (score >= 250) return 'level2';
+        if (score >= 100) return 'level1';
+        return 'starter';
+    },
+
+    getLevelClass(level) {
+        const classMap = {
+            'starter': 'level-starter',
+            'level1': 'level-starter',
+            'level2': 'level-good',
+            'level3': 'level-great',
+            'level4': 'level-amazing',
+            'level5': 'level-amazing',
+            'legendary': 'level-legendary',
+            'god': 'level-god'
+        };
+        return classMap[level] || 'level-starter';
+    },
+
+    getRandomPokemon(level) {
+        const pokemons = this.pokemonLevels[level];
+        return pokemons[Math.floor(Math.random() * pokemons.length)];
+    },
+
+    getRandomPhrase(level, side) {
+        // Используем локализованные фразы
+        const phrases = localization.getPhrases(level);
+        let index;
+        do {
+            index = Math.floor(Math.random() * phrases.length);
+        } while (index === this.lastPhraseIndex[side] && phrases.length > 1);
+        this.lastPhraseIndex[side] = index;
+        return phrases[index];
+    },
+
+    getPokemonSpriteUrl(pokemonId) {
+        return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${pokemonId}.gif`;
+    },
+
+    updateMotivators(score) {
+        // Обновляем только если очки изменились значительно (каждые 50 очков или при смене уровня)
+        const currentLevel = this.getLevel(score);
+        const prevLevel = this.getLevel(this.lastScore);
+        const scoreDiff = score - this.lastScore;
+        
+        // Обновляем при смене уровня или каждые 50 очков
+        if (currentLevel !== prevLevel || scoreDiff >= 50 || this.lastScore === 0) {
+            this.lastScore = score;
+            
+            // Обновляем левого покемона
+            this.updateSide('left', currentLevel, score);
+            
+            // Обновляем правого покемона с небольшой задержкой для разнообразия
+            setTimeout(() => {
+                this.updateSide('right', currentLevel, score);
+            }, 300);
+        }
+    },
+
+    updateSide(side, level, score) {
+        const container = document.getElementById(`motivator-${side}`);
+        const sprite = document.getElementById(`motivator-sprite-${side}`);
+        const name = document.getElementById(`motivator-name-${side}`);
+        const bubbleText = document.getElementById(`bubble-text-${side}`);
+        
+        if (!container || !sprite || !name || !bubbleText) return;
+        
+        // Получаем случайного покемона для этого уровня
+        const pokemon = this.getRandomPokemon(level);
+        
+        // Обновляем спрайт с fallback
+        const spriteUrl = this.getPokemonSpriteUrl(pokemon.id);
+        sprite.onerror = function() {
+            this.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`;
+        };
+        sprite.src = spriteUrl;
+        
+        // Обновляем имя
+        name.textContent = pokemon.name;
+        
+        // Обновляем фразу
+        const phrase = this.getRandomPhrase(level, side);
+        bubbleText.textContent = phrase;
+        
+        // Обновляем класс для стиля
+        container.className = `motivator-container motivator-${side} ${this.getLevelClass(level)}`;
+        
+        // Добавляем анимацию при обновлении
+        container.style.animation = 'none';
+        container.offsetHeight; // trigger reflow
+        container.style.animation = '';
+        
+        // Добавляем эффект появления текста
+        bubbleText.style.opacity = '0';
+        bubbleText.style.transform = 'scale(0.8)';
+        setTimeout(() => {
+            bubbleText.style.transition = 'all 0.3s ease';
+            bubbleText.style.opacity = '1';
+            bubbleText.style.transform = 'scale(1)';
+        }, 100);
+    },
+
+    init() {
+        // Начальное состояние
+        this.updateMotivators(0);
+        
+        // Следим за изменением счёта
+        const originalUpdateScore = window.game.updateScore.bind(window.game);
+        window.game.updateScore = () => {
+            originalUpdateScore();
+            this.updateMotivators(window.game.score);
+        };
+        
+        console.log('Motivator system initialized! 🎉');
+    }
+};
+
+// Инициализируем систему мотиваторов и локализацию после загрузки
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        localization.init();
+        motivatorSystem.init();
+    }, 500);
+});
+
+// ============================================
 // Web3 Integration for Base Network
 // ============================================
 

@@ -21,6 +21,29 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="game-wrapper">
+    <!-- Мотивирующий покемон слева -->
+    <div class="motivator-container motivator-left" id="motivator-left">
+        <div class="motivator-bubble" id="motivator-bubble-left">
+            <span class="bubble-text" id="bubble-text-left">Начни играть!</span>
+        </div>
+        <div class="motivator-pokemon" id="motivator-pokemon-left">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" 
+                 alt="Pokemon" 
+                 class="motivator-sprite"
+                 id="motivator-sprite-left">
+        </div>
+        <div class="motivator-name" id="motivator-name-left">Pikachu</div>
+        <!-- Переключатель языков -->
+        <div class="language-selector" id="language-selector-left">
+            <button class="lang-btn" onclick="toggleLanguageMenu('left')" title="Change Language">
+                <span class="lang-icon">🌍</span>
+                <span class="lang-current" id="lang-current-left">RU</span>
+            </button>
+            <div class="lang-dropdown" id="lang-dropdown-left"></div>
+        </div>
+    </div>
+
     <div class="container">
         <h1>2048</h1>
         <div class="score-container">
@@ -74,6 +97,29 @@
         <div class="instructions">
             <p>Use arrow keys to move tiles. When two tiles with the same number touch, they merge into one!</p>
         </div>
+    </div>
+
+    <!-- Мотивирующий покемон справа -->
+    <div class="motivator-container motivator-right" id="motivator-right">
+        <div class="motivator-bubble" id="motivator-bubble-right">
+            <span class="bubble-text" id="bubble-text-right">Ты сможешь!</span>
+        </div>
+        <div class="motivator-pokemon" id="motivator-pokemon-right">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif" 
+                 alt="Pokemon" 
+                 class="motivator-sprite"
+                 id="motivator-sprite-right">
+        </div>
+        <div class="motivator-name" id="motivator-name-right">Eevee</div>
+        <!-- Переключатель языков -->
+        <div class="language-selector" id="language-selector-right">
+            <button class="lang-btn" onclick="toggleLanguageMenu('right')" title="Change Language">
+                <span class="lang-icon">🌍</span>
+                <span class="lang-current" id="lang-current-right">RU</span>
+            </button>
+            <div class="lang-dropdown" id="lang-dropdown-right"></div>
+        </div>
+    </div>
     </div>
 
     <!-- ethers.js для Web3 -->
