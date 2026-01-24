@@ -2849,9 +2849,66 @@ window.sendGM = sendGM;
 window.deployContract = deployContract;
 window.connectWallet = connectWallet;
 
+// ============================================
+// Грозные покемоны для приветствия
+// ============================================
+const fiercePokemon = [
+    { id: 130, name: 'Gyarados', emoji: '🐉' },
+    { id: 6, name: 'Charizard', emoji: '🔥' },
+    { id: 150, name: 'Mewtwo', emoji: '🔮' },
+    { id: 384, name: 'Rayquaza', emoji: '🐲' },
+    { id: 149, name: 'Dragonite', emoji: '🐉' },
+    { id: 248, name: 'Tyranitar', emoji: '🦖' },
+    { id: 483, name: 'Dialga', emoji: '💎' }
+];
+
+// Показать приветственный экран с грозным покемоном
+function showWelcomeScreen() {
+    // Выбираем случайного грозного покемона
+    const pokemon = fiercePokemon[Math.floor(Math.random() * fiercePokemon.length)];
+    
+    // Создаём приветственный экран
+    const welcome = document.createElement('div');
+    welcome.id = 'welcome-screen';
+    welcome.className = 'welcome-screen';
+    welcome.innerHTML = `
+        <div class="welcome-content">
+            <div class="welcome-pokemon">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png" 
+                     alt="${pokemon.name}"
+                     class="welcome-pokemon-img"
+                     onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png'">
+            </div>
+            <h1 class="welcome-title">${pokemon.emoji} GAME 2048 ${pokemon.emoji}</h1>
+            <p class="welcome-subtitle">Pokemon Edition</p>
+            <p class="welcome-pokemon-name">${pokemon.name} приветствует тебя!</p>
+            <button class="welcome-btn" onclick="hideWelcomeScreen()">▶ ИГРАТЬ</button>
+        </div>
+    `;
+    document.body.appendChild(welcome);
+    
+    // Автоматически скрываем через 5 секунд или по клику
+    setTimeout(() => {
+        hideWelcomeScreen();
+    }, 5000);
+}
+
+function hideWelcomeScreen() {
+    const welcome = document.getElementById('welcome-screen');
+    if (welcome) {
+        welcome.classList.add('welcome-fade-out');
+        setTimeout(() => {
+            welcome.remove();
+        }, 500);
+    }
+}
+
 // Initialize on load
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Initializing Base MiniApp...');
+    
+    // Показываем приветствие с грозным покемоном
+    showWelcomeScreen();
     
     // Очищаем статус СРАЗУ при загрузке - это критически важно!
     clearStatus();
