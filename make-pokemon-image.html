@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Pokemon 2048 - Image Generator</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            background: #1a1a2e; 
+            color: white; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px;
+        }
+        canvas { border: 3px solid #ffcb05; margin: 20px; }
+        button { 
+            background: linear-gradient(45deg, #ffcb05, #ff6b35); 
+            color: #000; 
+            border: none; 
+            padding: 20px 40px; 
+            font-size: 24px; 
+            font-weight: bold;
+            border-radius: 15px; 
+            cursor: pointer; 
+            margin: 10px;
+        }
+        button:hover { transform: scale(1.05); }
+        h1 { color: #ffcb05; }
+        #status { font-size: 20px; color: #4ade80; margin: 20px; }
+    </style>
+</head>
+<body>
+    <h1>⚡ Pokemon 2048 - Генератор картинки</h1>
+    <canvas id="canvas" width="1200" height="630"></canvas>
+    <button onclick="downloadOG()">💾 СКАЧАТЬ og.png</button>
+    <div id="status"></div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const w = 1200, h = 630;
+
+        function drawImage() {
+            // Pokemon-style gradient background
+            const gradient = ctx.createLinearGradient(0, 0, w, h);
+            gradient.addColorStop(0, '#3b4cca');  // Pokemon blue
+            gradient.addColorStop(0.5, '#2a75bb');
+            gradient.addColorStop(1, '#1e3a5f');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, w, h);
+
+            // Decorative pokeball circles
+            ctx.globalAlpha = 0.15;
+            for(let i = 0; i < 6; i++) {
+                const x = 100 + i * 200;
+                const y = 100 + (i % 2) * 400;
+                drawPokeball(x, y, 80);
+            }
+            ctx.globalAlpha = 1;
+
+            // Yellow glow effect
+            const glow = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, 400);
+            glow.addColorStop(0, 'rgba(255, 203, 5, 0.3)');
+            glow.addColorStop(0.5, 'rgba(255, 203, 5, 0.1)');
+            glow.addColorStop(1, 'transparent');
+            ctx.fillStyle = glow;
+            ctx.fillRect(0, 0, w, h);
+
+            // Main title - POKEMON
+            ctx.save();
+            ctx.fillStyle = '#ffcb05';
+            ctx.font = 'bold 110px Arial';
+            ctx.textAlign = 'center';
+            ctx.strokeStyle = '#3b4cca';
+            ctx.lineWidth = 8;
+            ctx.shadowColor = '#000';
+            ctx.shadowBlur = 15;
+            ctx.shadowOffsetX = 4;
+            ctx.shadowOffsetY = 4;
+            ctx.strokeText('POKEMON', w/2, 150);
+            ctx.fillText('POKEMON', w/2, 150);
+
+            // 2048 with red accent
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 180px Arial';
+            ctx.strokeStyle = '#cc0000';
+            ctx.lineWidth = 10;
+            ctx.strokeText('2048', w/2, 340);
+            ctx.fillText('2048', w/2, 340);
+            ctx.restore();
+
+            // Subtitle
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 36px Arial';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 10;
+            ctx.fillText('⚡ Собери их всех! Объединяй покемонов! ⚡', w/2, 420);
+
+            // Play button (pokeball style)
+            const btnW = 350, btnH = 90;
+            const btnX = w/2 - btnW/2, btnY = 480;
+
+            // Button shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.beginPath();
+            ctx.roundRect(btnX + 5, btnY + 5, btnW, btnH, 25);
+            ctx.fill();
+
+            // Red top half
+            ctx.fillStyle = '#ff0000';
+            ctx.beginPath();
+            ctx.roundRect(btnX, btnY, btnW, btnH/2, [25, 25, 0, 0]);
+            ctx.fill();
+
+            // White bottom half
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.roundRect(btnX, btnY + btnH/2, btnW, btnH/2, [0, 0, 25, 25]);
+            ctx.fill();
+
+            // Black line in middle
+            ctx.fillStyle = '#222';
+            ctx.fillRect(btnX, btnY + btnH/2 - 5, btnW, 10);
+
+            // Center circle
+            ctx.beginPath();
+            ctx.arc(w/2, btnY + btnH/2, 25, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 5;
+            ctx.stroke();
+
+            // Inner circle
+            ctx.beginPath();
+            ctx.arc(w/2, btnY + btnH/2, 12, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.stroke();
+
+            // Button text
+            ctx.fillStyle = '#ffcb05';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.font = 'bold 28px Arial';
+            ctx.strokeText('PLAY NOW!', w/2 - 90, btnY + 35);
+            ctx.fillText('PLAY NOW!', w/2 - 90, btnY + 35);
+            ctx.strokeText('ИГРАТЬ!', w/2 + 70, btnY + btnH - 20);
+            ctx.fillText('ИГРАТЬ!', w/2 + 70, btnY + btnH - 20);
+
+            document.getElementById('status').textContent = '✅ Картинка готова! Нажми кнопку скачать!';
+        }
+
+        function drawPokeball(x, y, r) {
+            // Red top
+            ctx.fillStyle = '#ff0000';
+            ctx.beginPath();
+            ctx.arc(x, y, r, Math.PI, 0);
+            ctx.fill();
+            // White bottom
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI);
+            ctx.fill();
+            // Black line
+            ctx.fillStyle = '#222';
+            ctx.fillRect(x - r, y - 3, r * 2, 6);
+            // Center
+            ctx.beginPath();
+            ctx.arc(x, y, r * 0.25, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        function downloadOG() {
+            const link = document.createElement('a');
+            link.download = 'og.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            document.getElementById('status').innerHTML = '💾 <b>СКАЧАНО!</b> Перемести файл og.png в папку game 2048 (замени старый) и запуш!';
+        }
+
+        // Draw on load
+        drawImage();
+    </script>
+</body>
+</html>
