@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="fc:miniapp" content='{
       "version":"next",
-      "imageUrl":"https://game-2048-theta-eosin.vercel.app/embed-image.png",
+      "imageUrl":"https://game-2048-theta-eosin.vercel.app/og.png",
       "button":{
           "title":"⚡ Catch 2048!",
           "action":{
@@ -17,7 +17,7 @@
     }'>
     <meta property="og:title" content="Pokemon 2048 - Собери всех покемонов!">
     <meta property="og:description" content="🔥 Объединяй покемонов и стань лучшим тренером! Pikachu, Charizard, Mewtwo ждут тебя!">
-    <meta property="og:image" content="https://game-2048-theta-eosin.vercel.app/embed-image.png">
+    <meta property="og:image" content="https://game-2048-theta-eosin.vercel.app/og.png">
     <meta name="description" content="Играй в 2048 с покемонами! Собери Pikachu, Charizard, Mewtwo и других легендарных покемонов!">
     <title>Pokemon 2048 - Собери их всех! 🔥</title>
     <link rel="manifest" href="manifest.json">
@@ -138,11 +138,20 @@
         import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk@0.1.10';
         window.farcasterSDK = sdk;
         
-        // Initialize SDK
+        // Initialize SDK and get user context
         (async () => {
             try {
                 await sdk.actions.ready();
                 console.log('Farcaster SDK ready');
+                
+                // Try to get user context
+                if (sdk.context) {
+                    const context = await sdk.context;
+                    if (context && context.user) {
+                        console.log('Farcaster user:', context.user.username || context.user.displayName);
+                        window.farcasterUser = context.user;
+                    }
+                }
             } catch (e) {
                 console.log('SDK init:', e.message);
             }

@@ -1515,6 +1515,16 @@ h1 {
     border: 1px solid rgba(76, 175, 80, 0.3);
 }
 
+.wallet-name {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a73e8;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
 .instructions {
     text-align: center;
     color: #776e65;

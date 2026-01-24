@@ -2251,12 +2251,100 @@ function clearStatus() {
     }
 }
 
-function showWalletInfo(address) {
+// Base Name Service Resolver для reverse lookup
+const BASENAME_L2_RESOLVER = '0xC6d566A56A1aFf6508b41f6c90ff131615583BCD';
+const BASENAME_REVERSE_REGISTRAR = '0x79EA96012eEa67A83431F1701B3dFf7e37F9E282';
+
+// ABI для получения basename
+const BASENAME_RESOLVER_ABI = [
+    'function name(bytes32 node) view returns (string)'
+];
+
+// Функция для получения Farcaster username из SDK context
+async function getFarcasterUsername() {
+    try {
+        // Сначала проверяем глобальную переменную (установлена при инициализации SDK)
+        if (window.farcasterUser) {
+            const user = window.farcasterUser;
+            return user.username || user.displayName || null;
+        }
+        
+        // Затем пробуем через SDK context
+        if (farcasterSDK && farcasterSDK.context) {
+            const context = await farcasterSDK.context;
+            if (context && context.user) {
+                // Возвращаем username или displayName
+                return context.user.username || context.user.displayName || null;
+            }
+        }
+    } catch (e) {
+        console.log('Could not get Farcaster username:', e.message);
+    }
+    return null;
+}
+
+// Функция для получения Basename через reverse lookup
+async function getBasename(address) {
+    try {
+        if (!address || !provider) return null;
+        
+        // Создаем node для reverse lookup (address.addr.reverse)
+        const addressLower = address.toLowerCase().slice(2); // убираем 0x
+        const reverseNode = ethers.namehash(addressLower + '.addr.reverse');
+        
+        // Пробуем через L2 Resolver
+        const resolver = new ethers.Contract(BASENAME_L2_RESOLVER, BASENAME_RESOLVER_ABI, provider);
+        const name = await resolver.name(reverseNode);
+        
+        if (name && name.length > 0) {
+            // Убираем .base если есть для более чистого отображения
+            return name.replace('.base', '');
+        }
+    } catch (e) {
+        console.log('Could not resolve basename:', e.message);
+    }
+    return null;
+}
+
+// Получить отображаемое имя пользователя
+async function getUserDisplayName(address) {
+    // Сначала пробуем Farcaster username (если в Warpcast)
+    const farcasterName = await getFarcasterUsername();
+    if (farcasterName) {
+        console.log('Using Farcaster username:', farcasterName);
+        return farcasterName;
+    }
+    
+    // Затем пробуем Basename
+    const basename = await getBasename(address);
+    if (basename) {
+        console.log('Using Basename:', basename);
+        return basename;
+    }
+    
+    // Если ничего не нашли, возвращаем короткий адрес
+    return null;
+}
+
+// Показать информацию о кошельке (с именем если есть)
+async function showWalletInfo(address) {
     if (!walletInfoEl) return;
     if (address) {
+        // Сначала показываем короткий адрес
         const short = address.slice(0, 6) + '...' + address.slice(-4);
         walletInfoEl.textContent = `Connected: ${short}`;
         walletInfoEl.className = 'wallet-info connected';
+        
+        // Потом пробуем получить имя
+        try {
+            const displayName = await getUserDisplayName(address);
+            if (displayName) {
+                walletInfoEl.innerHTML = `<span class="wallet-name">🎮 ${displayName}</span>`;
+                console.log('Displaying user as:', displayName);
+            }
+        } catch (e) {
+            console.log('Could not get display name:', e.message);
+        }
     } else {
         walletInfoEl.textContent = '';
         walletInfoEl.className = 'wallet-info';
