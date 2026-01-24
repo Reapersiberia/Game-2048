@@ -102,6 +102,11 @@ class Game2048 {
             
             // Обновляем покемонов для новой стихии
             this.pokemonMap = this.elementPokemon[element.type];
+            
+            // Проверяем достижения за стихии
+            if (window.achievementSystem) {
+                window.achievementSystem.checkElementAchievement(element.type);
+            }
         }
         return element;
     }
@@ -160,6 +165,7 @@ class Game2048 {
         this.currentElement = 'normal';
         this.pokemonMap = this.elementPokemon['normal'];
         
+        
         // Начинаем новую игру с нуля
         this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
         this.score = 0;
@@ -215,10 +221,21 @@ class Game2048 {
         }
 
         if (moved) {
+            // Регистрируем ход для достижений
+            if (window.achievementSystem) {
+                window.achievementSystem.registerMove();
+            }
+            
             this.addRandomTile();
             this.updateDisplay();
             if (this.isGameOver()) {
                 this.gameOverElement.classList.add('show');
+                
+                // Засчитываем завершённую игру для достижений
+                if (window.achievementSystem) {
+                    window.achievementSystem.registerNewGame();
+                    console.log('Game completed! Score:', this.score);
+                }
             }
         }
     }
@@ -226,15 +243,31 @@ class Game2048 {
     moveLine(line) {
         const filtered = line.filter(val => val !== 0);
         const merged = [];
+        let mergeCount = 0;
+        
         for (let i = 0; i < filtered.length; i++) {
             if (i < filtered.length - 1 && filtered[i] === filtered[i + 1]) {
-                merged.push(filtered[i] * 2);
-                this.score += filtered[i] * 2;
+                const newValue = filtered[i] * 2;
+                merged.push(newValue);
+                this.score += newValue;
+                mergeCount++;
+                
+                // Проверяем достижения за плитки
+                if (window.achievementSystem) {
+                    window.achievementSystem.checkTileAchievements(newValue);
+                }
+                
                 i++;
             } else {
                 merged.push(filtered[i]);
             }
         }
+        
+        // Регистрируем слияния для достижений
+        if (mergeCount > 0 && window.achievementSystem) {
+            window.achievementSystem.registerMerge(mergeCount);
+        }
+        
         while (merged.length < this.size) {
             merged.push(0);
         }
@@ -246,6 +279,12 @@ class Game2048 {
         this.scoreElement.textContent = this.score;
         // Проверяем смену стихии при изменении очков
         this.updateElement();
+        
+        // Проверяем достижения за очки
+        if (window.achievementSystem) {
+            window.achievementSystem.checkScoreAchievements(this.score);
+            window.achievementSystem.checkQuickStart(this.score);
+        }
     }
 
     getPokemonSpriteUrl(pokemonId) {
@@ -2589,6 +2628,12 @@ function incrementGMCount() {
     const newCount = currentCount + 1;
     localStorage.setItem('gm_total_count', newCount.toString());
     updateGMCounter();
+    
+    // Достижение за GM
+    if (window.achievementSystem) {
+        window.achievementSystem.registerGM();
+    }
+    
     return newCount;
 }
 
@@ -2929,6 +2974,453 @@ async function deployContract() {
 
 
 // ============================================
+// СИСТЕМА ДОСТИЖЕНИЙ
+// ============================================
+
+class AchievementSystem {
+    constructor() {
+        this.achievements = [
+            // Достижения за плитки
+            { id: 'tile_8', name: 'Первые шаги', desc: 'Создать плитку 8', icon: '🐣', unlocked: false, category: 'tiles' },
+            { id: 'tile_16', name: 'Начинающий тренер', desc: 'Создать плитку 16', icon: '🎯', unlocked: false, category: 'tiles' },
+            { id: 'tile_32', name: 'Юный ловец', desc: 'Создать плитку 32', icon: '🏃', unlocked: false, category: 'tiles' },
+            { id: 'tile_64', name: 'Опытный тренер', desc: 'Создать плитку 64', icon: '💪', unlocked: false, category: 'tiles' },
+            { id: 'tile_128', name: 'Мастер покеболов', desc: 'Создать плитку 128', icon: '🔴', unlocked: false, category: 'tiles' },
+            { id: 'tile_256', name: 'Чемпион лиги', desc: 'Создать плитку 256', icon: '🏆', unlocked: false, category: 'tiles' },
+            { id: 'tile_512', name: 'Элитная четвёрка', desc: 'Создать плитку 512', icon: '⭐', unlocked: false, category: 'tiles' },
+            { id: 'tile_1024', name: 'Легенда региона', desc: 'Создать плитку 1024', icon: '👑', unlocked: false, category: 'tiles' },
+            { id: 'tile_2048', name: 'МАСТЕР 2048!', desc: 'Создать плитку 2048', icon: '🎊', unlocked: false, category: 'tiles', legendary: true },
+            { id: 'tile_4096', name: 'За гранью!', desc: 'Создать плитку 4096', icon: '🌟', unlocked: false, category: 'tiles', legendary: true },
+            
+            // Достижения за очки
+            { id: 'score_100', name: 'Первая сотня', desc: 'Набрать 100 очков', icon: '💯', unlocked: false, category: 'score' },
+            { id: 'score_500', name: 'Полтысячи', desc: 'Набрать 500 очков', icon: '🔥', unlocked: false, category: 'score' },
+            { id: 'score_1000', name: 'Тысячник', desc: 'Набрать 1000 очков', icon: '🎖️', unlocked: false, category: 'score' },
+            { id: 'score_5000', name: 'Пятитысячник', desc: 'Набрать 5000 очков', icon: '🏅', unlocked: false, category: 'score' },
+            { id: 'score_10000', name: 'Десятитысячник', desc: 'Набрать 10000 очков', icon: '🥇', unlocked: false, category: 'score' },
+            { id: 'score_25000', name: 'Четверть лимона', desc: 'Набрать 25000 очков', icon: '💎', unlocked: false, category: 'score' },
+            { id: 'score_50000', name: 'Полсотни тысяч', desc: 'Набрать 50000 очков', icon: '💰', unlocked: false, category: 'score' },
+            { id: 'score_100000', name: 'СОТНЯ ТЫСЯЧ!', desc: 'Набрать 100000 очков', icon: '🏰', unlocked: false, category: 'score', legendary: true },
+            
+            // Достижения за стихии
+            { id: 'element_fire', name: 'Повелитель огня', desc: 'Достичь стихии Fire 🔥', icon: '🔥', unlocked: false, category: 'elements' },
+            { id: 'element_water', name: 'Властелин воды', desc: 'Достичь стихии Water 💧', icon: '💧', unlocked: false, category: 'elements' },
+            { id: 'element_electric', name: 'Молниеносный', desc: 'Достичь стихии Electric ⚡', icon: '⚡', unlocked: false, category: 'elements' },
+            { id: 'element_grass', name: 'Друг природы', desc: 'Достичь стихии Grass 🌿', icon: '🌿', unlocked: false, category: 'elements' },
+            { id: 'element_poison', name: 'Токсичный', desc: 'Достичь стихии Poison ☠️', icon: '☠️', unlocked: false, category: 'elements' },
+            { id: 'element_psychic', name: 'Телепат', desc: 'Достичь стихии Psychic 🔮', icon: '🔮', unlocked: false, category: 'elements' },
+            { id: 'element_dragon', name: 'Укротитель драконов', desc: 'Достичь стихии Dragon 🐉', icon: '🐉', unlocked: false, category: 'elements' },
+            { id: 'element_legendary', name: 'ЛЕГЕНДА!', desc: 'Достичь легендарной стихии ✨', icon: '✨', unlocked: false, category: 'elements', legendary: true },
+            
+            // Достижения за объединения
+            { id: 'merges_10', name: 'Первые слияния', desc: 'Объединить 10 плиток', icon: '🔗', unlocked: false, category: 'merges' },
+            { id: 'merges_50', name: 'Слиятель', desc: 'Объединить 50 плиток', icon: '⛓️', unlocked: false, category: 'merges' },
+            { id: 'merges_100', name: 'Опытный слиятель', desc: 'Объединить 100 плиток', icon: '🔄', unlocked: false, category: 'merges' },
+            { id: 'merges_500', name: 'Мастер слияний', desc: 'Объединить 500 плиток', icon: '🎯', unlocked: false, category: 'merges' },
+            { id: 'merges_1000', name: 'Тысячник', desc: 'Объединить 1000 плиток', icon: '💪', unlocked: false, category: 'merges' },
+            { id: 'merges_2000', name: 'Двухтысячник', desc: 'Объединить 2000 плиток', icon: '🏅', unlocked: false, category: 'merges' },
+            { id: 'merges_3000', name: 'Трёхтысячник', desc: 'Объединить 3000 плиток', icon: '🥇', unlocked: false, category: 'merges' },
+            { id: 'merges_5000', name: 'Король слияний', desc: 'Объединить 5000 плиток', icon: '👑', unlocked: false, category: 'merges' },
+            { id: 'merges_7500', name: 'Император слияний', desc: 'Объединить 7500 плиток', icon: '💎', unlocked: false, category: 'merges' },
+            { id: 'merges_10000', name: 'Легенда слияний', desc: 'Объединить 10000 плиток', icon: '🌟', unlocked: false, category: 'merges', legendary: true },
+            { id: 'merges_15000', name: 'Титан слияний', desc: 'Объединить 15000 плиток', icon: '⚡', unlocked: false, category: 'merges', legendary: true },
+            { id: 'merges_20000', name: 'БОГ СЛИЯНИЙ!', desc: 'Объединить 20000 плиток', icon: '🔱', unlocked: false, category: 'merges', legendary: true },
+            
+            // Достижения за игры
+            { id: 'games_10', name: 'Новичок', desc: 'Сыграть 10 игр', icon: '🎮', unlocked: false, category: 'games' },
+            { id: 'games_50', name: 'Любитель', desc: 'Сыграть 50 игр', icon: '🎲', unlocked: false, category: 'games' },
+            { id: 'games_100', name: 'Игрок', desc: 'Сыграть 100 игр', icon: '🃏', unlocked: false, category: 'games' },
+            { id: 'games_300', name: 'Заядлый игрок', desc: 'Сыграть 300 игр', icon: '🎯', unlocked: false, category: 'games' },
+            { id: 'games_500', name: 'Фанат', desc: 'Сыграть 500 игр', icon: '❤️', unlocked: false, category: 'games' },
+            { id: 'games_1000', name: 'Ветеран', desc: 'Сыграть 1000 игр', icon: '🏅', unlocked: false, category: 'games' },
+            { id: 'games_1500', name: 'Профессионал', desc: 'Сыграть 1500 игр', icon: '🥇', unlocked: false, category: 'games' },
+            { id: 'games_2000', name: 'Мастер', desc: 'Сыграть 2000 игр', icon: '👑', unlocked: false, category: 'games' },
+            { id: 'games_3000', name: 'Гранд-мастер', desc: 'Сыграть 3000 игр', icon: '💎', unlocked: false, category: 'games' },
+            { id: 'games_4000', name: 'Легенда', desc: 'Сыграть 4000 игр', icon: '🌟', unlocked: false, category: 'games', legendary: true },
+            { id: 'games_5000', name: 'БОГ 2048!', desc: 'Сыграть 5000 игр', icon: '⚡', unlocked: false, category: 'games', legendary: true },
+            
+            // Особые достижения
+            { id: 'combo_3', name: 'Тройной комбо', desc: '3 объединения за 1 ход', icon: '💥', unlocked: false, category: 'special' },
+            { id: 'quick_1000', name: 'Скоростной старт', desc: '1000 очков за 30 ходов', icon: '🚀', unlocked: false, category: 'special' },
+            { id: 'comeback', name: 'Возвращение', desc: 'Вернуться после заполнения поля', icon: '🔙', unlocked: false, category: 'special' },
+            { id: 'gm_sender', name: 'Доброе утро!', desc: 'Отправить GM транзакцию', icon: '☀️', unlocked: false, category: 'special' },
+        ];
+        
+        this.stats = {
+            totalMerges: 0,
+            totalGames: 0,
+            totalMoves: 0,
+            highestTile: 0,
+            highestScore: 0,
+            comboThisTurn: 0,
+            movesThisGame: 0
+        };
+        
+        this.loadProgress();
+        this.createUI();
+    }
+    
+    // Загрузка прогресса из localStorage
+    loadProgress() {
+        try {
+            const saved = localStorage.getItem('pokemon2048_achievements');
+            if (saved) {
+                const data = JSON.parse(saved);
+                // Восстанавливаем статус разблокировки
+                if (data.unlocked) {
+                    data.unlocked.forEach(id => {
+                        const ach = this.achievements.find(a => a.id === id);
+                        if (ach) ach.unlocked = true;
+                    });
+                }
+                // Восстанавливаем статистику
+                if (data.stats) {
+                    this.stats = { ...this.stats, ...data.stats };
+                }
+            }
+        } catch (e) {
+            console.log('Не удалось загрузить достижения:', e);
+        }
+    }
+    
+    // Сохранение прогресса
+    saveProgress() {
+        try {
+            const data = {
+                unlocked: this.achievements.filter(a => a.unlocked).map(a => a.id),
+                stats: this.stats
+            };
+            localStorage.setItem('pokemon2048_achievements', JSON.stringify(data));
+        } catch (e) {
+            console.log('Не удалось сохранить достижения:', e);
+        }
+    }
+    
+    // Разблокировать достижение
+    unlock(id) {
+        const achievement = this.achievements.find(a => a.id === id);
+        if (achievement && !achievement.unlocked) {
+            achievement.unlocked = true;
+            this.showNotification(achievement);
+            this.saveProgress();
+            this.updateUI();
+            return true;
+        }
+        return false;
+    }
+    
+    // Показать уведомление о достижении
+    showNotification(achievement) {
+        const notification = document.createElement('div');
+        notification.className = `achievement-notification ${achievement.legendary ? 'legendary' : ''}`;
+        notification.innerHTML = `
+            <div class="achievement-notification-content">
+                <div class="achievement-notification-icon">${achievement.icon}</div>
+                <div class="achievement-notification-info">
+                    <div class="achievement-notification-title">🏆 Достижение!</div>
+                    <div class="achievement-notification-name">${achievement.name}</div>
+                    <div class="achievement-notification-desc">${achievement.desc}</div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(notification);
+        
+        // Звуковой эффект (опционально)
+        // this.playSound();
+        
+        // Удаляем через 4 секунды
+        setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 500);
+        }, 4000);
+    }
+    
+    // Проверить достижения за плитки
+    checkTileAchievements(value) {
+        if (value > this.stats.highestTile) {
+            this.stats.highestTile = value;
+        }
+        
+        const tileAchievements = {
+            8: 'tile_8', 16: 'tile_16', 32: 'tile_32', 64: 'tile_64',
+            128: 'tile_128', 256: 'tile_256', 512: 'tile_512',
+            1024: 'tile_1024', 2048: 'tile_2048', 4096: 'tile_4096'
+        };
+        
+        if (tileAchievements[value]) {
+            this.unlock(tileAchievements[value]);
+        }
+    }
+    
+    // Проверить достижения за очки
+    checkScoreAchievements(score) {
+        if (score > this.stats.highestScore) {
+            this.stats.highestScore = score;
+        }
+        
+        const scoreThresholds = [
+            { score: 100, id: 'score_100' },
+            { score: 500, id: 'score_500' },
+            { score: 1000, id: 'score_1000' },
+            { score: 5000, id: 'score_5000' },
+            { score: 10000, id: 'score_10000' },
+            { score: 25000, id: 'score_25000' },
+            { score: 50000, id: 'score_50000' },
+            { score: 100000, id: 'score_100000' }
+        ];
+        
+        scoreThresholds.forEach(t => {
+            if (score >= t.score) {
+                this.unlock(t.id);
+            }
+        });
+    }
+    
+    // Проверить достижения за стихии
+    checkElementAchievement(elementType) {
+        const elementAchievements = {
+            'fire': 'element_fire',
+            'water': 'element_water',
+            'electric': 'element_electric',
+            'grass': 'element_grass',
+            'poison': 'element_poison',
+            'psychic': 'element_psychic',
+            'dragon': 'element_dragon',
+            'legendary': 'element_legendary'
+        };
+        
+        if (elementAchievements[elementType]) {
+            this.unlock(elementAchievements[elementType]);
+        }
+    }
+    
+    // Зарегистрировать объединение плиток
+    registerMerge(count = 1) {
+        this.stats.totalMerges += count;
+        this.stats.comboThisTurn += count;
+        
+        // Проверяем достижения за объединения
+        const mergeThresholds = [
+            { count: 10, id: 'merges_10' },
+            { count: 50, id: 'merges_50' },
+            { count: 100, id: 'merges_100' },
+            { count: 500, id: 'merges_500' },
+            { count: 1000, id: 'merges_1000' },
+            { count: 2000, id: 'merges_2000' },
+            { count: 3000, id: 'merges_3000' },
+            { count: 5000, id: 'merges_5000' },
+            { count: 7500, id: 'merges_7500' },
+            { count: 10000, id: 'merges_10000' },
+            { count: 15000, id: 'merges_15000' },
+            { count: 20000, id: 'merges_20000' }
+        ];
+        
+        mergeThresholds.forEach(t => {
+            if (this.stats.totalMerges >= t.count) {
+                this.unlock(t.id);
+            }
+        });
+        
+        this.saveProgress();
+    }
+    
+    // Зарегистрировать ход
+    registerMove() {
+        this.stats.totalMoves++;
+        this.stats.movesThisGame++;
+        
+        // Проверяем комбо за ход
+        if (this.stats.comboThisTurn >= 3) {
+            this.unlock('combo_3');
+        }
+        
+        // Сбрасываем комбо для следующего хода
+        this.stats.comboThisTurn = 0;
+        
+        this.saveProgress();
+    }
+    
+    // Зарегистрировать новую игру
+    registerNewGame() {
+        this.stats.totalGames++;
+        this.stats.movesThisGame = 0;
+        this.stats.comboThisTurn = 0;
+        
+        const gameThresholds = [
+            { count: 10, id: 'games_10' },
+            { count: 50, id: 'games_50' },
+            { count: 100, id: 'games_100' },
+            { count: 300, id: 'games_300' },
+            { count: 500, id: 'games_500' },
+            { count: 1000, id: 'games_1000' },
+            { count: 1500, id: 'games_1500' },
+            { count: 2000, id: 'games_2000' },
+            { count: 3000, id: 'games_3000' },
+            { count: 4000, id: 'games_4000' },
+            { count: 5000, id: 'games_5000' }
+        ];
+        
+        gameThresholds.forEach(t => {
+            if (this.stats.totalGames >= t.count) {
+                this.unlock(t.id);
+            }
+        });
+        
+        this.saveProgress();
+    }
+    
+    // Проверить быстрый старт
+    checkQuickStart(score) {
+        if (score >= 1000 && this.stats.movesThisGame <= 30) {
+            this.unlock('quick_1000');
+        }
+    }
+    
+    // Зарегистрировать GM транзакцию
+    registerGM() {
+        this.unlock('gm_sender');
+    }
+    
+    // Создать UI для достижений
+    createUI() {
+        // Кнопка открытия панели достижений
+        const btn = document.createElement('button');
+        btn.id = 'achievements-btn';
+        btn.className = 'achievements-toggle-btn';
+        btn.innerHTML = `🏆 <span class="achievements-count">${this.getUnlockedCount()}/${this.achievements.length}</span>`;
+        btn.onclick = () => this.togglePanel();
+        
+        // Добавляем кнопку в контейнер с кнопками web3
+        const web3Buttons = document.querySelector('.web3-buttons');
+        if (web3Buttons) {
+            web3Buttons.appendChild(btn);
+        }
+        
+        // Панель достижений
+        const panel = document.createElement('div');
+        panel.id = 'achievements-panel';
+        panel.className = 'achievements-panel';
+        panel.innerHTML = this.generatePanelHTML();
+        document.body.appendChild(panel);
+        
+        // Закрытие по клику вне панели
+        panel.addEventListener('click', (e) => {
+            if (e.target === panel) {
+                this.togglePanel();
+            }
+        });
+    }
+    
+    // Генерация HTML панели
+    generatePanelHTML() {
+        const categories = {
+            'tiles': { name: 'Плитки 🎯', achievements: [] },
+            'score': { name: 'Очки 💰', achievements: [] },
+            'elements': { name: 'Стихии 🌈', achievements: [] },
+            'merges': { name: 'Слияния 🔗', achievements: [] },
+            'games': { name: 'Игры 🎮', achievements: [] },
+            'special': { name: 'Особые ⭐', achievements: [] }
+        };
+        
+        this.achievements.forEach(a => {
+            if (categories[a.category]) {
+                categories[a.category].achievements.push(a);
+            }
+        });
+        
+        let html = `
+            <div class="achievements-panel-content">
+                <div class="achievements-header">
+                    <h2>🏆 Достижения</h2>
+                    <div class="achievements-progress">
+                        <div class="achievements-progress-bar" style="width: ${(this.getUnlockedCount() / this.achievements.length) * 100}%"></div>
+                        <span>${this.getUnlockedCount()} / ${this.achievements.length}</span>
+                    </div>
+                    <button class="achievements-close-btn" onclick="window.achievementSystem.togglePanel()">✕</button>
+                </div>
+                <div class="achievements-stats">
+                    <div class="stat-item">
+                        <span class="stat-icon">🎮</span>
+                        <span class="stat-value">${this.stats.totalGames}</span>
+                        <span class="stat-label">Игр</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">🔗</span>
+                        <span class="stat-value">${this.stats.totalMerges}</span>
+                        <span class="stat-label">Слияний</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">⬆️</span>
+                        <span class="stat-value">${this.stats.highestTile}</span>
+                        <span class="stat-label">Макс. плитка</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">🏅</span>
+                        <span class="stat-value">${this.stats.highestScore}</span>
+                        <span class="stat-label">Рекорд</span>
+                    </div>
+                </div>
+                <div class="achievements-list">
+        `;
+        
+        Object.values(categories).forEach(cat => {
+            if (cat.achievements.length > 0) {
+                html += `<div class="achievements-category">
+                    <h3>${cat.name}</h3>
+                    <div class="achievements-grid">`;
+                
+                cat.achievements.forEach(a => {
+                    html += `
+                        <div class="achievement-item ${a.unlocked ? 'unlocked' : 'locked'} ${a.legendary ? 'legendary' : ''}">
+                            <div class="achievement-icon">${a.unlocked ? a.icon : '🔒'}</div>
+                            <div class="achievement-name">${a.unlocked ? a.name : '???'}</div>
+                            <div class="achievement-desc">${a.desc}</div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div></div>`;
+            }
+        });
+        
+        html += `</div></div>`;
+        return html;
+    }
+    
+    // Получить количество разблокированных
+    getUnlockedCount() {
+        return this.achievements.filter(a => a.unlocked).length;
+    }
+    
+    // Обновить UI
+    updateUI() {
+        const btn = document.getElementById('achievements-btn');
+        if (btn) {
+            btn.innerHTML = `🏆 <span class="achievements-count">${this.getUnlockedCount()}/${this.achievements.length}</span>`;
+        }
+        
+        const panel = document.getElementById('achievements-panel');
+        if (panel) {
+            panel.innerHTML = this.generatePanelHTML();
+        }
+    }
+    
+    // Переключить панель
+    togglePanel() {
+        const panel = document.getElementById('achievements-panel');
+        if (panel) {
+            panel.classList.toggle('show');
+            if (panel.classList.contains('show')) {
+                this.updateUI();
+            }
+        }
+    }
+}
+
+// Глобальная переменная для системы достижений
+window.achievementSystem = null;
+
+// ============================================
 // Initialization
 // ============================================
 
@@ -2994,6 +3486,10 @@ function hideWelcomeScreen() {
 // Initialize on load
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Initializing Base MiniApp...');
+    
+    // Инициализируем систему достижений
+    window.achievementSystem = new AchievementSystem();
+    console.log('Achievement system initialized!');
     
     // Показываем приветствие с грозным покемоном
     showWelcomeScreen();
