@@ -145,6 +145,22 @@ class Game2048 {
     }
 
     newGame() {
+        // Сбрасываем тестовый режим
+        window.isTestMode = false;
+        
+        // Очищаем сохранённые данные теста
+        this._savedGrid = null;
+        this._savedScore = null;
+        
+        // Скрываем подсказку тестового режима
+        const hint = document.getElementById('test-mode-hint');
+        if (hint) hint.style.display = 'none';
+        
+        // Сбрасываем текущую стихию на Normal
+        this.currentElement = 'normal';
+        this.pokemonMap = this.elementPokemon['normal'];
+        
+        // Начинаем новую игру с нуля
         this.grid = Array(this.size).fill().map(() => Array(this.size).fill(0));
         this.score = 0;
         this.updateScore();
@@ -478,27 +494,59 @@ const testScores = [
     { score: 100000, name: '✨ Legendary', emoji: '✨',  desc: 'ЛЕГЕНДА!' }
 ];
 
+// Флаг тестового режима (превью стихий)
+window.isTestMode = false;
+
 function testElements() {
-    const testData = testScores[testElementIndex];
-    
-    // Устанавливаем тестовые плитки
-    window.game.grid = [
-        [2, 4, 8, 16],
-        [32, 64, 128, 256],
-        [512, 1024, 2048, 0],
-        [0, 0, 0, 0]
-    ];
-    
-    // Устанавливаем очки для нужной стихии
-    window.game.score = testData.score;
-    window.game.updateScore();
-    window.game.updateDisplay();
-    
-    // Показываем уведомление о стихии
-    showStatus(`${testData.emoji} ${testData.name} (${testData.score.toLocaleString()}+ очков) - ${testData.desc}`, 'success');
-    
-    // Переходим к следующей стихии
-    testElementIndex = (testElementIndex + 1) % testScores.length;
+    try {
+        const testData = testScores[testElementIndex];
+        
+        // Включаем тестовый режим
+        window.isTestMode = true;
+        
+        // Устанавливаем тестовые плитки для демонстрации
+        window.game.grid = [
+            [2, 4, 8, 16],
+            [32, 64, 128, 256],
+            [512, 1024, 2048, 0],
+            [0, 0, 0, 0]
+        ];
+        
+        // Устанавливаем очки для нужной стихии (только для отображения)
+        window.game.score = testData.score;
+        window.game.scoreElement.textContent = testData.score.toLocaleString();
+        window.game.updateElement();
+        window.game.updateDisplay();
+        
+        // Показываем уведомление о стихии
+        if (typeof showStatus === 'function') {
+            showStatus('👁️ ПРЕВЬЮ: ' + testData.emoji + ' ' + testData.name + ' (' + testData.score.toLocaleString() + '+ очков) - ' + testData.desc, 'success');
+        }
+        
+        // Показываем подсказку
+        let hint = document.getElementById('test-mode-hint');
+        if (!hint) {
+            hint = document.createElement('div');
+            hint.id = 'test-mode-hint';
+            hint.className = 'test-mode-hint';
+            hint.innerHTML = '👁️ Режим превью • Нажми <strong>New Game</strong> чтобы начать играть!';
+            const container = document.querySelector('.container');
+            if (container) {
+                const gameContainer = container.querySelector('.game-container');
+                if (gameContainer) {
+                    container.insertBefore(hint, gameContainer);
+                }
+            }
+        }
+        if (hint) hint.style.display = 'block';
+        
+        // Переходим к следующей стихии
+        testElementIndex = (testElementIndex + 1) % testScores.length;
+        
+        console.log('Test element:', testData.name);
+    } catch (e) {
+        console.error('testElements error:', e);
+    }
 }
 
 window.testElements = testElements;

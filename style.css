@@ -1437,6 +1437,29 @@ h1 {
     50% { box-shadow: 0 4px 25px rgba(112, 56, 248, 0.6); }
 }
 
+/* Подсказка тестового режима */
+.test-mode-hint {
+    display: none;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 14px;
+    animation: hintPulse 2s ease-in-out infinite;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.test-mode-hint strong {
+    color: #FFD700;
+}
+
+@keyframes hintPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+    50% { transform: scale(1.02); box-shadow: 0 6px 25px rgba(118, 75, 162, 0.6); }
+}
+
 .btn-icon {
     font-size: 20px;
 }
