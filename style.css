@@ -397,7 +397,7 @@ h1 {
     position: absolute;
     top: 0;
     left: 5%;
-    z-index: 5;
+    z-index: 2;
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
