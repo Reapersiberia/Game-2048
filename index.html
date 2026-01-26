@@ -106,6 +106,37 @@
             <p class="instructions-desktop">Use arrow keys to move. When two tiles with the same number touch, they merge!</p>
             <p class="instructions-mobile">Swipe to move. Same numbers merge into one!</p>
         </div>
+
+        <!-- Кнопка лидерборда -->
+        <div class="leaderboard-btn-container">
+            <button class="leaderboard-toggle-btn" onclick="leaderboardSystem.showPanel()">
+                <span class="btn-icon">🏆</span>
+                <span class="btn-text">Leaderboard</span>
+                <span class="best-score-badge" id="best-score-badge">0</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Панель лидерборда -->
+    <div class="leaderboard-panel" id="leaderboard-panel">
+        <div class="leaderboard-panel-content">
+            <div class="leaderboard-header">
+                <h2>🏆 Leaderboard</h2>
+                <div class="leaderboard-best">
+                    <span class="best-label">Best:</span>
+                    <span class="best-value" id="leaderboard-best">0</span>
+                </div>
+                <button class="leaderboard-close-btn" onclick="leaderboardSystem.hidePanel()">✕</button>
+            </div>
+            <div class="leaderboard-list" id="leaderboard-list">
+                <!-- Записи лидерборда будут добавлены динамически -->
+            </div>
+            <div class="leaderboard-footer">
+                <button class="leaderboard-clear-btn" onclick="leaderboardSystem.clearHistory()">
+                    🗑️ Clear History
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Подсказка прокрутить вниз (мобильная) -->

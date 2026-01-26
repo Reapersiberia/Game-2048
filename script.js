@@ -239,6 +239,12 @@ class Game2048 {
                 if (this.isGameOver()) {
                     this.gameOverElement.classList.add('show');
                     
+                    // Сохраняем результат в лидерборд
+                    if (window.leaderboardSystem && this.score > 0) {
+                        const currentElement = this.getCurrentElement();
+                        window.leaderboardSystem.addEntry(this.score, currentElement.type);
+                    }
+                    
                     // Засчитываем завершённую игру для достижений
                     if (window.achievementSystem) {
                         window.achievementSystem.registerNewGame();
@@ -3630,3 +3636,231 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 console.log('Script loaded. Ready for Base transactions!');
+
+// ============================================
+// СИСТЕМА ЛИДЕРБОРДА
+// ============================================
+
+const leaderboardSystem = {
+    STORAGE_KEY: 'pokemon2048_leaderboard',
+    MAX_ENTRIES: 10,
+    
+    // Получить все записи
+    getEntries() {
+        try {
+            const data = localStorage.getItem(this.STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        } catch (e) {
+            console.error('Error loading leaderboard:', e);
+            return [];
+        }
+    },
+    
+    // Сохранить записи
+    saveEntries(entries) {
+        try {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(entries));
+        } catch (e) {
+            console.error('Error saving leaderboard:', e);
+        }
+    },
+    
+    // Получить лучший результат
+    getBestScore() {
+        const entries = this.getEntries();
+        if (entries.length === 0) return 0;
+        return Math.max(...entries.map(e => e.score));
+    },
+    
+    // Добавить новый результат
+    addEntry(score, element) {
+        if (score <= 0) return false;
+        
+        const entries = this.getEntries();
+        const previousBest = this.getBestScore();
+        const isNewRecord = score > previousBest;
+        
+        const newEntry = {
+            score: score,
+            element: element || 'normal',
+            date: new Date().toISOString(),
+            id: Date.now()
+        };
+        
+        entries.push(newEntry);
+        
+        // Сортируем по убыванию очков
+        entries.sort((a, b) => b.score - a.score);
+        
+        // Оставляем только топ MAX_ENTRIES
+        const trimmedEntries = entries.slice(0, this.MAX_ENTRIES);
+        
+        this.saveEntries(trimmedEntries);
+        this.updateBadge();
+        
+        // Показать уведомление о новом рекорде
+        if (isNewRecord && score > 0) {
+            this.showNewRecordNotification(score);
+        }
+        
+        return isNewRecord;
+    },
+    
+    // Обновить бейдж с лучшим результатом
+    updateBadge() {
+        const badge = document.getElementById('best-score-badge');
+        const leaderboardBest = document.getElementById('leaderboard-best');
+        const bestScore = this.getBestScore();
+        
+        if (badge) {
+            badge.textContent = bestScore.toLocaleString();
+        }
+        if (leaderboardBest) {
+            leaderboardBest.textContent = bestScore.toLocaleString();
+        }
+    },
+    
+    // Показать панель лидерборда
+    showPanel() {
+        const panel = document.getElementById('leaderboard-panel');
+        if (panel) {
+            panel.classList.add('show');
+            this.renderList();
+        }
+    },
+    
+    // Скрыть панель
+    hidePanel() {
+        const panel = document.getElementById('leaderboard-panel');
+        if (panel) {
+            panel.classList.remove('show');
+        }
+    },
+    
+    // Отрисовать список записей
+    renderList() {
+        const list = document.getElementById('leaderboard-list');
+        if (!list) return;
+        
+        const entries = this.getEntries();
+        
+        if (entries.length === 0) {
+            list.innerHTML = `
+                <div class="leaderboard-empty">
+                    <span class="leaderboard-empty-icon">🎮</span>
+                    <div class="leaderboard-empty-text">No games yet!</div>
+                    <div class="leaderboard-empty-hint">Play a game to see your scores here</div>
+                </div>
+            `;
+            return;
+        }
+        
+        const elementEmojis = {
+            normal: '⭐', fire: '🔥', water: '💧', electric: '⚡', grass: '🌿',
+            poison: '☠️', ground: '🌍', flying: '🦅', bug: '🐛', rock: '🪨',
+            ice: '❄️', fighting: '🥊', psychic: '🔮', ghost: '👻', dark: '🌑',
+            steel: '⚔️', fairy: '🧚', dragon: '🐉', cosmic: '🌌', shadow: '🖤',
+            legendary: '✨'
+        };
+        
+        const elementNames = {
+            normal: 'Normal', fire: 'Fire', water: 'Water', electric: 'Electric', grass: 'Grass',
+            poison: 'Poison', ground: 'Ground', flying: 'Flying', bug: 'Bug', rock: 'Rock',
+            ice: 'Ice', fighting: 'Fighting', psychic: 'Psychic', ghost: 'Ghost', dark: 'Dark',
+            steel: 'Steel', fairy: 'Fairy', dragon: 'Dragon', cosmic: 'Cosmic', shadow: 'Shadow',
+            legendary: 'Legendary'
+        };
+        
+        list.innerHTML = entries.map((entry, index) => {
+            const rank = index + 1;
+            const rankClass = rank === 1 ? 'top-1' : rank === 2 ? 'top-2' : rank === 3 ? 'top-3' : '';
+            const rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+            const rankDefaultClass = rank > 3 ? 'default' : '';
+            
+            const date = new Date(entry.date);
+            const dateStr = date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            const emoji = elementEmojis[entry.element] || '⭐';
+            const elementName = elementNames[entry.element] || 'Normal';
+            
+            return `
+                <div class="leaderboard-entry ${rankClass}">
+                    <div class="entry-rank ${rankDefaultClass}">${rankDisplay}</div>
+                    <div class="entry-info">
+                        <div class="entry-score">${entry.score.toLocaleString()}</div>
+                        <div class="entry-date">${dateStr}</div>
+                    </div>
+                    <div class="entry-element">
+                        <span class="entry-element-emoji">${emoji}</span>
+                        <span>${elementName}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    },
+    
+    // Очистить историю
+    clearHistory() {
+        if (confirm('Are you sure you want to clear all scores? This cannot be undone.')) {
+            this.saveEntries([]);
+            this.updateBadge();
+            this.renderList();
+        }
+    },
+    
+    // Показать уведомление о новом рекорде
+    showNewRecordNotification(score) {
+        const notification = document.createElement('div');
+        notification.className = 'record-notification';
+        notification.innerHTML = `
+            <div class="record-notification-content">
+                <span class="record-trophy">🏆</span>
+                <div class="record-title">NEW RECORD!</div>
+                <div class="record-score">${score.toLocaleString()}</div>
+            </div>
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 500);
+        }, 2500);
+    },
+    
+    // Инициализация
+    init() {
+        this.updateBadge();
+        
+        // Закрытие панели по клику вне контента
+        const panel = document.getElementById('leaderboard-panel');
+        if (panel) {
+            panel.addEventListener('click', (e) => {
+                if (e.target === panel) {
+                    this.hidePanel();
+                }
+            });
+        }
+        
+        // Закрытие по Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.hidePanel();
+            }
+        });
+        
+        console.log('🏆 Leaderboard system initialized');
+    }
+};
+
+// Инициализация лидерборда при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    leaderboardSystem.init();
+});
+
+// Делаем доступным глобально
+window.leaderboardSystem = leaderboardSystem;
