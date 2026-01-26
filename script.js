@@ -2658,32 +2658,43 @@ function updateMainMenuWithUser(username, pfpUrl) {
             style.id = 'user-greeting-styles';
             style.textContent = `
                 .user-greeting {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    padding: 10px 20px;
+                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+                    color: #ffffff;
+                    padding: 12px 24px;
                     border-radius: 25px;
-                    font-size: 14px;
-                    margin-bottom: 10px;
-                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-                    animation: greetingPulse 2s ease-in-out infinite;
+                    font-size: 15px;
+                    margin-bottom: 12px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
                 }
                 .user-greeting strong {
-                    color: #ffd700;
+                    color: #00ff88;
+                    font-size: 17px;
+                    text-shadow: 0 0 10px rgba(0, 255, 136, 0.5), 0 1px 2px rgba(0, 0, 0, 0.8);
+                    letter-spacing: 0.5px;
+                }
+                .greeting-text {
+                    color: #e0e0e0;
                 }
                 @keyframes greetingPulse {
-                    0%, 100% { transform: scale(1); }
-                    50% { transform: scale(1.02); }
+                    0%, 100% { transform: scale(1); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); }
+                    50% { transform: scale(1.02); box-shadow: 0 6px 25px rgba(0, 255, 136, 0.2); }
                 }
                 .wallet-info.connected {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    padding: 8px 16px;
+                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                    color: #00ff88;
+                    padding: 10px 18px;
                     border-radius: 20px;
-                    font-weight: 600;
-                    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+                    font-weight: 700;
+                    font-size: 14px;
+                    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.4);
+                    border: 1px solid rgba(0, 255, 136, 0.3);
+                    text-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
                 }
                 .wallet-name {
-                    font-weight: 600;
+                    font-weight: 700;
+                    color: #00ff88;
                 }
             `;
             document.head.appendChild(style);
