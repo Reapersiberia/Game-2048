@@ -4,14 +4,22 @@
     box-sizing: border-box;
 }
 
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
 body {
     font-family: 'Arial', sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
 }
 
 .container {
@@ -21,6 +29,7 @@ body {
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     max-width: 500px;
     width: 100%;
+    overflow-x: hidden;
 }
 
 h1 {
@@ -67,10 +76,14 @@ h1 {
     border: none;
     border-radius: 6px;
     padding: 10px 20px;
+    min-height: 44px;
+    min-width: 44px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
     transition: background 0.3s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .new-game-btn:hover {
@@ -145,6 +158,9 @@ h1 {
     border-radius: 6px;
     padding: 10px;
     margin-bottom: 20px;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .grid-container {
@@ -153,6 +169,8 @@ h1 {
     grid-template-rows: repeat(4, 1fr);
     gap: 10px;
     position: relative;
+    contain: layout style;
+    will-change: contents;
 }
 
 .cell {
@@ -238,10 +256,13 @@ h1 {
     justify-content: center;
     align-items: center;
     position: absolute;
-    transition: all 0.15s ease-in-out;
-    animation: appear 0.2s;
+    transition: transform 0.12s ease-out, opacity 0.12s ease-out;
+    animation: appear 0.15s ease-out;
     overflow: hidden;
     border: 1px solid rgba(0, 0, 0, 0.1);
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
 /* Пиксельная травка под покемоном */
@@ -1356,10 +1377,14 @@ h1 {
     border: none;
     border-radius: 6px;
     padding: 15px 30px;
+    min-height: 48px;
+    min-width: 120px;
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
     transition: background 0.3s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .game-over-message button:hover {
@@ -1377,8 +1402,11 @@ h1 {
 .web3-btn {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 12px 24px;
+    min-height: 44px;
+    min-width: 44px;
     border: none;
     border-radius: 12px;
     font-size: 16px;
@@ -1386,6 +1414,8 @@ h1 {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .web3-btn:hover {
@@ -1530,6 +1560,23 @@ h1 {
     color: #776e65;
     font-size: 14px;
     line-height: 1.6;
+}
+
+.instructions-desktop {
+    display: block;
+}
+
+.instructions-mobile {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    .instructions-desktop {
+        display: none;
+    }
+    .instructions-mobile {
+        display: block;
+    }
 }
 
 /* GM Counter */
@@ -1863,6 +1910,8 @@ h1 {
     align-items: center;
     gap: 6px;
     padding: 8px 14px;
+    min-height: 44px;
+    min-width: 44px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
     border-radius: 20px;
@@ -1872,6 +1921,8 @@ h1 {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .lang-btn:hover {
@@ -1944,6 +1995,7 @@ h1 {
     align-items: center;
     gap: 10px;
     padding: 10px 16px;
+    min-height: 44px;
     cursor: pointer;
     transition: all 0.2s ease;
     border: none;
@@ -1952,6 +2004,8 @@ h1 {
     text-align: left;
     font-size: 13px;
     color: #333;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .lang-option:hover {
@@ -1982,54 +2036,311 @@ h1 {
 /* Скрываем мотиваторы на маленьких экранах */
 @media (max-width: 800px) {
     .game-wrapper {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    /* Игра занимает всю ширину сверху */
+    .container {
+        order: 0;
+        width: 100%;
+        max-width: 500px;
+    }
+    
+    /* Оба покемона в ряд под игрой */
+    .motivator-container {
+        display: flex;
         flex-direction: column;
         align-items: center;
-    }
-    
-    .motivator-container {
-        display: none;
-    }
-    
-    .motivator-right {
-        display: flex;
-        flex-direction: row;
-        max-width: 100%;
         min-width: auto;
-        padding: 10px 20px;
+        max-width: 160px;
+        padding: 10px 12px;
+        gap: 8px;
+        order: 1;
     }
     
-    .motivator-right .motivator-pokemon {
+    .motivator-pokemon {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .motivator-sprite {
         width: 60px;
         height: 60px;
     }
     
-    .motivator-right .motivator-sprite {
-        width: 50px;
-        height: 50px;
+    .motivator-bubble {
+        max-width: 140px;
+        padding: 8px 12px;
     }
     
-    .motivator-right .motivator-bubble {
-        max-width: 200px;
+    .motivator-bubble::after,
+    .motivator-bubble::before {
+        display: none;
+    }
+    
+    .bubble-text {
+        font-size: 12px;
+    }
+    
+    .motivator-name {
+        font-size: 11px;
+    }
+    
+    .language-selector {
+        margin-top: 5px;
+    }
+    
+    .lang-btn {
+        padding: 6px 10px;
+        min-height: 38px;
+        font-size: 11px;
     }
 }
 
 @media (max-width: 500px) {
+    body {
+        padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    }
+
+    .container {
+        padding: 16px;
+    }
+
     h1 {
         font-size: 36px;
+        margin-bottom: 12px;
     }
-    
+
+    .score-container {
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .score-box {
+        min-width: 90px;
+        padding: 8px 14px;
+    }
+
+    .new-game-btn {
+        padding: 10px 16px;
+        font-size: 15px;
+    }
+
+    .game-container {
+        padding: 8px;
+        margin-bottom: 12px;
+    }
+
+    .grid-container {
+        gap: 6px;
+    }
+
+    .cell {
+        font-size: 28px;
+    }
+
     .tile-number {
         font-size: 24px;
     }
-    
+
     .tile-128 .tile-number { font-size: 22px; }
     .tile-256 .tile-number { font-size: 22px; }
     .tile-512 .tile-number { font-size: 20px; }
     .tile-1024 .tile-number { font-size: 18px; }
     .tile-2048 .tile-number { font-size: 16px; }
+
+    .web3-buttons {
+        gap: 8px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .web3-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+
+    .gm-counter-container {
+        margin-bottom: 12px;
+    }
+
+    .gm-counter-box {
+        padding: 12px 16px;
+        min-width: 160px;
+    }
+
+    .gm-counter-icon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .gm-counter-value {
+        font-size: 26px;
+    }
+
+    .instructions {
+        font-size: 13px;
+    }
+
+    /* Компактные мотиваторы на маленьких экранах */
+    .motivator-container {
+        padding: 8px 10px;
+        gap: 6px;
+        border-radius: 14px;
+        max-width: 48%;
+        flex: 1;
+    }
+    
+    .motivator-pokemon {
+        width: 55px;
+        height: 55px;
+    }
+    
+    .motivator-sprite {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .motivator-bubble {
+        padding: 6px 8px;
+        max-width: 120px;
+        border-radius: 12px;
+    }
+    
+    .bubble-text {
+        font-size: 10px;
+    }
+    
+    .motivator-name {
+        font-size: 9px;
+    }
+    
+    .lang-btn {
+        padding: 5px 8px;
+        min-height: 34px;
+        min-width: 34px;
+        font-size: 10px;
+    }
+    
+    .lang-icon {
+        font-size: 14px;
+    }
+    
+    /* Упрощаем тяжёлые анимации на мобильных для производительности */
+    .tile {
+        animation: none;
+        transition: none;
+    }
+    
+    .element-particles,
+    .particles-fire,
+    .particles-water,
+    .particles-electric,
+    .particles-grass,
+    .particles-ice,
+    .particles-dragon,
+    .particles-psychic,
+    .particles-legendary {
+        display: none !important;
+    }
     
     .motivator-container {
-        display: none;
+        animation: none;
+    }
+    
+    .motivator-pokemon {
+        animation: none;
+    }
+    
+    .element-badge {
+        animation: none;
+    }
+}
+
+/* ============================================
+   Подсказка прокрутки (мобильная)
+   ============================================ */
+.scroll-hint {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #333;
+    padding: 12px 20px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(255, 165, 0, 0.5);
+    z-index: 1000;
+    animation: scrollHintBounce 2s ease-in-out infinite;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.scroll-hint-text {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.scroll-hint-arrow {
+    font-size: 20px;
+    animation: arrowBounce 1s ease-in-out infinite;
+}
+
+@keyframes scrollHintBounce {
+    0%, 100% { 
+        transform: translateX(-50%) translateY(0);
+        box-shadow: 0 4px 20px rgba(255, 165, 0, 0.5);
+    }
+    50% { 
+        transform: translateX(-50%) translateY(-8px);
+        box-shadow: 0 8px 30px rgba(255, 165, 0, 0.7);
+    }
+}
+
+@keyframes arrowBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(5px); }
+}
+
+.scroll-hint.hide {
+    animation: scrollHintFadeOut 0.5s ease-out forwards;
+}
+
+@keyframes scrollHintFadeOut {
+    to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+        pointer-events: none;
+    }
+}
+
+/* Показываем только на мобильных */
+@media (max-width: 800px) {
+    .scroll-hint {
+        display: block;
+    }
+}
+
+@media (max-width: 500px) {
+    .scroll-hint {
+        padding: 10px 16px;
+        font-size: 13px;
+        bottom: 15px;
+    }
+    
+    .scroll-hint-arrow {
+        font-size: 18px;
     }
 }
 
@@ -2134,6 +2445,8 @@ h1 {
     color: #fff;
     border: none;
     padding: 18px 50px;
+    min-height: 48px;
+    min-width: 120px;
     font-size: 24px;
     font-weight: bold;
     border-radius: 15px;
@@ -2141,6 +2454,8 @@ h1 {
     box-shadow: 0 5px 20px rgba(240, 128, 48, 0.5);
     transition: all 0.3s ease;
     animation: btnPulse 1.5s ease-in-out infinite;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 @keyframes btnPulse {
@@ -2183,6 +2498,8 @@ h1 {
     align-items: center;
     gap: 8px;
     padding: 12px 24px;
+    min-height: 44px;
+    min-width: 44px;
     background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
     border: none;
     border-radius: 12px;
@@ -2192,6 +2509,8 @@ h1 {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .achievements-toggle-btn:hover {
@@ -2312,8 +2631,10 @@ h1 {
 }
 
 .achievements-close-btn {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
     border-radius: 50%;
     border: none;
     background: rgba(0, 0, 0, 0.2);
@@ -2321,6 +2642,8 @@ h1 {
     font-size: 20px;
     cursor: pointer;
     transition: all 0.2s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .achievements-close-btn:hover {

@@ -16,34 +16,34 @@ class Game2048 {
         // Система стихий покемонов ПО ОЧКАМ (score) - до 100к+
         // Стихия меняется когда игрок набирает определенное количество очков
         this.scoreElements = [
-            // Начальные стихии (0 - 5000)
-            { type: 'normal',   minScore: 0,      name: 'Normal ⭐',    color: '#A8A878', emoji: '⭐', desc: 'Начало пути' },
-            { type: 'fire',     minScore: 100,    name: 'Fire 🔥',      color: '#F08030', emoji: '🔥', desc: 'Огонь пробуждается!' },
-            { type: 'water',    minScore: 300,    name: 'Water 💧',     color: '#6890F0', emoji: '💧', desc: 'Сила воды!' },
-            { type: 'electric', minScore: 600,    name: 'Electric ⚡',  color: '#F8D030', emoji: '⚡', desc: 'Молния бьёт!' },
-            { type: 'grass',    minScore: 1000,   name: 'Grass 🌿',     color: '#78C850', emoji: '🌿', desc: 'Природа на твоей стороне!' },
-            { type: 'poison',   minScore: 1500,   name: 'Poison ☠️',    color: '#A040A0', emoji: '☠️', desc: 'Токсичная сила!' },
-            { type: 'ground',   minScore: 2000,   name: 'Ground 🌍',    color: '#E0C068', emoji: '🌍', desc: 'Земля дрожит!' },
+            // Starting elements (0 - 5000)
+            { type: 'normal',   minScore: 0,      name: 'Normal ⭐',    color: '#A8A878', emoji: '⭐', desc: 'The journey begins' },
+            { type: 'fire',     minScore: 100,    name: 'Fire 🔥',      color: '#F08030', emoji: '🔥', desc: 'Fire awakens!' },
+            { type: 'water',    minScore: 300,    name: 'Water 💧',     color: '#6890F0', emoji: '💧', desc: 'Water power!' },
+            { type: 'electric', minScore: 600,    name: 'Electric ⚡',  color: '#F8D030', emoji: '⚡', desc: 'Lightning strikes!' },
+            { type: 'grass',    minScore: 1000,   name: 'Grass 🌿',     color: '#78C850', emoji: '🌿', desc: 'Nature is with you!' },
+            { type: 'poison',   minScore: 1500,   name: 'Poison ☠️',    color: '#A040A0', emoji: '☠️', desc: 'Toxic power!' },
+            { type: 'ground',   minScore: 2000,   name: 'Ground 🌍',    color: '#E0C068', emoji: '🌍', desc: 'Earth shakes!' },
             
-            // Средние стихии (2500 - 15000)
-            { type: 'flying',   minScore: 2500,   name: 'Flying 🦅',    color: '#A890F0', emoji: '🦅', desc: 'Взлетаем выше!' },
-            { type: 'bug',      minScore: 3500,   name: 'Bug 🐛',       color: '#A8B820', emoji: '🐛', desc: 'Рой атакует!' },
-            { type: 'rock',     minScore: 5000,   name: 'Rock 🪨',      color: '#B8A038', emoji: '🪨', desc: 'Твёрдый как камень!' },
-            { type: 'ice',      minScore: 7000,   name: 'Ice ❄️',       color: '#98D8D8', emoji: '❄️', desc: 'Ледяная буря!' },
-            { type: 'fighting', minScore: 10000,  name: 'Fighting 🥊',  color: '#C03028', emoji: '🥊', desc: 'Боевой дух!' },
-            { type: 'psychic',  minScore: 15000,  name: 'Psychic 🔮',   color: '#F85888', emoji: '🔮', desc: 'Сила разума!' },
+            // Mid elements (2500 - 15000)
+            { type: 'flying',   minScore: 2500,   name: 'Flying 🦅',    color: '#A890F0', emoji: '🦅', desc: 'Soaring higher!' },
+            { type: 'bug',      minScore: 3500,   name: 'Bug 🐛',       color: '#A8B820', emoji: '🐛', desc: 'Swarm attacks!' },
+            { type: 'rock',     minScore: 5000,   name: 'Rock 🪨',      color: '#B8A038', emoji: '🪨', desc: 'Solid as rock!' },
+            { type: 'ice',      minScore: 7000,   name: 'Ice ❄️',       color: '#98D8D8', emoji: '❄️', desc: 'Ice storm!' },
+            { type: 'fighting', minScore: 10000,  name: 'Fighting 🥊',  color: '#C03028', emoji: '🥊', desc: 'Fighting spirit!' },
+            { type: 'psychic',  minScore: 15000,  name: 'Psychic 🔮',   color: '#F85888', emoji: '🔮', desc: 'Mind power!' },
             
-            // Продвинутые стихии (20000 - 50000)
-            { type: 'ghost',    minScore: 20000,  name: 'Ghost 👻',     color: '#705898', emoji: '👻', desc: 'Призрачная мощь!' },
-            { type: 'dark',     minScore: 25000,  name: 'Dark 🌑',      color: '#705848', emoji: '🌑', desc: 'Тьма поглощает!' },
-            { type: 'steel',    minScore: 30000,  name: 'Steel ⚔️',     color: '#B8B8D0', emoji: '⚔️', desc: 'Стальная воля!' },
-            { type: 'fairy',    minScore: 40000,  name: 'Fairy 🧚',     color: '#EE99AC', emoji: '🧚', desc: 'Магия фей!' },
-            { type: 'dragon',   minScore: 50000,  name: 'Dragon 🐉',    color: '#7038F8', emoji: '🐉', desc: 'Драконья ярость!' },
+            // Advanced elements (20000 - 50000)
+            { type: 'ghost',    minScore: 20000,  name: 'Ghost 👻',     color: '#705898', emoji: '👻', desc: 'Phantom force!' },
+            { type: 'dark',     minScore: 25000,  name: 'Dark 🌑',      color: '#705848', emoji: '🌑', desc: 'Darkness consumes!' },
+            { type: 'steel',    minScore: 30000,  name: 'Steel ⚔️',     color: '#B8B8D0', emoji: '⚔️', desc: 'Iron will!' },
+            { type: 'fairy',    minScore: 40000,  name: 'Fairy 🧚',     color: '#EE99AC', emoji: '🧚', desc: 'Fairy magic!' },
+            { type: 'dragon',   minScore: 50000,  name: 'Dragon 🐉',    color: '#7038F8', emoji: '🐉', desc: 'Dragon fury!' },
             
-            // Легендарные стихии (60000 - 100000+)
-            { type: 'cosmic',   minScore: 60000,  name: 'Cosmic 🌌',    color: '#3D1A78', emoji: '🌌', desc: 'Космическая сила!' },
-            { type: 'shadow',   minScore: 75000,  name: 'Shadow 🖤',    color: '#1A1A2E', emoji: '🖤', desc: 'Теневой властелин!' },
-            { type: 'legendary', minScore: 100000, name: 'Legendary ✨', color: '#FFD700', emoji: '✨', desc: 'ЛЕГЕНДА ПРОБУДИЛАСЬ!' }
+            // Legendary elements (60000 - 100000+)
+            { type: 'cosmic',   minScore: 60000,  name: 'Cosmic 🌌',    color: '#3D1A78', emoji: '🌌', desc: 'Cosmic power!' },
+            { type: 'shadow',   minScore: 75000,  name: 'Shadow 🖤',    color: '#1A1A2E', emoji: '🖤', desc: 'Shadow lord!' },
+            { type: 'legendary', minScore: 100000, name: 'Legendary ✨', color: '#FFD700', emoji: '✨', desc: 'LEGEND AWAKENED!' }
         ];
         
         // Маппинг чисел на ID покемонов (будет меняться в зависимости от стихии)
@@ -120,7 +120,7 @@ class Game2048 {
             <div class="element-notification-content element-${element.type}">
                 <span class="element-notification-emoji">${element.emoji}</span>
                 <span class="element-notification-text">${element.name}</span>
-                <span class="element-notification-score">${element.minScore}+ очков!</span>
+                <span class="element-notification-score">${element.minScore}+ points!</span>
             </div>
         `;
         document.body.appendChild(notification);
@@ -131,7 +131,7 @@ class Game2048 {
             setTimeout(() => notification.remove(), 500);
         }, 2000);
         
-        console.log(`🎉 Стихия изменилась на ${element.name}!`);
+        console.log(`🎉 Element changed to ${element.name}!`);
     }
 
     init() {
@@ -192,6 +192,10 @@ class Game2048 {
     }
 
     move(direction) {
+        // Блокируем быстрые последовательные ходы (debounce)
+        if (this._moveInProgress) return;
+        this._moveInProgress = true;
+        
         const prevGrid = this.grid.map(row => [...row]);
         let moved = false;
 
@@ -227,16 +231,26 @@ class Game2048 {
             }
             
             this.addRandomTile();
-            this.updateDisplay();
-            if (this.isGameOver()) {
-                this.gameOverElement.classList.add('show');
+            
+            // Используем requestAnimationFrame для плавного рендеринга
+            requestAnimationFrame(() => {
+                this.updateDisplay();
                 
-                // Засчитываем завершённую игру для достижений
-                if (window.achievementSystem) {
-                    window.achievementSystem.registerNewGame();
-                    console.log('Game completed! Score:', this.score);
+                if (this.isGameOver()) {
+                    this.gameOverElement.classList.add('show');
+                    
+                    // Засчитываем завершённую игру для достижений
+                    if (window.achievementSystem) {
+                        window.achievementSystem.registerNewGame();
+                    }
                 }
-            }
+                
+                // Разблокируем после рендеринга
+                setTimeout(() => { this._moveInProgress = false; }, 50);
+            });
+        } else {
+            // Если не было движения — сразу разблокируем
+            this._moveInProgress = false;
         }
     }
 
@@ -309,19 +323,29 @@ class Game2048 {
     }
 
     updateDisplay() {
-        this.gridContainer.innerHTML = '';
-        const cellSize = (this.gridContainer.offsetWidth - 40) / this.size;
+        // Кэшируем размер ячейки (вычисляем только если не кэширован)
+        if (!this._cellSize || this._lastWidth !== this.gridContainer.offsetWidth) {
+            this._lastWidth = this.gridContainer.offsetWidth;
+            this._cellSize = (this._lastWidth - 40) / this.size;
+        }
+        const cellSize = this._cellSize;
         
         // Получаем ТЕКУЩУЮ стихию по очкам (одна для всех плиток)
         const currentElement = this.getCurrentElement();
         
+        // Используем DocumentFragment для batch DOM операций
+        const fragment = document.createDocumentFragment();
+        
         // Обновляем класс контейнера для общего стиля
         this.gridContainer.className = `grid-container element-theme-${currentElement.type}`;
+        
+        // Очищаем контейнер
+        this.gridContainer.innerHTML = '';
         
         for (let i = 0; i < this.size * this.size; i++) {
             const cell = document.createElement('div');
             cell.className = `cell cell-${currentElement.type}`;
-            this.gridContainer.appendChild(cell);
+            fragment.appendChild(cell);
         }
 
         for (let row = 0; row < this.size; row++) {
@@ -380,10 +404,13 @@ class Game2048 {
                     tile.style.height = `${cellSize}px`;
                     tile.style.top = `${10 + row * (cellSize + 10)}px`;
                     tile.style.left = `${10 + col * (cellSize + 10)}px`;
-                    this.gridContainer.appendChild(tile);
+                    fragment.appendChild(tile);
                 }
             }
         }
+        
+        // Одна DOM-операция вместо множества
+        this.gridContainer.appendChild(fragment);
         
         // Обновляем индикатор стихии
         this.updateElementIndicator(currentElement);
@@ -460,35 +487,57 @@ class Game2048 {
             }
         });
 
-        let touchStartX, touchStartY;
-        document.addEventListener('touchstart', (e) => {
+        // Touch/swipe для мобильных: только по игровому полю, порог 35px, блокировка скролла при свайпе
+        const gameContainer = document.querySelector('.game-container');
+        const SWIPE_THRESHOLD = 35;
+        let touchStartX = null, touchStartY = null;
+
+        const onTouchStart = (e) => {
+            if (e.touches.length !== 1) return;
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
-        });
+        };
 
-        document.addEventListener('touchend', (e) => {
-            if (!touchStartX || !touchStartY) return;
+        const onTouchMove = (e) => {
+            if (touchStartX == null) return;
+            e.preventDefault();
+        };
+
+        const onTouchEnd = (e) => {
+            if (touchStartX == null || touchStartY == null || !e.changedTouches?.length) return;
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
             const diffX = touchStartX - touchEndX;
             const diffY = touchStartY - touchEndY;
+            const absX = Math.abs(diffX);
+            const absY = Math.abs(diffY);
 
-            if (Math.abs(diffX) > Math.abs(diffY)) {
-                if (diffX > 0) {
-                    this.move('left');
-                } else {
-                    this.move('right');
-                }
+            if (absX < SWIPE_THRESHOLD && absY < SWIPE_THRESHOLD) {
+                touchStartX = null;
+                touchStartY = null;
+                return;
+            }
+
+            if (absX > absY) {
+                this.move(diffX > 0 ? 'left' : 'right');
             } else {
-                if (diffY > 0) {
-                    this.move('up');
-                } else {
-                    this.move('down');
-                }
+                this.move(diffY > 0 ? 'up' : 'down');
             }
             touchStartX = null;
             touchStartY = null;
-        });
+        };
+
+        const onTouchCancel = () => {
+            touchStartX = null;
+            touchStartY = null;
+        };
+
+        if (gameContainer) {
+            gameContainer.addEventListener('touchstart', onTouchStart, { passive: true });
+            gameContainer.addEventListener('touchmove', onTouchMove, { passive: false });
+            gameContainer.addEventListener('touchend', onTouchEnd, { passive: true });
+            gameContainer.addEventListener('touchcancel', onTouchCancel, { passive: true });
+        }
     }
 }
 
@@ -496,41 +545,81 @@ class Game2048 {
 window.game = new Game2048();
 
 // ============================================
+// Подсказка прокрутки для мобильных
+// ============================================
+(function initScrollHint() {
+    const scrollHint = document.getElementById('scroll-hint');
+    if (!scrollHint) return;
+    
+    let hintHidden = false;
+    
+    function hideHint() {
+        if (hintHidden) return;
+        hintHidden = true;
+        scrollHint.classList.add('hide');
+        setTimeout(() => {
+            scrollHint.style.display = 'none';
+        }, 500);
+    }
+    
+    // Скрыть при прокрутке
+    window.addEventListener('scroll', function onScroll() {
+        if (window.scrollY > 50) {
+            hideHint();
+            window.removeEventListener('scroll', onScroll);
+        }
+    }, { passive: true });
+    
+    // Скрыть по клику/тапу
+    scrollHint.addEventListener('click', () => {
+        hideHint();
+        // Плавно прокрутить к покемонам
+        const motivator = document.querySelector('.motivator-container');
+        if (motivator) {
+            motivator.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+    
+    // Автоматически скрыть через 15 секунд
+    setTimeout(hideHint, 15000);
+})();
+
+// ============================================
 // Тестирование стихий ПО ОЧКАМ
 // ============================================
 
 let testElementIndex = 0;
 
-// Тестовые очки для каждой стихии (22 стихии до 100к+)
+// Test scores for each element (22 elements up to 100k+)
 const testScores = [
-    // Начальные (0 - 5000)
-    { score: 0,      name: '⭐ Normal',    emoji: '⭐',  desc: 'Начало пути' },
-    { score: 100,    name: '🔥 Fire',      emoji: '🔥',  desc: 'Огонь!' },
-    { score: 300,    name: '💧 Water',     emoji: '💧',  desc: 'Вода!' },
-    { score: 600,    name: '⚡ Electric',  emoji: '⚡',  desc: 'Молния!' },
-    { score: 1000,   name: '🌿 Grass',     emoji: '🌿',  desc: 'Природа!' },
-    { score: 1500,   name: '☠️ Poison',    emoji: '☠️',  desc: 'Яд!' },
-    { score: 2000,   name: '🌍 Ground',    emoji: '🌍',  desc: 'Земля!' },
+    // Starting (0 - 5000)
+    { score: 0,      name: '⭐ Normal',    emoji: '⭐',  desc: 'Begin!' },
+    { score: 100,    name: '🔥 Fire',      emoji: '🔥',  desc: 'Fire!' },
+    { score: 300,    name: '💧 Water',     emoji: '💧',  desc: 'Water!' },
+    { score: 600,    name: '⚡ Electric',  emoji: '⚡',  desc: 'Thunder!' },
+    { score: 1000,   name: '🌿 Grass',     emoji: '🌿',  desc: 'Nature!' },
+    { score: 1500,   name: '☠️ Poison',    emoji: '☠️',  desc: 'Toxic!' },
+    { score: 2000,   name: '🌍 Ground',    emoji: '🌍',  desc: 'Earth!' },
     
-    // Средние (2500 - 15000)
-    { score: 2500,   name: '🦅 Flying',    emoji: '🦅',  desc: 'Полёт!' },
-    { score: 3500,   name: '🐛 Bug',       emoji: '🐛',  desc: 'Жуки!' },
-    { score: 5000,   name: '🪨 Rock',      emoji: '🪨',  desc: 'Камень!' },
-    { score: 7000,   name: '❄️ Ice',       emoji: '❄️',  desc: 'Лёд!' },
-    { score: 10000,  name: '🥊 Fighting',  emoji: '🥊',  desc: 'Бой!' },
-    { score: 15000,  name: '🔮 Psychic',   emoji: '🔮',  desc: 'Психика!' },
+    // Mid (2500 - 15000)
+    { score: 2500,   name: '🦅 Flying',    emoji: '🦅',  desc: 'Flight!' },
+    { score: 3500,   name: '🐛 Bug',       emoji: '🐛',  desc: 'Swarm!' },
+    { score: 5000,   name: '🪨 Rock',      emoji: '🪨',  desc: 'Rock!' },
+    { score: 7000,   name: '❄️ Ice',       emoji: '❄️',  desc: 'Ice!' },
+    { score: 10000,  name: '🥊 Fighting',  emoji: '🥊',  desc: 'Fight!' },
+    { score: 15000,  name: '🔮 Psychic',   emoji: '🔮',  desc: 'Mind!' },
     
-    // Продвинутые (20000 - 50000)
-    { score: 20000,  name: '👻 Ghost',     emoji: '👻',  desc: 'Призрак!' },
-    { score: 25000,  name: '🌑 Dark',      emoji: '🌑',  desc: 'Тьма!' },
-    { score: 30000,  name: '⚔️ Steel',     emoji: '⚔️',  desc: 'Сталь!' },
-    { score: 40000,  name: '🧚 Fairy',     emoji: '🧚',  desc: 'Фея!' },
-    { score: 50000,  name: '🐉 Dragon',    emoji: '🐉',  desc: 'Дракон!' },
+    // Advanced (20000 - 50000)
+    { score: 20000,  name: '👻 Ghost',     emoji: '👻',  desc: 'Phantom!' },
+    { score: 25000,  name: '🌑 Dark',      emoji: '🌑',  desc: 'Dark!' },
+    { score: 30000,  name: '⚔️ Steel',     emoji: '⚔️',  desc: 'Steel!' },
+    { score: 40000,  name: '🧚 Fairy',     emoji: '🧚',  desc: 'Fairy!' },
+    { score: 50000,  name: '🐉 Dragon',    emoji: '🐉',  desc: 'Dragon!' },
     
-    // Легендарные (60000 - 100000+)
-    { score: 60000,  name: '🌌 Cosmic',    emoji: '🌌',  desc: 'Космос!' },
-    { score: 75000,  name: '🖤 Shadow',    emoji: '🖤',  desc: 'Тень!' },
-    { score: 100000, name: '✨ Legendary', emoji: '✨',  desc: 'ЛЕГЕНДА!' }
+    // Legendary (60000 - 100000+)
+    { score: 60000,  name: '🌌 Cosmic',    emoji: '🌌',  desc: 'Cosmic!' },
+    { score: 75000,  name: '🖤 Shadow',    emoji: '🖤',  desc: 'Shadow!' },
+    { score: 100000, name: '✨ Legendary', emoji: '✨',  desc: 'LEGEND!' }
 ];
 
 // Флаг тестового режима (превью стихий)
@@ -559,7 +648,7 @@ function testElements() {
         
         // Показываем уведомление о стихии
         if (typeof showStatus === 'function') {
-            showStatus('👁️ ПРЕВЬЮ: ' + testData.emoji + ' ' + testData.name + ' (' + testData.score.toLocaleString() + '+ очков) - ' + testData.desc, 'success');
+            showStatus('👁️ PREVIEW: ' + testData.emoji + ' ' + testData.name + ' (' + testData.score.toLocaleString() + '+ pts) - ' + testData.desc, 'success');
         }
         
         // Показываем подсказку
@@ -568,7 +657,7 @@ function testElements() {
             hint = document.createElement('div');
             hint.id = 'test-mode-hint';
             hint.className = 'test-mode-hint';
-            hint.innerHTML = '👁️ Режим превью • Нажми <strong>New Game</strong> чтобы начать играть!';
+            hint.innerHTML = '👁️ Preview Mode • Press <strong>New Game</strong> to start playing!';
             const container = document.querySelector('.container');
             if (container) {
                 const gameContainer = container.querySelector('.game-container');
@@ -595,10 +684,9 @@ window.testElements = testElements;
 // ============================================
 
 const localization = {
-    currentLang: 'ru',
+    currentLang: 'en',
     
     languages: {
-        ru: { name: 'Русский', flag: '🇷🇺', code: 'RU' },
         en: { name: 'English', flag: '🇬🇧', code: 'EN' },
         es: { name: 'Español', flag: '🇪🇸', code: 'ES' },
         de: { name: 'Deutsch', flag: '🇩🇪', code: 'DE' },
@@ -3461,8 +3549,8 @@ function showWelcomeScreen() {
             </div>
             <h1 class="welcome-title">${pokemon.emoji} GAME 2048 ${pokemon.emoji}</h1>
             <p class="welcome-subtitle">Pokemon Edition</p>
-            <p class="welcome-pokemon-name">${pokemon.name} приветствует тебя!</p>
-            <button class="welcome-btn" onclick="hideWelcomeScreen()">▶ ИГРАТЬ</button>
+            <p class="welcome-pokemon-name">${pokemon.name} welcomes you!</p>
+            <button class="welcome-btn" onclick="hideWelcomeScreen()">▶ PLAY</button>
         </div>
     `;
     document.body.appendChild(welcome);

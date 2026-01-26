@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="fc:miniapp" content='{
       "version":"next",
       "imageUrl":"https://game-2048-theta-eosin.vercel.app/og.png",
@@ -15,11 +15,11 @@
           }
       }
     }'>
-    <meta property="og:title" content="Pokemon 2048 - Собери всех покемонов!">
-    <meta property="og:description" content="🔥 Объединяй покемонов и стань лучшим тренером! Pikachu, Charizard, Mewtwo ждут тебя!">
+    <meta property="og:title" content="Pokemon 2048 - Catch 'Em All!">
+    <meta property="og:description" content="🔥 Merge Pokemon and become the best trainer! Pikachu, Charizard, Mewtwo are waiting for you!">
     <meta property="og:image" content="https://game-2048-theta-eosin.vercel.app/og.png">
-    <meta name="description" content="Играй в 2048 с покемонами! Собери Pikachu, Charizard, Mewtwo и других легендарных покемонов!">
-    <title>Pokemon 2048 - Собери их всех! 🔥</title>
+    <meta name="description" content="Play 2048 with Pokemon! Collect Pikachu, Charizard, Mewtwo and other legendary Pokemon!">
+    <title>Pokemon 2048 - Catch 'Em All! 🔥</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#faf8ef">
     <link rel="stylesheet" href="style.css">
@@ -29,7 +29,7 @@
     <!-- Мотивирующий покемон слева -->
     <div class="motivator-container motivator-left" id="motivator-left">
         <div class="motivator-bubble" id="motivator-bubble-left">
-            <span class="bubble-text" id="bubble-text-left">Начни играть!</span>
+            <span class="bubble-text" id="bubble-text-left">Let's play!</span>
         </div>
         <div class="motivator-pokemon" id="motivator-pokemon-left">
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" 
@@ -103,14 +103,21 @@
             </div>
         </div>
         <div class="instructions">
-            <p>Use arrow keys to move tiles. When two tiles with the same number touch, they merge into one!</p>
+            <p class="instructions-desktop">Use arrow keys to move. When two tiles with the same number touch, they merge!</p>
+            <p class="instructions-mobile">Swipe to move. Same numbers merge into one!</p>
         </div>
+    </div>
+
+    <!-- Подсказка прокрутить вниз (мобильная) -->
+    <div class="scroll-hint" id="scroll-hint">
+        <span class="scroll-hint-text">Scroll down — surprise awaits! 🎁</span>
+        <div class="scroll-hint-arrow">↓</div>
     </div>
 
     <!-- Мотивирующий покемон справа -->
     <div class="motivator-container motivator-right" id="motivator-right">
         <div class="motivator-bubble" id="motivator-bubble-right">
-            <span class="bubble-text" id="bubble-text-right">Ты сможешь!</span>
+            <span class="bubble-text" id="bubble-text-right">You got this!</span>
         </div>
         <div class="motivator-pokemon" id="motivator-pokemon-right">
             <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif" 
