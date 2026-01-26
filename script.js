@@ -316,8 +316,9 @@ class Game2048 {
     }
     
     getPokemonIdForValue(value) {
-        // Берём покемона из текущей стихии
-        const elementPokemon = this.elementPokemon[this.currentElement];
+        // Берём покемона из текущей стихии по текущему счёту
+        const currentType = this.getCurrentElement().type;
+        const elementPokemon = this.elementPokemon[currentType];
         if (elementPokemon && elementPokemon[value]) {
             return elementPokemon[value];
         }
