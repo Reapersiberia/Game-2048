@@ -28,6 +28,40 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#faf8ef">
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Стили для Farcaster user greeting -->
+    <style>
+        .user-greeting {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            animation: greetingPulse 2s ease-in-out infinite;
+        }
+        .user-greeting strong {
+            color: #ffd700;
+        }
+        @keyframes greetingPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        .wallet-info.connected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+            display: inline-block;
+            margin-top: 8px;
+        }
+        .wallet-name {
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
     <script>
@@ -808,8 +842,54 @@
                 if (sdk.context) {
                     const context = await sdk.context;
                     if (context && context.user) {
-                        console.log('Farcaster user:', context.user.username || context.user.displayName);
-                        window.farcasterUser = context.user;
+                        const user = context.user;
+                        console.log('Farcaster user:', user.username || user.displayName);
+                        window.farcasterUser = user;
+                        
+                        // Сразу обновляем UI с информацией о пользователе
+                        const username = user.username || user.displayName;
+                        const pfpUrl = user.pfpUrl || (user.pfp && user.pfp.url);
+                        
+                        if (username) {
+                            // Обновляем wallet-info
+                            const walletInfo = document.getElementById('wallet-info');
+                            if (walletInfo) {
+                                walletInfo.innerHTML = '<span class="wallet-name">🎮 ' + username + '</span>';
+                                walletInfo.className = 'wallet-info connected';
+                            }
+                            
+                            // Обновляем имя в профиле
+                            const profileName = document.getElementById('profile-name');
+                            if (profileName) {
+                                profileName.textContent = username;
+                            }
+                            
+                            // Добавляем приветствие в главное меню
+                            const menuContent = document.querySelector('.main-menu-content');
+                            if (menuContent) {
+                                let userGreeting = document.getElementById('user-greeting');
+                                if (!userGreeting) {
+                                    userGreeting = document.createElement('div');
+                                    userGreeting.id = 'user-greeting';
+                                    userGreeting.className = 'user-greeting';
+                                    const title = menuContent.querySelector('.menu-title');
+                                    if (title) {
+                                        menuContent.insertBefore(userGreeting, title);
+                                    }
+                                }
+                                userGreeting.innerHTML = '<span class="greeting-text">Welcome, <strong>' + username + '</strong>!</span>';
+                            }
+                            
+                            // Обновляем аватар если есть
+                            if (pfpUrl) {
+                                const profileAvatar = document.getElementById('profile-avatar-img');
+                                if (profileAvatar) {
+                                    profileAvatar.src = pfpUrl;
+                                }
+                            }
+                            
+                            console.log('✅ Farcaster user displayed:', username);
+                        }
                     }
                 }
             } catch (e) {
