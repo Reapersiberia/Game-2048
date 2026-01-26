@@ -30,7 +30,340 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="game-wrapper">
+    <script>
+    // =============================================
+    // ГЛАВНОЕ МЕНЮ - Base MiniApp
+    // =============================================
+    var gameStarted = false;
+    var panelTouchStartY = null;
+    window.panelScrolled = false;
+    
+    // Массив популярных покемонов для главного меню (ID и имена)
+    var menuPokemonList = [
+        { id: 6, name: 'Charizard' },    // Дракон/Огонь
+        { id: 25, name: 'Pikachu' },     // Электрик
+        { id: 149, name: 'Dragonite' },  // Дракон
+        { id: 384, name: 'Rayquaza' },   // Дракон
+        { id: 150, name: 'Mewtwo' },     // Психик
+        { id: 151, name: 'Mew' },        // Психик
+        { id: 9, name: 'Blastoise' },    // Вода
+        { id: 3, name: 'Venusaur' },     // Трава
+        { id: 94, name: 'Gengar' },      // Призрак
+        { id: 143, name: 'Snorlax' },    // Нормал
+        { id: 130, name: 'Gyarados' },   // Вода/Летающий
+        { id: 133, name: 'Eevee' },      // Нормал
+        { id: 448, name: 'Lucario' },    // Боевой/Стальной
+        { id: 282, name: 'Gardevoir' },  // Психик/Фея
+        { id: 373, name: 'Salamence' },  // Дракон/Летающий
+        { id: 445, name: 'Garchomp' },   // Дракон/Земля
+        { id: 249, name: 'Lugia' },      // Психик/Летающий
+        { id: 250, name: 'Ho-Oh' },      // Огонь/Летающий
+        { id: 483, name: 'Dialga' },     // Стальной/Дракон
+        { id: 484, name: 'Palkia' },     // Вода/Дракон
+        { id: 493, name: 'Arceus' },     // Нормал (Бог)
+        { id: 658, name: 'Greninja' },   // Вода/Темный
+        { id: 392, name: 'Infernape' },  // Огонь/Боевой
+        { id: 395, name: 'Empoleon' },   // Вода/Стальной
+        { id: 257, name: 'Blaziken' },   // Огонь/Боевой
+        { id: 248, name: 'Tyranitar' },  // Камень/Темный
+        { id: 376, name: 'Metagross' },  // Стальной/Психик
+        { id: 380, name: 'Latias' },     // Дракон/Психик
+        { id: 381, name: 'Latios' },     // Дракон/Психик
+        { id: 212, name: 'Scizor' }      // Жук/Стальной
+    ];
+    
+    var currentMenuPokemonIndex = 0;
+    var menuPokemonInterval = null;
+    
+    // Функция смены покемона в меню
+    function changeMenuPokemon() {
+        var img = document.querySelector('.menu-pokemon-logo');
+        if (!img) return;
+        
+        // Случайный покемон из списка (но не текущий)
+        var newIndex;
+        do {
+            newIndex = Math.floor(Math.random() * menuPokemonList.length);
+        } while (newIndex === currentMenuPokemonIndex && menuPokemonList.length > 1);
+        
+        currentMenuPokemonIndex = newIndex;
+        var pokemon = menuPokemonList[newIndex];
+        
+        // Простая смена - только opacity
+        img.style.opacity = '0';
+        
+        setTimeout(function() {
+            img.src = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/' + pokemon.id + '.gif';
+            img.alt = pokemon.name;
+            img.style.opacity = '1';
+        }, 200);
+    }
+    
+    // Запуск смены покемонов при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        // Сразу показываем случайного покемона
+        var startPokemon = menuPokemonList[Math.floor(Math.random() * menuPokemonList.length)];
+        var img = document.querySelector('.menu-pokemon-logo');
+        if (img) {
+            img.src = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/' + startPokemon.id + '.gif';
+            img.alt = startPokemon.name;
+        }
+        
+        // Меняем покемона каждые 3 секунды
+        menuPokemonInterval = setInterval(changeMenuPokemon, 3000);
+    });
+    
+    // Быстрое закрытие панели
+    function closePanelSmooth(panel, callback) {
+        if (!panel) return callback && callback();
+        panel.classList.remove('show');
+        if (callback) callback();
+    }
+    
+    // Безопасное закрытие панели - только при клике на фон (не при скролле)
+    function handlePanelBackgroundClick(event, panel) {
+        // Если был скролл - не закрываем
+        if (window.panelScrolled) {
+            return;
+        }
+        // Закрываем только если клик был на самой панели (фоне)
+        if (event.target === panel) {
+            closePanelSmooth(panel);
+        }
+    }
+    
+    // Отслеживание скролла в панелях
+    document.addEventListener('touchstart', function(e) {
+        panelTouchStartY = e.touches[0].clientY;
+        window.panelScrolled = false;
+    }, { passive: true });
+    
+    document.addEventListener('touchmove', function(e) {
+        if (panelTouchStartY !== null) {
+            var diff = Math.abs(e.touches[0].clientY - panelTouchStartY);
+            if (diff > 10) {
+                window.panelScrolled = true;
+            }
+        }
+    }, { passive: true });
+    
+    document.addEventListener('touchend', function() {
+        panelTouchStartY = null;
+        // Сбросим panelScrolled через небольшую задержку после touchend
+        setTimeout(function() {
+            window.panelScrolled = false;
+        }, 100);
+    }, { passive: true });
+    
+    // Открыть панель из главного меню
+    function openFromMainMenu(panelId) {
+        var mainMenu = document.getElementById('main-menu');
+        var targetPanel = document.getElementById(panelId + '-panel');
+        
+        // Скрываем главное меню и показываем панель СРАЗУ
+        mainMenu.style.display = 'none';
+        if (targetPanel) {
+            targetPanel.classList.add('show');
+            // Обновляем профиль если открываем его
+            if (panelId === 'profile' && window.menuSystem) {
+                window.menuSystem.updateProfile();
+            }
+        }
+    }
+    
+    // Открыть панель достижений из главного меню
+    function openAchievementsFromMenu() {
+        var mainMenu = document.getElementById('main-menu');
+        mainMenu.style.display = 'none';
+        
+        if (window.achievementSystem) {
+            window.achievementSystem.showPanel();
+        }
+    }
+    
+    // Вернуться в главное меню
+    function backToMenu() {
+        var tutorialPanel = document.getElementById('tutorial-panel');
+        var settingsPanel = document.getElementById('settings-panel');
+        var mainMenu = document.getElementById('main-menu');
+        
+        // Закрываем панели сразу и показываем меню
+        tutorialPanel.classList.remove('show', 'closing');
+        settingsPanel.classList.remove('show', 'closing');
+        
+        // Показываем главное меню
+        mainMenu.style.display = 'flex';
+        mainMenu.style.opacity = '1';
+        mainMenu.style.transform = 'scale(1)';
+    }
+    
+    // Вернуться в главное меню из любой панели
+    function backToMenuFromPanel(panel) {
+        var mainMenu = document.getElementById('main-menu');
+        
+        // Закрываем панель
+        if (panel) {
+            panel.classList.remove('show', 'closing');
+        }
+        
+        // Закрываем панель достижений если открыта
+        if (window.achievementSystem) {
+            var achPanel = document.getElementById('achievements-panel');
+            if (achPanel) achPanel.classList.remove('show');
+        }
+        
+        // Показываем главное меню
+        mainMenu.style.display = 'flex';
+        mainMenu.style.opacity = '1';
+        mainMenu.style.transform = 'scale(1)';
+    }
+    
+    // Закрыть панель (из игры) - плавно
+    function closeMenuPanel() {
+        var panels = document.querySelectorAll('.menu-panel');
+        panels.forEach(function(panel) {
+            if (panel.classList.contains('show')) {
+                closePanelSmooth(panel);
+            }
+        });
+        var navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(function(item) {
+            item.classList.remove('active');
+        });
+    }
+    
+    // Начать игру
+    function startGame() {
+        // Останавливаем смену покемонов в меню
+        if (menuPokemonInterval) {
+            clearInterval(menuPokemonInterval);
+            menuPokemonInterval = null;
+        }
+        
+        gameStarted = true;
+        var mainMenu = document.getElementById('main-menu');
+        var gameWrapper = document.getElementById('game-wrapper');
+        var bottomNav = document.getElementById('bottom-nav');
+        var left = document.getElementById('motivator-left');
+        var right = document.getElementById('motivator-right');
+        
+        // Скрываем главное меню
+        mainMenu.style.display = 'none';
+        
+        // Показываем игру СРАЗУ
+        gameWrapper.style.display = 'flex';
+        gameWrapper.style.opacity = '1';
+        gameWrapper.style.transform = 'scale(1)';
+        
+        // Показать покемонов-мотиваторов СРАЗУ
+        if (left) {
+            left.style.opacity = '1';
+            left.style.transform = 'translateY(0)';
+        }
+        if (right) {
+            right.style.opacity = '1';
+            right.style.transform = 'translateY(0)';
+        }
+        
+        bottomNav.style.display = 'flex';
+        bottomNav.style.opacity = '1';
+        bottomNav.style.transform = 'translateY(0)';
+        
+        // ВАЖНО: Перерисовываем игровое поле ПОСЛЕ показа контейнера
+        if (window.game) {
+            window.game._gridCache = null;
+            window.game.updateDisplay();
+        }
+        
+        // Показываем всплывающее окно с подсказкой
+        setTimeout(function() {
+            showSwipeHintPopup();
+        }, 300);
+    }
+    
+    // Функция показа всплывающего окна
+    function showSwipeHintPopup() {
+        var popup = document.getElementById('swipe-hint-popup');
+        if (popup) {
+            popup.classList.add('show');
+            // Автоматически закрыть через 3 секунды
+            setTimeout(function() {
+                closeSwipeHintAndStart();
+            }, 3000);
+        }
+    }
+    
+    // Функция закрытия всплывающего окна
+    function closeSwipeHintAndStart() {
+        var popup = document.getElementById('swipe-hint-popup');
+        if (popup) {
+            popup.classList.remove('show');
+        }
+    }
+    </script>
+
+    <!-- ============================================ -->
+    <!-- ГЛАВНОЕ МЕНЮ -->
+    <!-- ============================================ -->
+    <div class="main-menu" id="main-menu">
+        <div class="main-menu-content">
+            <div class="menu-logo">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/6.gif" 
+                     alt="Charizard" class="menu-pokemon-logo">
+            </div>
+            <h1 class="menu-title">Pokemon 2048</h1>
+            <p class="menu-subtitle">Catch 'Em All!</p>
+            
+            <div class="menu-buttons">
+                <button class="menu-play-btn" onclick="startGame()">
+                    <span class="play-icon">▶</span>
+                    <span>PLAY</span>
+                </button>
+                
+                <div class="menu-buttons-row">
+                    <button class="menu-secondary-btn" onclick="openFromMainMenu('profile')">
+                        <span>👤</span> Profile
+                    </button>
+                    
+                    <button class="menu-secondary-btn" onclick="openAchievementsFromMenu()">
+                        <span>🎖️</span> Achievements
+                    </button>
+                </div>
+                
+                <button class="menu-secondary-btn" onclick="openFromMainMenu('tutorial')">
+                    <span>📖</span> How to Play
+                </button>
+                
+                <button class="menu-secondary-btn" onclick="openFromMainMenu('settings')">
+                    <span>⚙️</span> Settings
+                </button>
+            </div>
+            
+            <div class="menu-stats-preview">
+                <div class="menu-stat">
+                    <span class="menu-stat-icon">🏆</span>
+                    <span class="menu-stat-value" id="menu-best-score">0</span>
+                    <span class="menu-stat-label">Best</span>
+                </div>
+                <div class="menu-stat">
+                    <span class="menu-stat-icon">🎮</span>
+                    <span class="menu-stat-value" id="menu-games-count">0</span>
+                    <span class="menu-stat-label">Games</span>
+                </div>
+                <div class="menu-stat">
+                    <span class="menu-stat-icon">🎖️</span>
+                    <span class="menu-stat-value" id="menu-achievements-count">0</span>
+                    <span class="menu-stat-label">Achievements</span>
+                </div>
+            </div>
+            
+            <div class="menu-footer">
+                <p>Merge Pokemon • Collect Points • Unlock Elements</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-wrapper" id="game-wrapper">
     <!-- Мотивирующий покемон слева -->
     <div class="motivator-container motivator-left" id="motivator-left">
         <div class="motivator-bubble" id="motivator-bubble-left">
@@ -122,16 +455,38 @@
         </div>
     </div>
 
+    <!-- Мотивирующий покемон справа -->
+    <div class="motivator-container motivator-right" id="motivator-right">
+        <div class="motivator-bubble" id="motivator-bubble-right">
+            <span class="bubble-text" id="bubble-text-right">You got this!</span>
+        </div>
+        <div class="motivator-pokemon" id="motivator-pokemon-right">
+            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif" 
+                 alt="Pokemon" 
+                 class="motivator-sprite"
+                 id="motivator-sprite-right">
+        </div>
+        <div class="motivator-name" id="motivator-name-right">Eevee</div>
+        <div class="language-selector" id="language-selector-right">
+            <button class="lang-btn" onclick="toggleLanguageMenu('right')" title="Change Language">
+                <span class="lang-icon">🌍</span>
+                <span class="lang-current" id="lang-current-right">EN</span>
+            </button>
+            <div class="lang-dropdown" id="lang-dropdown-right"></div>
+        </div>
+    </div>
+    </div>
+
     <!-- Панель лидерборда -->
     <div class="leaderboard-panel" id="leaderboard-panel">
-        <div class="leaderboard-panel-content">
+        <div class="leaderboard-panel-content" onclick="event.stopPropagation()">
             <div class="leaderboard-header">
                 <h2>🏆 Leaderboard</h2>
                 <div class="leaderboard-best">
                     <span class="best-label">Best:</span>
                     <span class="best-value" id="leaderboard-best">0</span>
                 </div>
-                <button class="leaderboard-close-btn" onclick="leaderboardSystem.hidePanel()">✕</button>
+                <button class="leaderboard-close-btn" onclick="leaderboardSystem.closeAndReturn()">←</button>
             </div>
             <div class="leaderboard-list" id="leaderboard-list">
                 <!-- Записи лидерборда будут добавлены динамически -->
@@ -150,27 +505,289 @@
         <div class="scroll-hint-arrow">↓</div>
     </div>
 
-    <!-- Мотивирующий покемон справа -->
-    <div class="motivator-container motivator-right" id="motivator-right">
-        <div class="motivator-bubble" id="motivator-bubble-right">
-            <span class="bubble-text" id="bubble-text-right">You got this!</span>
-        </div>
-        <div class="motivator-pokemon" id="motivator-pokemon-right">
-            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif" 
-                 alt="Pokemon" 
-                 class="motivator-sprite"
-                 id="motivator-sprite-right">
-        </div>
-        <div class="motivator-name" id="motivator-name-right">Eevee</div>
-        <!-- Переключатель языков -->
-        <div class="language-selector" id="language-selector-right">
-            <button class="lang-btn" onclick="toggleLanguageMenu('right')" title="Change Language">
-                <span class="lang-icon">🌍</span>
-                <span class="lang-current" id="lang-current-right">RU</span>
-            </button>
-            <div class="lang-dropdown" id="lang-dropdown-right"></div>
+    <!-- ============================================ -->
+    <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ -->
+    <!-- ============================================ -->
+    <nav class="bottom-nav" id="bottom-nav">
+        <button class="nav-item" data-tab="profile" onclick="menuSystem.openTab('profile')">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">Profile</span>
+        </button>
+        <button class="nav-item" data-tab="leaderboard" onclick="menuSystem.openTab('leaderboard')">
+            <span class="nav-icon">🏆</span>
+            <span class="nav-label">Leaders</span>
+        </button>
+        <button class="nav-item" data-tab="gm" onclick="menuSystem.openTab('gm')">
+            <span class="nav-icon">☀️</span>
+            <span class="nav-label">GM</span>
+        </button>
+        <button class="nav-item" data-tab="achievements" onclick="menuSystem.openTab('achievements')">
+            <span class="nav-icon">🎖️</span>
+            <span class="nav-label">Achieve</span>
+        </button>
+        <button class="nav-item" data-tab="tutorial" onclick="menuSystem.openTab('tutorial')">
+            <span class="nav-icon">📖</span>
+            <span class="nav-label">Guide</span>
+        </button>
+        <button class="nav-item" data-tab="settings" onclick="menuSystem.openTab('settings')">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">Settings</span>
+        </button>
+    </nav>
+
+    <!-- ============================================ -->
+    <!-- ПАНЕЛЬ ПРОФИЛЯ -->
+    <!-- ============================================ -->
+    <div class="menu-panel" id="profile-panel" onclick="if(event.target===this && !window.panelScrolled){if(gameStarted)closePanelSmooth(this);else backToMenuFromPanel(this);}">
+        <div class="menu-panel-content" onclick="event.stopPropagation()">
+            <div class="menu-header profile-header">
+                <h2>👤 Player Profile</h2>
+                <button class="menu-close-btn" onclick="if(gameStarted)closePanelSmooth(document.getElementById('profile-panel'));else backToMenuFromPanel(document.getElementById('profile-panel'));">←</button>
+            </div>
+            <div class="profile-body">
+                <div class="profile-avatar">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" 
+                         alt="Avatar" class="profile-avatar-img" id="profile-avatar-img">
+                    <div class="profile-level" id="profile-level">Lv.1</div>
+                </div>
+                <div class="profile-name" id="profile-name">Trainer</div>
+                <div class="profile-title" id="profile-title">Beginner</div>
+                
+                <div class="profile-stats-grid">
+                    <div class="profile-stat">
+                        <span class="profile-stat-icon">🎮</span>
+                        <span class="profile-stat-value" id="profile-games">0</span>
+                        <span class="profile-stat-label">Games</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span class="profile-stat-icon">🏆</span>
+                        <span class="profile-stat-value" id="profile-best">0</span>
+                        <span class="profile-stat-label">Best</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span class="profile-stat-icon">⭐</span>
+                        <span class="profile-stat-value" id="profile-total">0</span>
+                        <span class="profile-stat-label">Total</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span class="profile-stat-icon">🎖️</span>
+                        <span class="profile-stat-value" id="profile-achievements">0</span>
+                        <span class="profile-stat-label">Achieve</span>
+                    </div>
+                </div>
+                
+                <div class="profile-element-section">
+                    <h3>Current Element</h3>
+                    <div class="profile-current-element" id="profile-current-element">
+                        <span class="element-emoji">⭐</span>
+                        <span class="element-name">Normal</span>
+                    </div>
+                </div>
+                
+                <div class="profile-elements-unlocked">
+                    <h3>Elements Unlocked</h3>
+                    <div class="elements-grid" id="profile-elements-grid">
+                        <!-- Динамически заполняется -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- ============================================ -->
+    <!-- ПАНЕЛЬ GM -->
+    <!-- ============================================ -->
+    <div class="menu-panel" id="gm-panel" onclick="if(event.target===this && !window.panelScrolled){if(gameStarted)closePanelSmooth(this);else backToMenuFromPanel(this);}">
+        <div class="menu-panel-content" onclick="event.stopPropagation()">
+            <div class="menu-header gm-header">
+                <h2>☀️ GM Counter</h2>
+                <button class="menu-close-btn" onclick="if(gameStarted)closePanelSmooth(document.getElementById('gm-panel'));else backToMenuFromPanel(document.getElementById('gm-panel'));">←</button>
+            </div>
+            <div class="gm-body">
+                <div class="gm-big-counter">
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" 
+                         alt="GM Pokemon" class="gm-big-pokemon">
+                    <div class="gm-big-value" id="gm-panel-value">0</div>
+                    <div class="gm-big-label">GM's sent</div>
+                </div>
+                
+                <div class="gm-info">
+                    <div class="gm-info-item">
+                        <span class="gm-info-icon">📅</span>
+                        <span class="gm-info-text">Last GM: <span id="gm-last-date">Never</span></span>
+                    </div>
+                    <div class="gm-info-item">
+                        <span class="gm-info-icon">🔥</span>
+                        <span class="gm-info-text">Streak: <span id="gm-streak">0</span> days</span>
+                    </div>
+                </div>
+                
+                <button class="gm-send-btn" onclick="sendGM()">
+                    <span>☀️</span> Send GM!
+                </button>
+                
+                <p class="gm-description">
+                    GM (Good Morning) - send positive vibes to the blockchain! 
+                    Each GM transaction is recorded on Base network.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- ПАНЕЛЬ ОБУЧЕНИЯ -->
+    <!-- ============================================ -->
+    <div class="menu-panel" id="tutorial-panel" onclick="if(event.target===this && !window.panelScrolled){if(gameStarted)closePanelSmooth(this);else backToMenu();}">
+        <div class="menu-panel-content tutorial-content" onclick="event.stopPropagation()">
+            <div class="menu-header tutorial-header">
+                <h2>📖 How to Play</h2>
+                <button class="menu-close-btn" onclick="if(gameStarted)closePanelSmooth(document.getElementById('tutorial-panel'));else backToMenu();">←</button>
+            </div>
+            <div class="tutorial-body">
+                <div class="tutorial-section">
+                    <h3>🎯 Goal</h3>
+                    <p>Merge Pokemon tiles to reach <strong>2048</strong> and beyond! Collect all elements and become a Pokemon Master!</p>
+                </div>
+                
+                <div class="tutorial-section">
+                    <h3>🎮 Controls</h3>
+                    <div class="tutorial-controls">
+                        <div class="control-item">
+                            <span class="control-icon">⬆️⬇️⬅️➡️</span>
+                            <span class="control-text">Arrow keys (Desktop)</span>
+                        </div>
+                        <div class="control-item">
+                            <span class="control-icon">👆</span>
+                            <span class="control-text">Swipe in any direction (Mobile)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tutorial-section">
+                    <h3>🔄 Merging</h3>
+                    <p>When two tiles with the <strong>same number</strong> touch, they merge into one with <strong>double value</strong>!</p>
+                    <div class="merge-example">
+                        <span class="merge-tile">2</span>
+                        <span class="merge-plus">+</span>
+                        <span class="merge-tile">2</span>
+                        <span class="merge-equals">=</span>
+                        <span class="merge-tile result">4</span>
+                    </div>
+                </div>
+                
+                <div class="tutorial-section">
+                    <h3>✨ Elements System</h3>
+                    <p>As you score points, the game element changes! Each element brings new Pokemon:</p>
+                    <div class="elements-list">
+                        <div class="element-item"><span>⭐</span> Normal (0+)</div>
+                        <div class="element-item"><span>🔥</span> Fire (100+)</div>
+                        <div class="element-item"><span>💧</span> Water (300+)</div>
+                        <div class="element-item"><span>⚡</span> Electric (600+)</div>
+                        <div class="element-item"><span>🌿</span> Grass (1000+)</div>
+                        <div class="element-item"><span>🐉</span> Dragon (50000+)</div>
+                        <div class="element-item"><span>✨</span> Legendary (100000+)</div>
+                    </div>
+                </div>
+                
+                <div class="tutorial-section">
+                    <h3>🏆 Achievements</h3>
+                    <p>Complete special tasks to unlock achievements! Check the <strong>Achieve</strong> tab to see all available badges.</p>
+                </div>
+                
+                <div class="tutorial-section">
+                    <h3>📊 Leaderboard</h3>
+                    <p>Your best scores are saved locally. Compete with yourself and try to beat your record!</p>
+                </div>
+                
+                <div class="tutorial-section">
+                    <h3>☀️ GM Button</h3>
+                    <p>Send "Good Morning" to the blockchain! Connect your wallet and spread positive vibes on Base network.</p>
+                </div>
+                
+                <div class="tutorial-section tips">
+                    <h3>💡 Pro Tips</h3>
+                    <ul>
+                        <li>Keep your highest tile in a corner</li>
+                        <li>Build a "snake" pattern for efficient merging</li>
+                        <li>Never move opposite to your main direction</li>
+                        <li>Plan 2-3 moves ahead</li>
+                        <li>Don't give up — practice makes perfect!</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- ПАНЕЛЬ НАСТРОЕК -->
+    <!-- ============================================ -->
+    <div class="menu-panel" id="settings-panel" onclick="if(event.target===this && !window.panelScrolled){if(gameStarted)closePanelSmooth(this);else backToMenu();}">
+        <div class="menu-panel-content" onclick="event.stopPropagation()">
+            <div class="menu-header settings-header">
+                <h2>⚙️ Settings</h2>
+                <button class="menu-close-btn" onclick="if(gameStarted)closePanelSmooth(document.getElementById('settings-panel'));else backToMenu();">←</button>
+            </div>
+            <div class="settings-body">
+                <div class="settings-section">
+                    <h3>🎨 Theme</h3>
+                    <div class="theme-switcher">
+                        <button class="theme-btn" data-theme="light" onclick="menuSystem.setTheme('light')">
+                            <span class="theme-icon">☀️</span>
+                            <span class="theme-name">Light</span>
+                        </button>
+                        <button class="theme-btn active" data-theme="dark" onclick="menuSystem.setTheme('dark')">
+                            <span class="theme-icon">🌙</span>
+                            <span class="theme-name">Dark</span>
+                        </button>
+                        <button class="theme-btn" data-theme="auto" onclick="menuSystem.setTheme('auto')">
+                            <span class="theme-icon">🔄</span>
+                            <span class="theme-name">Auto</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>🔆 Brightness</h3>
+                    <div class="brightness-control">
+                        <span class="brightness-icon">🌑</span>
+                        <input type="range" id="brightness-slider" min="50" max="150" value="100" 
+                               oninput="menuSystem.setBrightness(this.value)">
+                        <span class="brightness-icon">☀️</span>
+                    </div>
+                    <div class="brightness-value"><span id="brightness-value">100</span>%</div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>🔊 Sound</h3>
+                    <div class="toggle-setting">
+                        <span>Sound Effects</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="sound-toggle" checked onchange="menuSystem.toggleSound()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>✨ Animations</h3>
+                    <div class="toggle-setting">
+                        <span>Particle Effects</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="particles-toggle" checked onchange="menuSystem.toggleParticles()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="settings-section danger-zone">
+                    <h3>⚠️ Data</h3>
+                    <button class="settings-danger-btn" onclick="menuSystem.resetAllData()">
+                        🗑️ Reset All Data
+                    </button>
+                    <p class="settings-warning">This will clear all scores, achievements and settings!</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- ethers.js для Web3 -->
@@ -203,5 +820,30 @@
     
     <!-- Логика игры -->
     <script src="script.js"></script>
+
+    <!-- ============================================ -->
+    <!-- ВСПЛЫВАЮЩЕЕ ОКНО ПРИ СТАРТЕ -->
+    <!-- ============================================ -->
+    <div class="swipe-hint-popup" id="swipe-hint-popup" onclick="closeSwipeHintAndStart()">
+        <div class="swipe-hint-content" onclick="event.stopPropagation()">
+            <div class="swipe-hint-pokemon">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" 
+                     alt="Pikachu" class="swipe-hint-pokemon-img" id="swipe-hint-pokemon-1">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif" 
+                     alt="Eevee" class="swipe-hint-pokemon-img" id="swipe-hint-pokemon-2">
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/6.gif" 
+                     alt="Charizard" class="swipe-hint-pokemon-img" id="swipe-hint-pokemon-3">
+            </div>
+            <div class="swipe-hint-hearts">❤️ ❤️ ❤️</div>
+            <h2 class="swipe-hint-title">Swipe Down!</h2>
+            <p class="swipe-hint-text">There's a menu and Pokemon who love you! 💕</p>
+            <div class="swipe-hint-arrow">
+                <span class="arrow-bounce">↓</span>
+            </div>
+            <button class="swipe-hint-btn" onclick="closeSwipeHintAndStart()">
+                <span>🎮</span> Got it, let's play!
+            </button>
+        </div>
+    </div>
 </body>
 </html>

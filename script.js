@@ -722,6 +722,9 @@ function testElements() {
         window.game.score = testData.score;
         window.game.scoreElement.textContent = testData.score.toLocaleString();
         window.game.updateElement();
+        
+        // ВАЖНО: Сбрасываем кэш чтобы отобразить новых покемонов
+        window.game._gridCache = null;
         window.game.updateDisplay();
         
         // Показываем уведомление о стихии
@@ -3469,10 +3472,10 @@ class AchievementSystem {
         panel.innerHTML = this.generatePanelHTML();
         document.body.appendChild(panel);
         
-        // Закрытие по клику вне панели
+        // Закрытие по клику вне панели (не при скролле)
         panel.addEventListener('click', (e) => {
-            if (e.target === panel) {
-                this.togglePanel();
+            if (e.target === panel && !window.panelScrolled) {
+                this.closeAndReturn();
             }
         });
     }
@@ -3495,14 +3498,14 @@ class AchievementSystem {
         });
         
         let html = `
-            <div class="achievements-panel-content">
+            <div class="achievements-panel-content" onclick="event.stopPropagation()">
                 <div class="achievements-header">
                     <h2>🏆 Достижения</h2>
                     <div class="achievements-progress">
                         <div class="achievements-progress-bar" style="width: ${(this.getUnlockedCount() / this.achievements.length) * 100}%"></div>
                         <span>${this.getUnlockedCount()} / ${this.achievements.length}</span>
                     </div>
-                    <button class="achievements-close-btn" onclick="window.achievementSystem.togglePanel()">✕</button>
+                    <button class="achievements-close-btn" onclick="window.achievementSystem.closeAndReturn()">←</button>
                 </div>
                 <div class="achievements-stats">
                     <div class="stat-item">
@@ -3575,9 +3578,41 @@ class AchievementSystem {
     togglePanel() {
         const panel = document.getElementById('achievements-panel');
         if (panel) {
-            panel.classList.toggle('show');
             if (panel.classList.contains('show')) {
-                this.updateUI();
+                this.hidePanel();
+            } else {
+                this.showPanel();
+            }
+        }
+    }
+    
+    // Показать панель (плавно)
+    showPanel() {
+        const panel = document.getElementById('achievements-panel');
+        if (panel) {
+            panel.classList.add('show');
+            this.updateUI();
+        }
+    }
+    
+    // Скрыть панель (плавно)
+    hidePanel() {
+        const panel = document.getElementById('achievements-panel');
+        if (panel) {
+            panel.classList.remove('show');
+        }
+    }
+    
+    // Закрыть и вернуться (в меню или в игру)
+    closeAndReturn() {
+        this.hidePanel();
+        // Если игра не началась - возвращаемся в главное меню
+        if (!window.gameStarted) {
+            const mainMenu = document.getElementById('main-menu');
+            if (mainMenu) {
+                mainMenu.style.display = 'flex';
+                mainMenu.style.opacity = '1';
+                mainMenu.style.transform = 'scale(1)';
             }
         }
     }
@@ -3657,8 +3692,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.achievementSystem = new AchievementSystem();
     console.log('Achievement system initialized!');
     
-    // Показываем приветствие с грозным покемоном
-    showWelcomeScreen();
+    // Приветственный экран отключён - используем главное меню
+    // showWelcomeScreen();
     
     // Очищаем статус СРАЗУ при загрузке - это критически важно!
     clearStatus();
@@ -3809,6 +3844,20 @@ const leaderboardSystem = {
         }
     },
     
+    // Закрыть и вернуться (в меню или в игру)
+    closeAndReturn() {
+        this.hidePanel();
+        // Если игра не началась - возвращаемся в главное меню
+        if (!window.gameStarted) {
+            const mainMenu = document.getElementById('main-menu');
+            if (mainMenu) {
+                mainMenu.style.display = 'flex';
+                mainMenu.style.opacity = '1';
+                mainMenu.style.transform = 'scale(1)';
+            }
+        }
+    },
+    
     // Отрисовать список записей
     renderList() {
         const list = document.getElementById('leaderboard-list');
@@ -3908,12 +3957,13 @@ const leaderboardSystem = {
     init() {
         this.updateBadge();
         
-        // Закрытие панели по клику вне контента
+        // Закрытие панели по клику вне контента (не при скролле)
         const panel = document.getElementById('leaderboard-panel');
         if (panel) {
             panel.addEventListener('click', (e) => {
-                if (e.target === panel) {
-                    this.hidePanel();
+                // Проверяем глобальную переменную panelScrolled
+                if (e.target === panel && !window.panelScrolled) {
+                    this.closeAndReturn();
                 }
             });
         }
@@ -3936,3 +3986,480 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Делаем доступным глобально
 window.leaderboardSystem = leaderboardSystem;
+
+// ============================================
+// СИСТЕМА МЕНЮ И НАСТРОЕК
+// ============================================
+
+const menuSystem = {
+    currentTab: null,
+    settings: {
+        theme: 'dark',
+        brightness: 100,
+        sound: true,
+        particles: true
+    },
+    
+    // Статистика профиля
+    profileStats: {
+        games: 0,
+        totalScore: 0,
+        bestScore: 0,
+        elementsUnlocked: ['normal'],
+        gmCount: 0,
+        gmStreak: 0,
+        lastGmDate: null
+    },
+    
+    // Список всех элементов
+    allElements: [
+        { type: 'normal', emoji: '⭐', name: 'Normal', minScore: 0 },
+        { type: 'fire', emoji: '🔥', name: 'Fire', minScore: 100 },
+        { type: 'water', emoji: '💧', name: 'Water', minScore: 300 },
+        { type: 'electric', emoji: '⚡', name: 'Electric', minScore: 600 },
+        { type: 'grass', emoji: '🌿', name: 'Grass', minScore: 1000 },
+        { type: 'poison', emoji: '☠️', name: 'Poison', minScore: 1500 },
+        { type: 'ground', emoji: '🌍', name: 'Ground', minScore: 2000 },
+        { type: 'flying', emoji: '🦅', name: 'Flying', minScore: 2500 },
+        { type: 'bug', emoji: '🐛', name: 'Bug', minScore: 3500 },
+        { type: 'rock', emoji: '🪨', name: 'Rock', minScore: 5000 },
+        { type: 'ice', emoji: '❄️', name: 'Ice', minScore: 7000 },
+        { type: 'fighting', emoji: '🥊', name: 'Fighting', minScore: 10000 },
+        { type: 'psychic', emoji: '🔮', name: 'Psychic', minScore: 15000 },
+        { type: 'ghost', emoji: '👻', name: 'Ghost', minScore: 20000 },
+        { type: 'dark', emoji: '🌑', name: 'Dark', minScore: 25000 },
+        { type: 'steel', emoji: '⚔️', name: 'Steel', minScore: 30000 },
+        { type: 'fairy', emoji: '🧚', name: 'Fairy', minScore: 40000 },
+        { type: 'dragon', emoji: '🐉', name: 'Dragon', minScore: 50000 },
+        { type: 'cosmic', emoji: '🌌', name: 'Cosmic', minScore: 60000 },
+        { type: 'shadow', emoji: '🖤', name: 'Shadow', minScore: 75000 },
+        { type: 'legendary', emoji: '✨', name: 'Legendary', minScore: 100000 }
+    ],
+    
+    // Покемоны для аватаров по уровню
+    avatarPokemon: {
+        1: 25,    // Pikachu
+        5: 133,   // Eevee
+        10: 6,    // Charizard
+        20: 149,  // Dragonite
+        30: 150,  // Mewtwo
+        50: 151,  // Mew
+        100: 384  // Rayquaza
+    },
+    
+    // Звания по уровню
+    titles: {
+        1: 'Beginner',
+        3: 'Rookie Trainer',
+        5: 'Pokemon Fan',
+        10: 'Skilled Trainer',
+        15: 'Expert',
+        20: 'Champion',
+        30: 'Master',
+        50: 'Legend',
+        100: 'Pokemon God'
+    },
+    
+    // Загрузить настройки
+    loadSettings() {
+        try {
+            const saved = localStorage.getItem('pokemon2048_settings');
+            if (saved) {
+                this.settings = { ...this.settings, ...JSON.parse(saved) };
+            }
+            
+            const profile = localStorage.getItem('pokemon2048_profile');
+            if (profile) {
+                this.profileStats = { ...this.profileStats, ...JSON.parse(profile) };
+            }
+        } catch (e) {
+            console.log('Settings load error:', e);
+        }
+    },
+    
+    // Сохранить настройки
+    saveSettings() {
+        try {
+            localStorage.setItem('pokemon2048_settings', JSON.stringify(this.settings));
+            localStorage.setItem('pokemon2048_profile', JSON.stringify(this.profileStats));
+        } catch (e) {
+            console.log('Settings save error:', e);
+        }
+    },
+    
+    // Открыть вкладку (плавно)
+    openTab(tab) {
+        // Если та же вкладка - закрываем
+        if (this.currentTab === tab) {
+            this.closeTab();
+            return;
+        }
+        
+        // Убираем активность со всех кнопок
+        document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+        
+        // Добавляем активность на текущую
+        const activeBtn = document.querySelector(`.nav-item[data-tab="${tab}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+        
+        // Плавно закрываем все панели
+        document.querySelectorAll('.menu-panel').forEach(panel => {
+            if (panel.classList.contains('show')) {
+                panel.classList.add('closing');
+                setTimeout(() => {
+                    panel.classList.remove('show', 'closing');
+                }, 200);
+            }
+        });
+        
+        // Специальные случаи
+        if (tab === 'leaderboard') {
+            if (window.leaderboardSystem) {
+                setTimeout(() => leaderboardSystem.showPanel(), 150);
+            }
+            this.currentTab = tab;
+            return;
+        }
+        
+        if (tab === 'achievements') {
+            if (window.achievementSystem) {
+                setTimeout(() => achievementSystem.showPanel(), 150);
+            }
+            this.currentTab = tab;
+            return;
+        }
+        
+        // Открываем нужную панель с задержкой для плавности
+        const panel = document.getElementById(`${tab}-panel`);
+        if (panel) {
+            setTimeout(() => {
+                panel.classList.add('show');
+                
+                // Обновляем данные панели
+                if (tab === 'profile') this.updateProfile();
+                if (tab === 'gm') this.updateGmPanel();
+            }, 150);
+            this.currentTab = tab;
+        }
+    },
+    
+    // Закрыть вкладку (плавно)
+    closeTab() {
+        // Плавно закрываем панели
+        document.querySelectorAll('.menu-panel').forEach(panel => {
+            if (panel.classList.contains('show')) {
+                panel.classList.add('closing');
+                setTimeout(() => {
+                    panel.classList.remove('show', 'closing');
+                }, 250);
+            }
+        });
+        document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+        
+        // Закрываем также лидерборд и достижения
+        if (window.leaderboardSystem) leaderboardSystem.hidePanel();
+        if (window.achievementSystem) achievementSystem.hidePanel();
+        
+        this.currentTab = null;
+    },
+    
+    // Обновить профиль
+    updateProfile() {
+        // Обновляем статистику из лидерборда
+        if (window.leaderboardSystem) {
+            const entries = leaderboardSystem.getEntries();
+            this.profileStats.games = entries.length;
+            if (entries.length > 0) {
+                this.profileStats.bestScore = entries[0].score;
+                this.profileStats.totalScore = entries.reduce((sum, e) => sum + e.score, 0);
+                
+                // Собираем разблокированные элементы
+                const unlockedSet = new Set(['normal']);
+                entries.forEach(e => {
+                    if (e.element) unlockedSet.add(e.element);
+                });
+                this.profileStats.elementsUnlocked = Array.from(unlockedSet);
+            }
+        }
+        
+        // Вычисляем уровень (на основе общего счета)
+        const level = Math.floor(Math.sqrt(this.profileStats.totalScore / 100)) + 1;
+        
+        // Определяем звание
+        let title = 'Beginner';
+        for (const [lvl, t] of Object.entries(this.titles)) {
+            if (level >= parseInt(lvl)) title = t;
+        }
+        
+        // Определяем аватар
+        let avatarId = 25;
+        for (const [lvl, id] of Object.entries(this.avatarPokemon)) {
+            if (level >= parseInt(lvl)) avatarId = id;
+        }
+        
+        // Обновляем UI
+        const avatarImg = document.getElementById('profile-avatar-img');
+        if (avatarImg) {
+            avatarImg.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${avatarId}.gif`;
+        }
+        
+        const levelEl = document.getElementById('profile-level');
+        if (levelEl) levelEl.textContent = `Lv.${level}`;
+        
+        const titleEl = document.getElementById('profile-title');
+        if (titleEl) titleEl.textContent = title;
+        
+        const gamesEl = document.getElementById('profile-games');
+        if (gamesEl) gamesEl.textContent = this.profileStats.games;
+        
+        const bestEl = document.getElementById('profile-best');
+        if (bestEl) bestEl.textContent = this.formatNumber(this.profileStats.bestScore);
+        
+        const totalEl = document.getElementById('profile-total');
+        if (totalEl) totalEl.textContent = this.formatNumber(this.profileStats.totalScore);
+        
+        const achieveEl = document.getElementById('profile-achievements');
+        if (achieveEl && window.achievementSystem) {
+            const unlocked = achievementSystem.achievements.filter(a => a.unlocked).length;
+            achieveEl.textContent = unlocked;
+        }
+        
+        // Текущий элемент
+        const currentElementEl = document.getElementById('profile-current-element');
+        if (currentElementEl && window.game) {
+            const elem = game.getCurrentElement();
+            currentElementEl.innerHTML = `
+                <span class="element-emoji">${elem.emoji}</span>
+                <span class="element-name">${elem.name}</span>
+            `;
+        }
+        
+        // Разблокированные элементы
+        const elementsGrid = document.getElementById('profile-elements-grid');
+        if (elementsGrid) {
+            elementsGrid.innerHTML = this.allElements.map(elem => {
+                const isUnlocked = this.profileStats.elementsUnlocked.includes(elem.type);
+                return `
+                    <div class="element-badge-small ${isUnlocked ? 'unlocked' : 'locked'}" 
+                         title="${elem.name} (${elem.minScore}+ pts)">
+                        ${elem.emoji}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        this.saveSettings();
+    },
+    
+    // Обновить панель GM
+    updateGmPanel() {
+        // Загружаем данные GM
+        try {
+            const gmData = localStorage.getItem('pokemon2048_gm');
+            if (gmData) {
+                const data = JSON.parse(gmData);
+                this.profileStats.gmCount = data.count || 0;
+                this.profileStats.lastGmDate = data.lastDate;
+                this.profileStats.gmStreak = data.streak || 0;
+            }
+        } catch (e) {}
+        
+        const valueEl = document.getElementById('gm-panel-value');
+        if (valueEl) valueEl.textContent = this.profileStats.gmCount;
+        
+        const dateEl = document.getElementById('gm-last-date');
+        if (dateEl) {
+            dateEl.textContent = this.profileStats.lastGmDate 
+                ? new Date(this.profileStats.lastGmDate).toLocaleDateString()
+                : 'Never';
+        }
+        
+        const streakEl = document.getElementById('gm-streak');
+        if (streakEl) streakEl.textContent = this.profileStats.gmStreak;
+    },
+    
+    // Установить тему
+    setTheme(theme) {
+        this.settings.theme = theme;
+        
+        // Обновляем кнопки
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.theme === theme);
+        });
+        
+        // Применяем тему
+        document.body.classList.remove('theme-light', 'theme-dark', 'theme-auto');
+        
+        if (theme === 'light') {
+            document.body.classList.add('theme-light');
+        } else if (theme === 'auto') {
+            // Определяем по системным настройкам
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (!prefersDark) {
+                document.body.classList.add('theme-light');
+            }
+        }
+        
+        this.saveSettings();
+    },
+    
+    // Установить яркость
+    setBrightness(value) {
+        this.settings.brightness = parseInt(value);
+        
+        document.body.style.filter = `brightness(${value}%)`;
+        
+        const valueEl = document.getElementById('brightness-value');
+        if (valueEl) valueEl.textContent = value;
+        
+        this.saveSettings();
+    },
+    
+    // Переключить звук
+    toggleSound() {
+        const toggle = document.getElementById('sound-toggle');
+        this.settings.sound = toggle ? toggle.checked : !this.settings.sound;
+        this.saveSettings();
+    },
+    
+    // Переключить частицы
+    toggleParticles() {
+        const toggle = document.getElementById('particles-toggle');
+        this.settings.particles = toggle ? toggle.checked : !this.settings.particles;
+        
+        // Применяем
+        if (!this.settings.particles) {
+            document.body.classList.add('no-particles');
+        } else {
+            document.body.classList.remove('no-particles');
+        }
+        
+        this.saveSettings();
+    },
+    
+    // Сбросить все данные
+    resetAllData() {
+        if (confirm('Are you sure you want to reset ALL data? This will clear:\n- All scores\n- All achievements\n- All settings\n\nThis cannot be undone!')) {
+            localStorage.removeItem('pokemon2048_settings');
+            localStorage.removeItem('pokemon2048_profile');
+            localStorage.removeItem('pokemon2048_achievements');
+            localStorage.removeItem('pokemon2048_leaderboard');
+            localStorage.removeItem('pokemon2048_gm');
+            
+            alert('All data has been reset. The page will now reload.');
+            location.reload();
+        }
+    },
+    
+    // Форматирование числа
+    formatNumber(num) {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num.toString();
+    },
+    
+    // Применить сохранённые настройки
+    applySettings() {
+        // Тема
+        this.setTheme(this.settings.theme);
+        
+        // Яркость
+        const slider = document.getElementById('brightness-slider');
+        if (slider) slider.value = this.settings.brightness;
+        this.setBrightness(this.settings.brightness);
+        
+        // Звук
+        const soundToggle = document.getElementById('sound-toggle');
+        if (soundToggle) soundToggle.checked = this.settings.sound;
+        
+        // Частицы
+        const particlesToggle = document.getElementById('particles-toggle');
+        if (particlesToggle) particlesToggle.checked = this.settings.particles;
+        if (!this.settings.particles) {
+            document.body.classList.add('no-particles');
+        }
+    },
+    
+    // Инициализация
+    init() {
+        this.loadSettings();
+        this.applySettings();
+        
+        // Закрытие панелей по клику вне контента
+        document.querySelectorAll('.menu-panel').forEach(panel => {
+            panel.addEventListener('click', (e) => {
+                if (e.target === panel) {
+                    this.closeTab();
+                }
+            });
+        });
+        
+        // Закрытие по Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeTab();
+            }
+        });
+        
+        // Слушаем изменения системной темы
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (this.settings.theme === 'auto') {
+                this.setTheme('auto');
+            }
+        });
+        
+        console.log('📱 Menu system initialized');
+    }
+};
+
+// Инициализация меню при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    menuSystem.init();
+});
+
+// Делаем доступным глобально
+window.menuSystem = menuSystem;
+
+
+// Обновление статистики в главном меню
+function updateMainMenuStats() {
+    try {
+        // Лучший счёт
+        const leaderboardData = localStorage.getItem('pokemon2048_leaderboard');
+        if (leaderboardData) {
+            const entries = JSON.parse(leaderboardData);
+            if (entries.length > 0) {
+                const bestEl = document.getElementById('menu-best-score');
+                const gamesEl = document.getElementById('menu-games-count');
+                
+                if (bestEl) bestEl.textContent = entries[0].score.toLocaleString();
+                if (gamesEl) gamesEl.textContent = entries.length;
+            }
+        }
+        
+        // Достижения
+        const achievementsData = localStorage.getItem('pokemon2048_achievements');
+        if (achievementsData) {
+            const achievements = JSON.parse(achievementsData);
+            const unlocked = Object.values(achievements).filter(a => a === true).length;
+            const achieveEl = document.getElementById('menu-achievements-count');
+            if (achieveEl) achieveEl.textContent = unlocked;
+        }
+    } catch (e) {
+        console.log('Menu stats error:', e);
+    }
+}
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', () => {
+    updateMainMenuStats();
+});
+
+// Закрытие по Escape
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeMenuPanel();
+    }
+});
+
+window.startGame = startGame;
