@@ -207,20 +207,22 @@ class Game2048 {
                 }
                 const newColumn = direction === 'up' ? this.moveLine(column) : this.moveLine(column.reverse()).reverse();
                 for (let row = 0; row < this.size; row++) {
-                    this.grid[row][col] = newColumn[row];
-                    if (this.grid[row][col] !== prevGrid[row][col]) {
+                    if (this.grid[row][col] !== newColumn[row]) {
                         moved = true;
                     }
+                    this.grid[row][col] = newColumn[row];
                 }
             }
         } else {
             for (let row = 0; row < this.size; row++) {
                 const line = [...this.grid[row]];
                 const newLine = direction === 'left' ? this.moveLine(line) : this.moveLine(line.reverse()).reverse();
-                this.grid[row] = newLine;
-                if (JSON.stringify(this.grid[row]) !== JSON.stringify(prevGrid[row])) {
-                    moved = true;
+                for (let col = 0; col < this.size; col++) {
+                    if (this.grid[row][col] !== newLine[col]) {
+                        moved = true;
+                    }
                 }
+                this.grid[row] = newLine;
             }
         }
 
@@ -232,10 +234,11 @@ class Game2048 {
             
             this.addRandomTile();
             
-            // Используем requestAnimationFrame для плавного рендеринга
+            // Обновляем дисплей синхронно для мгновенного отклика
+            this.updateDisplay();
+            
+            // Проверяем game over асинхронно чтобы не блокировать UI
             requestAnimationFrame(() => {
-                this.updateDisplay();
-                
                 if (this.isGameOver()) {
                     this.gameOverElement.classList.add('show');
                     
@@ -250,10 +253,10 @@ class Game2048 {
                         window.achievementSystem.registerNewGame();
                     }
                 }
-                
-                // Разблокируем после рендеринга
-                setTimeout(() => { this._moveInProgress = false; }, 50);
             });
+            
+            // Быстрая разблокировка - 16ms (один кадр при 60fps)
+            this._moveInProgress = false;
         } else {
             // Если не было движения — сразу разблокируем
             this._moveInProgress = false;
@@ -329,62 +332,85 @@ class Game2048 {
     }
 
     updateDisplay() {
-        // Кэшируем размер ячейки (вычисляем только если не кэширован)
-        if (!this._cellSize || this._lastWidth !== this.gridContainer.offsetWidth) {
-            this._lastWidth = this.gridContainer.offsetWidth;
-            this._cellSize = (this._lastWidth - 40) / this.size;
+        // Кэшируем размер ячейки (вычисляем только если не кэширован или изменился размер)
+        const currentWidth = this.gridContainer.offsetWidth;
+        if (!this._cellSize || this._lastWidth !== currentWidth) {
+            this._lastWidth = currentWidth;
+            this._cellSize = (currentWidth - 40) / this.size;
+            // При изменении размера сбрасываем кэш
+            this._gridCache = null;
         }
         const cellSize = this._cellSize;
         
         // Получаем ТЕКУЩУЮ стихию по очкам (одна для всех плиток)
         const currentElement = this.getCurrentElement();
         
-        // Используем DocumentFragment для batch DOM операций
-        const fragment = document.createDocumentFragment();
+        // Проверка на мобильное устройство для упрощённого рендеринга
+        const isMobile = window.innerWidth <= 500;
+        
+        // Создаем ключ текущего состояния для проверки изменений
+        const gridKey = this.grid.map(row => row.join(',')).join('|') + '|' + currentElement.type;
+        
+        // Если состояние не изменилось - пропускаем рендеринг
+        if (this._gridCache === gridKey) {
+            return;
+        }
+        this._gridCache = gridKey;
         
         // Обновляем класс контейнера для общего стиля
-        this.gridContainer.className = `grid-container element-theme-${currentElement.type}`;
+        const newClassName = `grid-container element-theme-${currentElement.type}`;
+        if (this.gridContainer.className !== newClassName) {
+            this.gridContainer.className = newClassName;
+        }
+        
+        // Используем DocumentFragment для batch DOM операций
+        const fragment = document.createDocumentFragment();
         
         // Очищаем контейнер
         this.gridContainer.innerHTML = '';
         
+        // Создаём ячейки
+        const cellClassName = `cell cell-${currentElement.type}`;
         for (let i = 0; i < this.size * this.size; i++) {
             const cell = document.createElement('div');
-            cell.className = `cell cell-${currentElement.type}`;
+            cell.className = cellClassName;
             fragment.appendChild(cell);
         }
 
+        // Создаём тайлы
         for (let row = 0; row < this.size; row++) {
             for (let col = 0; col < this.size; col++) {
-                if (this.grid[row][col] !== 0) {
-                    const value = this.grid[row][col];
+                const value = this.grid[row][col];
+                if (value !== 0) {
                     const tile = document.createElement('div');
                     
                     // ВСЕ плитки используют ТЕКУЩУЮ стихию по очкам
                     tile.className = `tile tile-${value} element-${currentElement.type}`;
-                    tile.setAttribute('data-element', currentElement.type);
                     
                     // Получаем ID покемона для этого числа (из текущей стихии)
                     const pokemonId = this.getPokemonIdForValue(value);
                     const spriteUrl = this.getPokemonSpriteUrl(pokemonId);
                     
-                    // Создаем контейнер для покемона и цифры
+                    // Создаем изображение покемона
                     const pokemonImg = document.createElement('img');
                     pokemonImg.src = spriteUrl;
                     pokemonImg.className = 'pokemon-sprite';
-                    pokemonImg.alt = `Pokemon ${pokemonId}`;
-                    pokemonImg.loading = 'lazy';
+                    pokemonImg.alt = '';
+                    pokemonImg.loading = 'eager'; // Загружаем сразу для плавности
+                    pokemonImg.decoding = 'async'; // Асинхронное декодирование
+                    
+                    // Fallback для ошибок загрузки
+                    const staticUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`;
                     pokemonImg.onerror = function() {
-                        const staticUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`;
                         if (this.src !== staticUrl) {
                             this.src = staticUrl;
-                        } else {
-                            this.style.display = 'none';
                         }
                     };
                     
-                    // Добавляем эффект частиц если не Normal стихия
-                    if (currentElement.type !== 'normal') {
+                    tile.appendChild(pokemonImg);
+                    
+                    // Добавляем эффект частиц только на десктопе
+                    if (!isMobile && currentElement.type !== 'normal') {
                         const particles = document.createElement('div');
                         particles.className = `element-particles particles-${currentElement.type}`;
                         tile.appendChild(particles);
@@ -394,22 +420,19 @@ class Game2048 {
                     const numberLabel = document.createElement('div');
                     numberLabel.className = 'tile-number';
                     numberLabel.textContent = value;
-                    
-                    tile.appendChild(pokemonImg);
                     tile.appendChild(numberLabel);
                     
-                    // Бейдж стихии (если не Normal)
-                    if (currentElement.type !== 'normal') {
+                    // Бейдж стихии только на десктопе
+                    if (!isMobile && currentElement.type !== 'normal') {
                         const elementBadge = document.createElement('div');
                         elementBadge.className = 'element-badge';
                         elementBadge.textContent = currentElement.emoji;
                         tile.appendChild(elementBadge);
                     }
                     
-                    tile.style.width = `${cellSize}px`;
-                    tile.style.height = `${cellSize}px`;
-                    tile.style.top = `${10 + row * (cellSize + 10)}px`;
-                    tile.style.left = `${10 + col * (cellSize + 10)}px`;
+                    // Используем transform вместо top/left для GPU ускорения
+                    tile.style.cssText = `width:${cellSize}px;height:${cellSize}px;transform:translate3d(${10 + col * (cellSize + 10)}px,${10 + row * (cellSize + 10)}px,0)`;
+                    
                     fragment.appendChild(tile);
                 }
             }
@@ -493,32 +516,79 @@ class Game2048 {
             }
         });
 
-        // Touch/swipe для мобильных: только по игровому полю, порог 35px, блокировка скролла при свайпе
+        // Touch/swipe для мобильных - ОПТИМИЗИРОВАНО для Android и iOS
         const gameContainer = document.querySelector('.game-container');
-        const SWIPE_THRESHOLD = 35;
+        const SWIPE_THRESHOLD = 30; // Уменьшен порог для быстрой реакции
+        const SWIPE_MAX_TIME = 300; // Максимальное время свайпа (мс)
         let touchStartX = null, touchStartY = null;
+        let touchStartTime = null;
+        let swipeProcessed = false;
 
         const onTouchStart = (e) => {
             if (e.touches.length !== 1) return;
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            touchStartTime = performance.now();
+            swipeProcessed = false;
         };
 
         const onTouchMove = (e) => {
-            if (touchStartX == null) return;
-            e.preventDefault();
+            if (touchStartX == null || swipeProcessed) return;
+            
+            const touch = e.touches[0];
+            const diffX = touchStartX - touch.clientX;
+            const diffY = touchStartY - touch.clientY;
+            const absX = Math.abs(diffX);
+            const absY = Math.abs(diffY);
+            
+            // Блокируем скролл страницы при начале свайпа
+            if (absX > 10 || absY > 10) {
+                e.preventDefault();
+            }
+            
+            // Быстрое распознавание свайпа во время движения
+            if (absX > SWIPE_THRESHOLD || absY > SWIPE_THRESHOLD) {
+                swipeProcessed = true;
+                if (absX > absY) {
+                    this.move(diffX > 0 ? 'left' : 'right');
+                } else {
+                    this.move(diffY > 0 ? 'up' : 'down');
+                }
+                touchStartX = null;
+                touchStartY = null;
+            }
         };
 
         const onTouchEnd = (e) => {
-            if (touchStartX == null || touchStartY == null || !e.changedTouches?.length) return;
-            const touchEndX = e.changedTouches[0].clientX;
-            const touchEndY = e.changedTouches[0].clientY;
-            const diffX = touchStartX - touchEndX;
-            const diffY = touchStartY - touchEndY;
+            if (touchStartX == null || touchStartY == null || swipeProcessed) {
+                touchStartX = null;
+                touchStartY = null;
+                return;
+            }
+            
+            if (!e.changedTouches?.length) return;
+            
+            const touchEndTime = performance.now();
+            const touchDuration = touchEndTime - touchStartTime;
+            
+            // Игнорируем слишком долгие касания
+            if (touchDuration > SWIPE_MAX_TIME) {
+                touchStartX = null;
+                touchStartY = null;
+                return;
+            }
+            
+            const touch = e.changedTouches[0];
+            const diffX = touchStartX - touch.clientX;
+            const diffY = touchStartY - touch.clientY;
             const absX = Math.abs(diffX);
             const absY = Math.abs(diffY);
 
-            if (absX < SWIPE_THRESHOLD && absY < SWIPE_THRESHOLD) {
+            // Минимальный порог для быстрых свайпов
+            const minThreshold = Math.max(15, SWIPE_THRESHOLD - (SWIPE_MAX_TIME - touchDuration) / 20);
+            
+            if (absX < minThreshold && absY < minThreshold) {
                 touchStartX = null;
                 touchStartY = null;
                 return;
@@ -536,12 +606,14 @@ class Game2048 {
         const onTouchCancel = () => {
             touchStartX = null;
             touchStartY = null;
+            swipeProcessed = false;
         };
 
         if (gameContainer) {
-            gameContainer.addEventListener('touchstart', onTouchStart, { passive: true });
+            // passive: false обязателен для iOS Safari чтобы работал preventDefault
+            gameContainer.addEventListener('touchstart', onTouchStart, { passive: false });
             gameContainer.addEventListener('touchmove', onTouchMove, { passive: false });
-            gameContainer.addEventListener('touchend', onTouchEnd, { passive: true });
+            gameContainer.addEventListener('touchend', onTouchEnd, { passive: false });
             gameContainer.addEventListener('touchcancel', onTouchCancel, { passive: true });
         }
     }

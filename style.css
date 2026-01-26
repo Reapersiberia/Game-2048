@@ -158,9 +158,21 @@ h1 {
     border-radius: 6px;
     padding: 10px;
     margin-bottom: 20px;
+    /* Оптимизации для мобильных свайпов */
     touch-action: none;
+    -webkit-touch-callout: none;
     -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
     user-select: none;
+    /* Убираем задержку тапа на iOS */
+    -webkit-tap-highlight-color: transparent;
+    /* GPU ускорение контейнера */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: contents;
+    /* Предотвращаем bounce scroll на iOS */
+    overscroll-behavior: none;
 }
 
 .grid-container {
@@ -169,8 +181,14 @@ h1 {
     grid-template-rows: repeat(4, 1fr);
     gap: 10px;
     position: relative;
-    contain: layout style;
+    /* Оптимизации рендеринга */
+    contain: layout style paint;
     will-change: contents;
+    /* GPU ускорение */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    /* Предотвращение перерисовки */
+    isolation: isolate;
 }
 
 .cell {
@@ -256,13 +274,26 @@ h1 {
     justify-content: center;
     align-items: center;
     position: absolute;
-    transition: transform 0.12s ease-out, opacity 0.12s ease-out;
-    animation: appear 0.15s ease-out;
+    top: 0;
+    left: 0;
     overflow: hidden;
     border: 1px solid rgba(0, 0, 0, 0.1);
-    will-change: transform, opacity;
-    transform: translateZ(0);
+    /* GPU ускорение */
+    will-change: transform;
+    transform-style: preserve-3d;
     backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    /* Плавные переходы только на десктопе */
+    transition: none;
+    animation: none;
+}
+
+/* Анимации только для десктопа */
+@media (min-width: 501px) {
+    .tile {
+        transition: transform 0.1s ease-out;
+        animation: appear 0.12s ease-out;
+    }
 }
 
 /* Пиксельная травка под покемоном */
@@ -2104,6 +2135,9 @@ h1 {
 @media (max-width: 500px) {
     body {
         padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+        /* Предотвращаем bounce scroll на iOS */
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: auto;
     }
 
     .container {
@@ -2134,6 +2168,8 @@ h1 {
     .game-container {
         padding: 8px;
         margin-bottom: 12px;
+        /* Оптимизации для мобильных свайпов */
+        -webkit-overflow-scrolling: touch;
     }
 
     .grid-container {
@@ -2142,6 +2178,13 @@ h1 {
 
     .cell {
         font-size: 28px;
+        /* Отключаем анимации травы */
+        animation: none !important;
+    }
+    
+    .cell::before,
+    .cell::after {
+        animation: none !important;
     }
 
     .tile-number {
@@ -2232,12 +2275,22 @@ h1 {
         font-size: 14px;
     }
     
-    /* Упрощаем тяжёлые анимации на мобильных для производительности */
+    /* ============================================ */
+    /* МОБИЛЬНЫЕ ОПТИМИЗАЦИИ ПРОИЗВОДИТЕЛЬНОСТИ */
+    /* ============================================ */
+    
+    /* Отключаем ВСЕ тяжёлые анимации на мобильных */
     .tile {
-        animation: none;
-        transition: none;
+        animation: none !important;
+        transition: none !important;
     }
     
+    .tile::before,
+    .tile::after {
+        animation: none !important;
+    }
+    
+    /* Отключаем все частицы */
     .element-particles,
     .particles-fire,
     .particles-water,
@@ -2246,20 +2299,107 @@ h1 {
     .particles-ice,
     .particles-dragon,
     .particles-psychic,
+    .particles-rock,
+    .particles-poison,
+    .particles-ground,
+    .particles-flying,
+    .particles-bug,
+    .particles-fighting,
+    .particles-ghost,
+    .particles-dark,
+    .particles-steel,
+    .particles-fairy,
+    .particles-cosmic,
+    .particles-shadow,
     .particles-legendary {
         display: none !important;
     }
     
+    /* Отключаем анимации стихий на плитках */
+    .element-fire,
+    .element-water,
+    .element-electric,
+    .element-grass,
+    .element-ice,
+    .element-rock,
+    .element-psychic,
+    .element-dragon,
+    .element-poison,
+    .element-ground,
+    .element-flying,
+    .element-bug,
+    .element-fighting,
+    .element-ghost,
+    .element-dark,
+    .element-steel,
+    .element-fairy,
+    .element-cosmic,
+    .element-shadow,
+    .element-legendary {
+        animation: none !important;
+    }
+    
+    .element-fire .pokemon-sprite,
+    .element-water .pokemon-sprite,
+    .element-electric .pokemon-sprite,
+    .element-grass .pokemon-sprite,
+    .element-ice .pokemon-sprite,
+    .element-rock .pokemon-sprite,
+    .element-psychic .pokemon-sprite,
+    .element-dragon .pokemon-sprite,
+    .element-poison .pokemon-sprite,
+    .element-ground .pokemon-sprite,
+    .element-flying .pokemon-sprite,
+    .element-bug .pokemon-sprite,
+    .element-fighting .pokemon-sprite,
+    .element-ghost .pokemon-sprite,
+    .element-dark .pokemon-sprite,
+    .element-steel .pokemon-sprite,
+    .element-fairy .pokemon-sprite,
+    .element-cosmic .pokemon-sprite,
+    .element-shadow .pokemon-sprite,
+    .element-legendary .pokemon-sprite {
+        animation: none !important;
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3)) !important;
+    }
+    
+    .element-fire .tile-number,
+    .element-water .tile-number,
+    .element-electric .tile-number,
+    .element-psychic .tile-number,
+    .element-legendary .tile-number {
+        animation: none !important;
+    }
+    
     .motivator-container {
-        animation: none;
+        animation: none !important;
     }
     
     .motivator-pokemon {
-        animation: none;
+        animation: none !important;
+    }
+    
+    .motivator-bubble {
+        animation: none !important;
     }
     
     .element-badge {
-        animation: none;
+        animation: none !important;
+    }
+    
+    .indicator-emoji {
+        animation: none !important;
+    }
+    
+    /* Упрощаем box-shadow на мобильных */
+    .element-fire,
+    .element-water,
+    .element-electric,
+    .element-ice,
+    .element-dragon,
+    .element-psychic,
+    .element-legendary {
+        box-shadow: none !important;
     }
 }
 
