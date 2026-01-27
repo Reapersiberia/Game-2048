@@ -433,10 +433,23 @@ class Game2048 {
                         tile.appendChild(particles);
                     }
                     
-                    // Цифра
+                    // Цифра (форматируем большие числа)
                     const numberLabel = document.createElement('div');
                     numberLabel.className = 'tile-number';
-                    numberLabel.textContent = value;
+                    
+                    // Форматирование чисел на плитках
+                    let displayValue = value;
+                    if (value >= 100000) {
+                        displayValue = (value / 1000) + 'K';
+                        numberLabel.classList.add('tile-number-100k');
+                    } else if (value >= 10000) {
+                        displayValue = (value / 1000) + 'K';
+                        numberLabel.classList.add('tile-number-10k');
+                    } else if (value >= 1000) {
+                        displayValue = value;
+                        numberLabel.classList.add('tile-number-1k');
+                    }
+                    numberLabel.textContent = displayValue;
                     tile.appendChild(numberLabel);
                     
                     // Бейдж стихии только на десктопе
