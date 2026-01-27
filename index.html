@@ -51,10 +51,6 @@
         .greeting-text {
             color: #e0e0e0;
         }
-        @keyframes greetingPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); }
-            50% { transform: scale(1.02); box-shadow: 0 6px 25px rgba(0, 255, 136, 0.2); }
-        }
         .wallet-info.connected {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: #00ff88;
@@ -857,7 +853,7 @@
                         console.log('Farcaster user:', user.username || user.displayName);
                         window.farcasterUser = user;
                         
-                        // Сразу обновляем UI с информацией о пользователе
+                        // Автоматически обновляем UI с информацией о пользователе
                         const username = user.username || user.displayName;
                         const pfpUrl = user.pfpUrl || (user.pfp && user.pfp.url);
                         

@@ -431,8 +431,11 @@ class Game2048 {
                         tile.appendChild(elementBadge);
                     }
                     
-                    // Используем transform вместо top/left для GPU ускорения
-                    tile.style.cssText = `width:${cellSize}px;height:${cellSize}px;transform:translate3d(${10 + col * (cellSize + 10)}px,${10 + row * (cellSize + 10)}px,0)`;
+                    // Позиционирование плитки
+                    tile.style.width = `${cellSize}px`;
+                    tile.style.height = `${cellSize}px`;
+                    tile.style.top = `${10 + row * (cellSize + 10)}px`;
+                    tile.style.left = `${10 + col * (cellSize + 10)}px`;
                     
                     fragment.appendChild(tile);
                 }
@@ -2574,10 +2577,10 @@ async function initFarcasterSDK() {
             farcasterSDK = window.sdk;
         }
         
-        // Сразу пробуем получить и показать Farcaster username
-        if (farcasterSDK) {
-            await showFarcasterUserInfo();
-        }
+        // Проверяем данные пользователя и обновляем UI
+        setTimeout(() => {
+            updateUserDisplay();
+        }, 1000);
         
         return farcasterSDK;
     } catch (e) {
@@ -2586,205 +2589,87 @@ async function initFarcasterSDK() {
     }
 }
 
-// Показать информацию о Farcaster пользователе сразу при загрузке
-async function showFarcasterUserInfo() {
-    try {
-        let username = null;
-        let pfpUrl = null;
-        
-        // Сначала проверяем глобальную переменную
-        if (window.farcasterUser) {
-            const user = window.farcasterUser;
-            username = user.username || user.displayName;
-            pfpUrl = user.pfpUrl || user.pfp?.url;
-            console.log('Farcaster user from window:', username);
-        }
-        
-        // Затем пробуем через SDK context
-        if (!username && farcasterSDK && farcasterSDK.context) {
-            const context = await farcasterSDK.context;
-            if (context && context.user) {
-                username = context.user.username || context.user.displayName;
-                pfpUrl = context.user.pfpUrl || context.user.pfp?.url;
-                // Сохраняем для дальнейшего использования
-                window.farcasterUser = context.user;
-                console.log('Farcaster user from SDK:', username);
-            }
-        }
+// Обновление отображения пользователя
+function updateUserDisplay() {
+    // Проверяем Farcaster пользователя
+    if (window.farcasterUser) {
+        const user = window.farcasterUser;
+        const username = user.username || user.displayName;
+        const pfpUrl = user.pfpUrl || (user.pfp && user.pfp.url);
         
         if (username) {
+            console.log('Updating UI for Farcaster user:', username);
+            
             // Обновляем wallet-info
-            if (walletInfoEl) {
-                walletInfoEl.innerHTML = `<span class="wallet-name">🎮 ${username}</span>`;
-                walletInfoEl.className = 'wallet-info connected';
+            const walletInfo = document.getElementById('wallet-info');
+            if (walletInfo) {
+                walletInfo.innerHTML = '<span class="wallet-name">🎮 ' + username + '</span>';
+                walletInfo.className = 'wallet-info connected';
             }
             
-            // Обновляем главное меню - показываем имя пользователя
-            updateMainMenuWithUser(username, pfpUrl);
-            
-            // Обновляем профиль
-            updateProfileWithUser(username, pfpUrl);
-            
-            console.log('Displaying Farcaster user:', username);
-            return username;
-        }
-    } catch (e) {
-        console.log('Could not get Farcaster user info:', e.message);
-    }
-    return null;
-}
-
-// Обновить главное меню с информацией о пользователе
-function updateMainMenuWithUser(username, pfpUrl) {
-    // Добавляем приветствие в главное меню
-    const menuContent = document.querySelector('.main-menu-content');
-    if (menuContent && username) {
-        // Проверяем, не добавлено ли уже
-        let userGreeting = document.getElementById('user-greeting');
-        if (!userGreeting) {
-            userGreeting = document.createElement('div');
-            userGreeting.id = 'user-greeting';
-            userGreeting.className = 'user-greeting';
-            // Вставляем перед title
-            const title = menuContent.querySelector('.menu-title');
-            if (title) {
-                menuContent.insertBefore(userGreeting, title);
+            // Обновляем имя в профиле
+            const profileName = document.getElementById('profile-name');
+            if (profileName) {
+                profileName.textContent = username;
             }
-        }
-        userGreeting.innerHTML = `<span class="greeting-text">Welcome, <strong>${username}</strong>!</span>`;
-        
-        // Добавляем стили если ещё нет
-        if (!document.getElementById('user-greeting-styles')) {
-            const style = document.createElement('style');
-            style.id = 'user-greeting-styles';
-            style.textContent = `
-                .user-greeting {
-                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-                    color: #ffffff;
-                    padding: 12px 24px;
-                    border-radius: 25px;
-                    font-size: 15px;
-                    margin-bottom: 12px;
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.1);
-                    border: 1px solid rgba(255, 255, 255, 0.15);
-                    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-                }
-                .user-greeting strong {
-                    color: #00ff88;
-                    font-size: 17px;
-                    text-shadow: 0 0 10px rgba(0, 255, 136, 0.5), 0 1px 2px rgba(0, 0, 0, 0.8);
-                    letter-spacing: 0.5px;
-                }
-                .greeting-text {
-                    color: #e0e0e0;
-                }
-                @keyframes greetingPulse {
-                    0%, 100% { transform: scale(1); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); }
-                    50% { transform: scale(1.02); box-shadow: 0 6px 25px rgba(0, 255, 136, 0.2); }
-                }
-                .wallet-info.connected {
-                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-                    color: #00ff88;
-                    padding: 10px 18px;
-                    border-radius: 20px;
-                    font-weight: 700;
-                    font-size: 14px;
-                    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.4);
-                    border: 1px solid rgba(0, 255, 136, 0.3);
-                    text-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
-                }
-                .wallet-name {
-                    font-weight: 700;
-                    color: #00ff88;
-                }
-            `;
-            document.head.appendChild(style);
-        }
-    }
-}
-
-// Обновить профиль с информацией о пользователе
-function updateProfileWithUser(username, pfpUrl) {
-    // Обновляем имя в профиле
-    const profileName = document.getElementById('profile-name');
-    if (profileName && username) {
-        profileName.textContent = username;
-    }
-    
-    // Обновляем аватар в профиле если есть URL
-    const profileAvatar = document.getElementById('profile-avatar-img');
-    if (profileAvatar && pfpUrl) {
-        profileAvatar.src = pfpUrl;
-        profileAvatar.onerror = function() {
-            // Возвращаем покемона если pfp не загрузился
-            this.src = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif';
-        };
-    }
-}
-
-// Автоматическое подключение кошелька в Farcaster
-async function autoConnectWalletInFarcaster() {
-    console.log('=== Auto-connecting wallet in Farcaster ===');
-    
-    // Проверяем наличие ethereum provider
-    if (typeof window.ethereum === 'undefined') {
-        console.log('No ethereum provider for auto-connect');
-        return false;
-    }
-    
-    try {
-        // Пробуем получить уже подключенные аккаунты (без запроса разрешения)
-        const accounts = await window.ethereum.request({ 
-            method: 'eth_accounts' 
-        });
-        
-        if (accounts && accounts.length > 0) {
-            userAddress = accounts[0];
-            console.log('Auto-connected address:', userAddress);
             
-            // Создаем provider и signer
-            provider = new ethers.BrowserProvider(window.ethereum);
-            signer = await provider.getSigner();
-            
-            // Проверяем и переключаемся на Base если нужно
-            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-            console.log('Current chain:', chainId, 'Target Base:', TARGET_NETWORK.chainId);
-            
-            if (chainId.toLowerCase() !== TARGET_NETWORK.chainId.toLowerCase()) {
-                console.log('Switching to Base network...');
-                try {
-                    await window.ethereum.request({
-                        method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: TARGET_NETWORK.chainId }]
-                    });
-                    // Обновляем provider после переключения
-                    await new Promise(r => setTimeout(r, 500));
-                    provider = new ethers.BrowserProvider(window.ethereum);
-                    signer = await provider.getSigner();
-                } catch (switchError) {
-                    if (switchError.code === 4902) {
-                        // Добавляем Base network
-                        await window.ethereum.request({
-                            method: 'wallet_addEthereumChain',
-                            params: [TARGET_NETWORK]
-                        });
+            // Добавляем приветствие в главное меню
+            const menuContent = document.querySelector('.main-menu-content');
+            if (menuContent) {
+                let userGreeting = document.getElementById('user-greeting');
+                if (!userGreeting) {
+                    userGreeting = document.createElement('div');
+                    userGreeting.id = 'user-greeting';
+                    userGreeting.className = 'user-greeting';
+                    const title = menuContent.querySelector('.menu-title');
+                    if (title) {
+                        menuContent.insertBefore(userGreeting, title);
                     }
-                    console.log('Network switch handled:', switchError.message);
+                }
+                userGreeting.innerHTML = '<span class="greeting-text">Welcome, <strong>' + username + '</strong>!</span>';
+            }
+            
+            // Обновляем аватар если есть
+            if (pfpUrl) {
+                const profileAvatar = document.getElementById('profile-avatar-img');
+                if (profileAvatar) {
+                    profileAvatar.src = pfpUrl;
                 }
             }
             
-            // Показываем информацию
-            showWalletInfo(userAddress);
-            console.log('=== Auto-connect successful ===');
-            return true;
-        } else {
-            console.log('No pre-connected accounts');
+            // Сохраняем адрес пользователя
+            if (user.custody || user.verifiedAddresses) {
+                const addr = user.custody || (user.verifiedAddresses && user.verifiedAddresses[0]);
+                if (addr) {
+                    userAddress = addr;
+                    showWalletInfo(addr);
+                }
+            }
         }
-    } catch (e) {
-        console.log('Auto-connect error:', e.message);
     }
     
-    return false;
+    // Также пробуем автоподключить кошелёк если есть
+    tryAutoConnectWallet();
+}
+
+// Автоподключение кошелька
+async function tryAutoConnectWallet() {
+    if (typeof window.ethereum !== 'undefined') {
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+            if (accounts && accounts.length > 0) {
+                userAddress = accounts[0];
+                console.log('Auto-connected wallet:', userAddress.slice(0, 10) + '...');
+                
+                // Обновляем UI если нет Farcaster пользователя
+                if (!window.farcasterUser) {
+                    showWalletInfo(userAddress);
+                }
+            }
+        } catch (e) {
+            console.log('Auto-connect failed:', e.message);
+        }
+    }
 }
 
 // Check if we're in Farcaster/Warpcast
@@ -3082,7 +2967,7 @@ function getLastGMTx() {
     return localStorage.getItem('gm_last_tx');
 }
 
-// GM function - автоматический без popup'ов
+// GM function - автоматический без popup'ов для Base MiniApp
 async function sendGM() {
     const btn = document.getElementById('gm-btn');
     
@@ -3132,7 +3017,7 @@ async function sendGM() {
         // Сохраняем GM локально
         const gmHistory = JSON.parse(localStorage.getItem('gm_history') || '[]');
         gmHistory.unshift(gmRecord);
-        if (gmHistory.length > 30) gmHistory.pop(); // Храним последние 30
+        if (gmHistory.length > 30) gmHistory.pop();
         localStorage.setItem('gm_history', JSON.stringify(gmHistory));
         
         // Анимация успеха
@@ -3171,7 +3056,6 @@ async function sendGM() {
 
 // Создаем визуальный эффект GM
 function createGMEffect() {
-    // Создаем летающие солнышки
     for (let i = 0; i < 5; i++) {
         setTimeout(() => {
             const sun = document.createElement('div');
@@ -3190,7 +3074,6 @@ function createGMEffect() {
         }, i * 100);
     }
     
-    // Добавляем стили анимации если нет
     if (!document.getElementById('gm-effect-styles')) {
         const style = document.createElement('style');
         style.id = 'gm-effect-styles';
@@ -3204,67 +3087,8 @@ function createGMEffect() {
     }
 }
 
-// Legacy function for compatibility
-async function sendGMLegacy() {
-    const btn = document.getElementById('gm-btn');
-    if (btn) btn.disabled = true;
-    
-    try {
-        if (typeof window.ethereum === 'undefined') {
-            showStatus('Wallet not found', 'error');
-            if (btn) btn.disabled = false;
-            return;
-        }
-        
-        let accounts = await window.ethereum.request({ method: 'eth_accounts' });
-        if (!accounts || accounts.length === 0) {
-            accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        }
-        
-        const from = accounts[0];
-        const today = new Date().toISOString().split('T')[0];
-        const gmMessage = `GM! ☀️\n\nDate: ${today}\nFrom: ${from}\n\nThis is your daily GM on Base!`;
-        
-        const signature = await window.ethereum.request({
-            method: 'personal_sign',
-            params: [gmMessage, from]
-        });
-        
-        // Step 4: Save GM with signature and update counter
-        saveGMToday(signature);
-        showStatus('GM! ☀️ День ' + getGMCount() + ' подтверждён!', 'success');
-        
-        // Add celebration animation
-        const counterBox = document.querySelector('.gm-counter-box');
-        if (counterBox) {
-            counterBox.style.animation = 'none';
-            counterBox.offsetHeight; // trigger reflow
-            counterBox.style.animation = 'celebrate 0.5s ease';
-        }
-        
-        // Log signature for user
-        console.log('GM Signature:', signature.slice(0, 20) + '...');
-        
-        if (btn) btn.disabled = true;
-        
-    } catch (error) {
-        console.error('GM Error:', error);
-        
-        let errorMessage = 'Ошибка подписи GM';
-        
-        if (error.code === 4001) {
-            errorMessage = 'Подпись отменена';
-        } else if (error.message) {
-            errorMessage = error.message.substring(0, 40);
-        }
-        
-        showStatus(errorMessage, 'error');
-        if (btn) btn.disabled = false;
-    }
-}
-
 // ============================================
-// Deploy Contract Function - автоматический без popup'а
+// Deploy Contract Function - автоматический без popup'а для Base MiniApp
 // ============================================
 
 async function deployContract() {
@@ -3332,33 +3156,31 @@ async function deployContract() {
 
 // Создаем визуальный эффект деплоя
 function createDeployEffect() {
-    // Создаем летающие документы
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 5; i++) {
         setTimeout(() => {
-            const doc = document.createElement('div');
-            doc.innerHTML = '📜';
-            doc.style.cssText = `
+            const rocket = document.createElement('div');
+            rocket.innerHTML = '🚀';
+            rocket.style.cssText = `
                 position: fixed;
-                font-size: 28px;
-                left: ${30 + Math.random() * 40}%;
-                top: 50%;
+                font-size: 30px;
+                left: ${20 + Math.random() * 60}%;
+                top: 60%;
                 z-index: 10000;
                 pointer-events: none;
-                animation: deployFloat 1.2s ease-out forwards;
+                animation: deployFloat 1.5s ease-out forwards;
             `;
-            document.body.appendChild(doc);
-            setTimeout(() => doc.remove(), 1200);
-        }, i * 80);
+            document.body.appendChild(rocket);
+            setTimeout(() => rocket.remove(), 1500);
+        }, i * 100);
     }
     
-    // Добавляем стили анимации если нет
     if (!document.getElementById('deploy-effect-styles')) {
         const style = document.createElement('style');
         style.id = 'deploy-effect-styles';
         style.textContent = `
             @keyframes deployFloat {
-                0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
-                100% { transform: translateY(-80px) rotate(15deg) scale(1.3); opacity: 0; }
+                0% { transform: translateY(0) scale(1); opacity: 1; }
+                100% { transform: translateY(-150px) scale(1.5); opacity: 0; }
             }
         `;
         document.head.appendChild(style);
@@ -3922,7 +3744,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Очищаем статус СРАЗУ при загрузке - это критически важно!
     clearStatus();
     
-    // Initialize Farcaster SDK (это также покажет username если есть)
+    // Initialize Farcaster SDK
     await initFarcasterSDK();
     
     // Check if ethers is loaded
@@ -3933,30 +3755,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         console.log('ethers.js version:', ethers.version);
         console.log('Target network:', TARGET_NETWORK.chainName);
-        
-        // ============================================
-        // АВТОМАТИЧЕСКОЕ ПОДКЛЮЧЕНИЕ КОШЕЛЬКА В FARCASTER
-        // ============================================
-        const hasWallet = (farcasterSDK && farcasterSDK.wallet) || (typeof window.ethereum !== 'undefined');
-        if (hasWallet) {
-            console.log('Wallet detected, attempting auto-connect...');
-            
-            // Автоматически подключаемся к кошельку
-            try {
-                const connected = await autoConnectWalletInFarcaster();
-                if (connected) {
-                    console.log('✅ Wallet auto-connected on Base!');
-                    // Показываем сообщение о подключении
-                    showStatus('Connected to Base! ✅', 'success');
-                } else {
-                    console.log('Auto-connect: no pre-connected accounts');
-                }
-            } catch (e) {
-                console.log('Auto-connect error:', e.message);
-            }
-        } else {
-            console.log('No wallet detected. Use Warpcast or install MetaMask.');
-        }
+    }
+    
+    // Auto-connect if wallet available (but don't show errors)
+    const hasWallet = (farcasterSDK && farcasterSDK.wallet) || (typeof window.ethereum !== 'undefined');
+    if (hasWallet) {
+        console.log('Wallet detected, ready to connect');
+    } else {
+        console.log('No wallet detected. Use Warpcast or install MetaMask.');
+        // НЕ показываем ошибку - пользователь увидит её только при нажатии на GM
     }
     
     // Initialize GM counter
@@ -3965,7 +3772,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Финальная очистка статуса - убеждаемся что никаких ошибок не показывается
     setTimeout(() => {
         clearStatus();
-    }, 2500);
+    }, 200);
+    
+    // Еще одна очистка на всякий случай
+    setTimeout(() => {
+        clearStatus();
+    }, 500);
     
     // Check if GM was already sent today - disable button
     if (!canSendGMToday()) {
@@ -4433,34 +4245,8 @@ const menuSystem = {
         
         // Обновляем UI
         const avatarImg = document.getElementById('profile-avatar-img');
-        
-        // Проверяем, есть ли Farcaster user с аватаром
-        const hasFarcasterPfp = window.farcasterUser && (window.farcasterUser.pfpUrl || window.farcasterUser.pfp?.url);
-        
         if (avatarImg) {
-            if (hasFarcasterPfp) {
-                // Используем Farcaster аватар
-                const pfpUrl = window.farcasterUser.pfpUrl || window.farcasterUser.pfp?.url;
-                avatarImg.src = pfpUrl;
-                avatarImg.onerror = function() {
-                    // Fallback на покемона
-                    this.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${avatarId}.gif`;
-                    this.onerror = null;
-                };
-            } else {
-                avatarImg.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${avatarId}.gif`;
-            }
-        }
-        
-        // Обновляем имя пользователя
-        const profileNameEl = document.getElementById('profile-name');
-        if (profileNameEl) {
-            if (window.farcasterUser) {
-                const username = window.farcasterUser.username || window.farcasterUser.displayName;
-                if (username) {
-                    profileNameEl.textContent = username;
-                }
-            }
+            avatarImg.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${avatarId}.gif`;
         }
         
         const levelEl = document.getElementById('profile-level');
