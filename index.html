@@ -381,6 +381,11 @@
             </div>
             
             <div class="menu-stats-preview">
+                <div class="menu-stat level-stat">
+                    <span class="menu-stat-icon">⭐</span>
+                    <span class="menu-stat-value" id="menu-level">1</span>
+                    <span class="menu-stat-label">Level</span>
+                </div>
                 <div class="menu-stat">
                     <span class="menu-stat-icon">🏆</span>
                     <span class="menu-stat-value" id="menu-best-score">0</span>
@@ -594,6 +599,39 @@
                 <div class="profile-name" id="profile-name">Trainer</div>
                 <div class="profile-title" id="profile-title">Beginner</div>
                 
+                <!-- XP Progress Bar -->
+                <div class="xp-section">
+                    <div class="xp-info">
+                        <span class="xp-current" id="xp-current">0</span>
+                        <span class="xp-separator">/</span>
+                        <span class="xp-needed" id="xp-needed">100</span>
+                        <span class="xp-label">XP</span>
+                    </div>
+                    <div class="xp-bar-container">
+                        <div class="xp-bar-fill" id="xp-bar-fill" style="width: 0%"></div>
+                        <div class="xp-bar-glow"></div>
+                    </div>
+                    <div class="xp-total-info">
+                        <span class="xp-total-label">Total XP:</span>
+                        <span class="xp-total-value" id="xp-total-value">0</span>
+                    </div>
+                </div>
+                
+                <!-- Level Progress to Max -->
+                <div class="level-progress-section">
+                    <div class="level-progress-header">
+                        <span class="level-progress-title">Level Progress</span>
+                        <span class="level-progress-percent" id="level-progress-percent">0%</span>
+                    </div>
+                    <div class="level-progress-bar">
+                        <div class="level-progress-fill" id="level-progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="level-progress-info">
+                        <span>Lv. <span id="current-level-display">1</span></span>
+                        <span class="level-max">/ 10,000</span>
+                    </div>
+                </div>
+                
                 <div class="profile-stats-grid">
                     <div class="profile-stat">
                         <span class="profile-stat-icon">🎮</span>
@@ -628,6 +666,15 @@
                 <div class="profile-elements-unlocked">
                     <h3>Elements Unlocked</h3>
                     <div class="elements-grid" id="profile-elements-grid">
+                        <!-- Динамически заполняется -->
+                    </div>
+                </div>
+                
+                <!-- AVATAR COLLECTION -->
+                <div class="profile-avatar-collection">
+                    <h3>🖼️ Avatar Collection</h3>
+                    <p class="avatar-collection-subtitle">Tap to select • Unlock from achievements!</p>
+                    <div class="avatar-collection-grid" id="avatar-collection-grid">
                         <!-- Динамически заполняется -->
                     </div>
                 </div>

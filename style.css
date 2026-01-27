@@ -2802,9 +2802,328 @@ h1 {
 .profile-title {
     font-size: 14px;
     color: #FFD700;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     text-transform: uppercase;
     letter-spacing: 2px;
+}
+
+/* ============================================
+   XP & LEVEL SYSTEM
+   ============================================ */
+.xp-section {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 16px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.xp-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.xp-current {
+    color: #00ff88;
+    font-weight: bold;
+    font-size: 18px;
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
+.xp-separator {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.xp-needed {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+}
+
+.xp-label {
+    color: #FFD700;
+    font-weight: bold;
+    margin-left: 5px;
+    text-transform: uppercase;
+    font-size: 12px;
+}
+
+.xp-bar-container {
+    position: relative;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.xp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00ff88, #00cc6a, #00ff88);
+    background-size: 200% 100%;
+    border-radius: 8px;
+    transition: width 0.5s ease-out;
+    position: relative;
+    animation: xpShine 2s ease-in-out infinite;
+}
+
+.xp-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), transparent);
+    border-radius: 8px 8px 0 0;
+}
+
+@keyframes xpShine {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.xp-bar-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    border-radius: 8px;
+    box-shadow: inset 0 0 15px rgba(0, 255, 136, 0.3);
+}
+
+.xp-total-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    font-size: 12px;
+}
+
+.xp-total-label {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.xp-total-value {
+    color: #FFD700;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Level Progress Section */
+.level-progress-section {
+    background: rgba(102, 126, 234, 0.15);
+    border-radius: 16px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.level-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.level-progress-title {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.level-progress-percent {
+    color: #667eea;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.level-progress-bar {
+    height: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.level-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+    background-size: 200% 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease-out;
+    animation: levelShine 3s ease-in-out infinite;
+}
+
+@keyframes levelShine {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.level-progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.level-max {
+    color: #FFD700;
+    font-weight: bold;
+}
+
+/* Level Up Notification */
+.level-up-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    z-index: 10000;
+    text-align: center;
+    pointer-events: none;
+    animation: levelUpPop 2.5s ease-out forwards;
+}
+
+@keyframes levelUpPop {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+    15% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+    25% { transform: translate(-50%, -50%) scale(1); }
+    80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+}
+
+.level-up-content {
+    background: linear-gradient(135deg, rgba(26, 26, 46, 0.98), rgba(22, 33, 62, 0.98));
+    border: 3px solid #FFD700;
+    border-radius: 25px;
+    padding: 30px 50px;
+    box-shadow: 
+        0 0 50px rgba(255, 215, 0, 0.5),
+        0 0 100px rgba(255, 215, 0, 0.3),
+        inset 0 0 30px rgba(255, 215, 0, 0.1);
+}
+
+.level-up-stars {
+    font-size: 30px;
+    margin-bottom: 10px;
+    animation: starPulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes starPulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.1); }
+}
+
+.level-up-title {
+    font-size: 28px;
+    font-weight: 900;
+    color: #FFD700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+}
+
+.level-up-level {
+    font-size: 64px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 
+        0 0 30px rgba(255, 255, 255, 0.5),
+        0 4px 20px rgba(0, 0, 0, 0.5);
+    line-height: 1;
+    margin-bottom: 10px;
+}
+
+.level-up-title-new {
+    font-size: 16px;
+    color: #00ff88;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+}
+
+.level-up-pokemon {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    margin-top: 15px;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+    animation: pokemonBounce 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes pokemonBounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10px); }
+}
+
+/* XP Gain Notification */
+.xp-gain-notification {
+    position: fixed;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    pointer-events: none;
+    animation: xpGainFly 2s ease-out forwards;
+}
+
+@keyframes xpGainFly {
+    0% { opacity: 0; transform: translateX(-50%) translateY(20px) scale(0.8); }
+    20% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+    80% { opacity: 1; transform: translateX(-50%) translateY(-30px) scale(1); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-60px) scale(0.8); }
+}
+
+.xp-gain-content {
+    background: linear-gradient(135deg, rgba(0, 255, 136, 0.9), rgba(0, 204, 106, 0.9));
+    color: white;
+    padding: 15px 30px;
+    border-radius: 30px;
+    font-size: 24px;
+    font-weight: 900;
+    box-shadow: 
+        0 4px 20px rgba(0, 255, 136, 0.5),
+        0 0 40px rgba(0, 255, 136, 0.3);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.xp-gain-content .xp-icon {
+    margin-right: 8px;
+}
+
+/* Profile Level Badge Enhanced */
+.profile-level {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #FFD700, #FFA500, #FFD700);
+    background-size: 200% 100%;
+    color: #1a1a2e;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 900;
+    box-shadow: 
+        0 4px 15px rgba(255, 165, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    animation: levelBadgeShine 3s ease-in-out infinite;
+}
+
+@keyframes levelBadgeShine {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
 }
 
 .profile-stats-grid {
@@ -2910,6 +3229,226 @@ h1 {
 
 .element-badge-small:hover {
     transform: scale(1.2);
+}
+
+/* ============================================
+   AVATAR COLLECTION
+   ============================================ */
+.profile-avatar-collection {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-avatar-collection h3 {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.avatar-collection-subtitle {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 15px;
+}
+
+.avatar-section {
+    margin-bottom: 20px;
+}
+
+.avatar-section-title {
+    font-size: 13px;
+    color: #FFD700;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.avatar-section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 10px;
+}
+
+.avatar-collection-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 5px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.avatar-collection-item.unlocked {
+    border-color: rgba(76, 175, 80, 0.4);
+    background: linear-gradient(145deg, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0.05) 100%);
+}
+
+.avatar-collection-item.unlocked:hover {
+    transform: translateY(-3px);
+    border-color: rgba(76, 175, 80, 0.7);
+    box-shadow: 0 5px 20px rgba(76, 175, 80, 0.3);
+}
+
+.avatar-collection-item.locked {
+    opacity: 0.7;
+}
+
+.avatar-collection-item.locked:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+.avatar-collection-item.selected {
+    border-color: #FFD700 !important;
+    background: linear-gradient(145deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 215, 0, 0.05) 100%) !important;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+.avatar-collection-item.legendary {
+    border-color: rgba(255, 215, 0, 0.4);
+    background: linear-gradient(145deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 140, 0, 0.05) 100%);
+}
+
+.avatar-collection-item.legendary.unlocked {
+    animation: avatarLegendaryGlow 2s ease-in-out infinite;
+}
+
+@keyframes avatarLegendaryGlow {
+    0%, 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
+}
+
+.avatar-collection-img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    margin-bottom: 5px;
+    animation: avatarBounce 2s ease-in-out infinite;
+}
+
+.avatar-collection-item.locked .avatar-collection-img {
+    filter: grayscale(80%) brightness(0.6);
+    animation: none;
+}
+
+@keyframes avatarBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+.avatar-collection-name {
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.avatar-lock {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 12px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-selected {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 12px;
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.5);
+}
+
+/* Avatar notifications */
+.avatar-change-notification,
+.avatar-locked-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 12000;
+    animation: avatarNotifSlide 0.4s ease-out;
+}
+
+@keyframes avatarNotifSlide {
+    from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+    to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+
+.avatar-change-content,
+.avatar-locked-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+.avatar-change-content {
+    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.avatar-locked-content {
+    background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.avatar-change-img,
+.avatar-locked-img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    image-rendering: pixelated;
+}
+
+.avatar-change-title,
+.avatar-locked-title {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+}
+
+.avatar-change-name,
+.avatar-locked-hint {
+    font-size: 14px;
+    color: white;
+    font-weight: 600;
+}
+
+.avatar-change-notification.fade-out,
+.avatar-locked-notification.fade-out {
+    animation: avatarNotifFadeOut 0.5s ease-out forwards;
+}
+
+@keyframes avatarNotifFadeOut {
+    to { transform: translateX(-50%) translateY(-20px); opacity: 0; }
 }
 
 /* ============================================
@@ -3689,6 +4228,29 @@ body {
     text-transform: uppercase;
 }
 
+/* Level Stat Special Styling */
+.menu-stat.level-stat {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.1));
+    padding: 10px 15px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.menu-stat.level-stat .menu-stat-value {
+    color: #00ff88;
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+    font-size: 26px;
+}
+
+.menu-stat.level-stat .menu-stat-icon {
+    animation: starGlow 2s ease-in-out infinite;
+}
+
+@keyframes starGlow {
+    0%, 100% { transform: scale(1); filter: brightness(1); }
+    50% { transform: scale(1.1); filter: brightness(1.3); }
+}
+
 .menu-footer {
     color: rgba(255, 255, 255, 0.5);
     font-size: 13px;
@@ -4196,22 +4758,22 @@ body.no-particles .element-legendary .pokemon-sprite {
 }
 
 .achievements-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .achievement-item {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    padding: 12px 8px;
+    padding: 12px;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 12px;
     border: 2px solid transparent;
     transition: all 0.3s ease;
     cursor: default;
-    min-height: 110px;
+    gap: 12px;
 }
 
 .achievement-item.unlocked {
@@ -4220,16 +4782,32 @@ body.no-particles .element-legendary .pokemon-sprite {
 }
 
 .achievement-item.unlocked:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
 }
 
 .achievement-item.locked {
-    opacity: 0.5;
+    opacity: 1;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-color: rgba(102, 126, 234, 0.3);
 }
 
 .achievement-item.locked:hover {
-    opacity: 0.7;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    border-color: rgba(102, 126, 234, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+}
+
+.achievement-item.locked:hover .status-locked {
+    transform: scale(1.1);
+    animation: lockShake 0.5s ease-in-out;
+}
+
+@keyframes lockShake {
+    0%, 100% { transform: scale(1.1) rotate(0deg); }
+    25% { transform: scale(1.1) rotate(-10deg); }
+    75% { transform: scale(1.1) rotate(10deg); }
 }
 
 .achievement-item.legendary.unlocked {
@@ -4238,40 +4816,267 @@ body.no-particles .element-legendary .pokemon-sprite {
     animation: legendaryShine 2s ease-in-out infinite;
 }
 
+.achievement-item.has-avatar.unlocked {
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.3) 0%, rgba(75, 0, 130, 0.3) 100%);
+    border-color: rgba(138, 43, 226, 0.6);
+}
+
+.achievement-item.has-avatar.legendary.unlocked {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.4) 0%, rgba(138, 43, 226, 0.4) 100%);
+    border-color: #FFD700;
+}
+
 @keyframes legendaryShine {
     0%, 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
     50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.6); }
 }
 
+.achievement-icon-wrapper {
+    position: relative;
+    min-width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+}
+
 .achievement-icon {
-    font-size: 32px;
-    margin-bottom: 8px;
+    font-size: 36px;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: transform 0.3s ease;
+    background: linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.2) 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Animated Pokemon avatars - always colorful! */
+.achievement-avatar {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    padding: 2px;
+    transition: all 0.3s ease;
+    image-rendering: pixelated;
+}
+
+.achievement-avatar.preview-avatar {
+    animation: pokemonBounce 2s ease-in-out infinite;
+}
+
+.achievement-avatar.unlocked-avatar {
+    animation: pokemonCelebrate 1s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+}
+
+@keyframes pokemonBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+@keyframes pokemonCelebrate {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.05) rotate(-2deg); }
+    75% { transform: scale(1.05) rotate(2deg); }
+}
+
+/* Emoji icons - also animated! */
+.emoji-icon {
+    font-size: 36px;
+    transition: all 0.3s ease;
+}
+
+.emoji-icon.preview-emoji {
+    animation: emojiBounce 2s ease-in-out infinite;
+}
+
+.emoji-icon.unlocked-emoji {
+    animation: emojiPulse 1.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.5));
+}
+
+@keyframes emojiBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes emojiPulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.5)); }
+    50% { transform: scale(1.15); filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.8)); }
+}
+
+/* Status indicators */
+.status-locked {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    font-size: 14px;
+    background: linear-gradient(135deg, #555 0%, #333 100%);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.status-unlocked {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    font-size: 14px;
+    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.5);
+    animation: checkPulse 2s ease-in-out infinite;
+}
+
+@keyframes checkPulse {
+    0%, 100% { box-shadow: 0 2px 8px rgba(76, 175, 80, 0.5); }
+    50% { box-shadow: 0 2px 16px rgba(76, 175, 80, 0.8); }
 }
 
 .achievement-item:hover .achievement-icon {
-    transform: scale(1.2);
+    transform: scale(1.08);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.achievement-item:hover .achievement-avatar {
+    animation-duration: 0.5s;
+}
+
+.achievement-item:hover .emoji-icon {
+    animation-duration: 0.5s;
+}
+
+.achievement-info {
+    flex: 1;
+    min-width: 0;
 }
 
 .achievement-name {
-    font-size: 11px;
+    font-size: 13px;
     color: white;
-    text-align: center;
     font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.achievement-desc {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
     line-height: 1.3;
     margin-bottom: 4px;
 }
 
-.achievement-desc {
-    font-size: 9px;
-    color: rgba(255, 255, 255, 0.7);
+.achievement-xp {
+    font-size: 11px;
+    color: #4CAF50;
+    font-weight: 700;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.3) 0%, rgba(56, 142, 60, 0.3) 100%);
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-block;
+    border: 1px solid rgba(76, 175, 80, 0.4);
+}
+
+.achievement-xp.legendary-xp {
+    color: #FFD700;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.3) 0%, rgba(255, 140, 0, 0.3) 100%);
+    border: 1px solid rgba(255, 215, 0, 0.5);
+    animation: xpShine 2s ease-in-out infinite;
+}
+
+@keyframes xpShine {
+    0%, 100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
+    50% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
+}
+
+/* Colorful animated badges */
+.achievement-badge {
+    font-size: 11px;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
     text-align: center;
-    line-height: 1.2;
-    padding: 0 2px;
+    min-width: 70px;
+    flex-shrink: 0;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+/* Locked badge - still colorful but dimmed */
+.achievement-badge.locked-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    opacity: 0.7;
+    animation: badgeGlow 3s ease-in-out infinite;
+}
+
+/* Unlocked badge - bright and shiny! */
+.achievement-badge.unlocked-badge {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4);
+    animation: badgeCelebrate 2s ease-in-out infinite;
+}
+
+/* Legendary badge - golden and glowing! */
+.achievement-badge.legendary-badge {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #ffd700 100%);
+    border: 2px solid rgba(255, 215, 0, 0.6);
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.5);
+    animation: legendaryBadge 1.5s ease-in-out infinite;
+    font-size: 12px;
+}
+
+@keyframes badgeGlow {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+@keyframes badgeCelebrate {
+    0%, 100% { transform: scale(1); box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4); }
+    50% { transform: scale(1.05); box-shadow: 0 4px 25px rgba(56, 239, 125, 0.6); }
+}
+
+@keyframes legendaryBadge {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 0 4px 20px rgba(255, 215, 0, 0.5);
+        background-position: 0% 50%;
+    }
+    50% { 
+        transform: scale(1.08);
+        box-shadow: 0 4px 30px rgba(255, 215, 0, 0.8);
+        background-position: 100% 50%;
+    }
+}
+
+.achievement-item:hover .achievement-badge {
+    transform: scale(1.1);
 }
 
 .achievement-item.locked .achievement-desc {
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.achievement-item.locked .achievement-name {
+    color: rgba(255, 255, 255, 0.9);
 }
 
 /* Уведомление о достижении */
@@ -4364,14 +5169,67 @@ body.no-particles .element-legendary .pokemon-sprite {
     color: rgba(255, 255, 255, 0.9);
 }
 
-/* Адаптивность */
+.achievement-notification-xp {
+    font-size: 16px;
+    font-weight: bold;
+    color: #00ff88;
+    margin-top: 5px;
+    text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+    animation: xpPulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes xpPulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
+}
+
+/* Avatar notification styles */
+.achievement-notification.has-avatar .achievement-notification-content {
+    background: linear-gradient(135deg, #4A0080 0%, #8B00FF 50%, #9932CC 100%);
+}
+
+.notification-avatar-img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px;
+    animation: iconBounce 0.5s ease-out;
+}
+
+.achievement-notification-avatar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.achievement-notification-avatar img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.achievement-notification-avatar span {
+    font-size: 12px;
+    font-weight: 600;
+    color: #E0B0FF;
+    text-shadow: 0 0 10px rgba(224, 176, 255, 0.5);
+}
+
+/* Responsive styles */
 @media (max-width: 600px) {
     .achievements-stats {
         grid-template-columns: repeat(2, 1fr);
     }
     
     .achievements-grid {
-        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
     }
     
     .achievement-notification {
@@ -4387,18 +5245,23 @@ body.no-particles .element-legendary .pokemon-sprite {
         font-size: 36px;
     }
     
+    .notification-avatar-img {
+        width: 36px;
+        height: 36px;
+    }
+    
     .achievement-notification-name {
         font-size: 16px;
     }
     
     .achievement-desc {
-        font-size: 8px;
+        font-size: 9px;
     }
 }
 
 @media (max-width: 400px) {
     .achievements-grid {
-        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
     }
     
     .achievements-header h2 {
@@ -4410,8 +5273,54 @@ body.no-particles .element-legendary .pokemon-sprite {
     }
     
     .achievement-item {
-        min-height: 100px;
-        padding: 10px 6px;
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .achievement-icon-wrapper {
+        min-width: 50px;
+        height: 50px;
+    }
+    
+    .achievement-icon {
+        font-size: 24px;
+        width: 50px;
+        height: 50px;
+    }
+    
+    .achievement-avatar {
+        width: 46px;
+        height: 46px;
+    }
+    
+    .emoji-icon {
+        font-size: 28px;
+    }
+    
+    .status-locked,
+    .status-unlocked {
+        font-size: 11px;
+        width: 20px;
+        height: 20px;
+    }
+    
+    .achievement-name {
+        font-size: 11px;
+    }
+    
+    .achievement-desc {
+        font-size: 9px;
+    }
+    
+    .achievement-badge {
+        font-size: 9px;
+        padding: 5px 8px;
+        min-width: 55px;
+    }
+    
+    .achievement-xp {
+        font-size: 9px;
+        padding: 2px 6px;
     }
 }
 

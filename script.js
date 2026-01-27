@@ -187,7 +187,18 @@ class Game2048 {
         }
         if (emptyCells.length > 0) {
             const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            this.grid[randomCell.row][randomCell.col] = Math.random() < 0.9 ? 2 : 4;
+            const newTile = Math.random() < 0.9 ? 2 : 4;
+            this.grid[randomCell.row][randomCell.col] = newTile;
+            
+            // Lucky 4 achievement
+            if (newTile === 4 && window.achievementSystem) {
+                window.achievementSystem.checkLucky4Spawn();
+            }
+            
+            // Grid Survivor achievement: track if grid was 90%+ full (14+ tiles = 2 or fewer empty)
+            if (emptyCells.length <= 2 && window.achievementSystem) {
+                window.achievementSystem.trackGridFull();
+            }
         }
     }
 
@@ -246,6 +257,11 @@ class Game2048 {
                     if (window.leaderboardSystem && this.score > 0) {
                         const currentElement = this.getCurrentElement();
                         window.leaderboardSystem.addEntry(this.score, currentElement.type);
+                    }
+                    
+                    // Начисляем XP за игру!
+                    if (window.menuSystem && this.score > 0) {
+                        window.menuSystem.awardGameXP(this.score);
                     }
                     
                     // Засчитываем завершённую игру для достижений
@@ -3194,71 +3210,161 @@ function createDeployEffect() {
 
 class AchievementSystem {
     constructor() {
+        // Pokemon avatar URL helper - animated GIFs!
+        const pokemonAvatar = (id) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${id}.gif`;
+        const pokemonStatic = (id) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+        const pokemonShiny = (id) => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/${id}.gif`;
+        
+        // Pikachu special variants
+        this.pikachuVariants = [
+            { id: 'pikachu_normal', name: 'Pikachu Classic', avatar: pokemonAvatar(25), color: '#FFD700' },
+            { id: 'pikachu_shiny', name: 'Pikachu Shiny ✨', avatar: pokemonShiny(25), color: '#FF8C00' },
+            { id: 'pikachu_female', name: 'Pikachu Female 💕', avatar: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/female/25.gif`, color: '#FF69B4' },
+            { id: 'raichu_normal', name: 'Raichu Thunder', avatar: pokemonAvatar(26), color: '#FF6B35' },
+            { id: 'raichu_shiny', name: 'Raichu Shiny ✨', avatar: pokemonShiny(26), color: '#8B4513' },
+            { id: 'pichu_normal', name: 'Pichu Baby', avatar: pokemonAvatar(172), color: '#FFEB3B' },
+            { id: 'pichu_shiny', name: 'Pichu Shiny ✨', avatar: pokemonShiny(172), color: '#FFD54F' },
+        ];
+        
         this.achievements = [
-            // Достижения за плитки
-            { id: 'tile_8', name: 'Первые шаги', desc: 'Создать плитку 8', icon: '🐣', unlocked: false, category: 'tiles' },
-            { id: 'tile_16', name: 'Начинающий тренер', desc: 'Создать плитку 16', icon: '🎯', unlocked: false, category: 'tiles' },
-            { id: 'tile_32', name: 'Юный ловец', desc: 'Создать плитку 32', icon: '🏃', unlocked: false, category: 'tiles' },
-            { id: 'tile_64', name: 'Опытный тренер', desc: 'Создать плитку 64', icon: '💪', unlocked: false, category: 'tiles' },
-            { id: 'tile_128', name: 'Мастер покеболов', desc: 'Создать плитку 128', icon: '🔴', unlocked: false, category: 'tiles' },
-            { id: 'tile_256', name: 'Чемпион лиги', desc: 'Создать плитку 256', icon: '🏆', unlocked: false, category: 'tiles' },
-            { id: 'tile_512', name: 'Элитная четвёрка', desc: 'Создать плитку 512', icon: '⭐', unlocked: false, category: 'tiles' },
-            { id: 'tile_1024', name: 'Легенда региона', desc: 'Создать плитку 1024', icon: '👑', unlocked: false, category: 'tiles' },
-            { id: 'tile_2048', name: 'МАСТЕР 2048!', desc: 'Создать плитку 2048', icon: '🎊', unlocked: false, category: 'tiles', legendary: true },
-            { id: 'tile_4096', name: 'За гранью!', desc: 'Создать плитку 4096', icon: '🌟', unlocked: false, category: 'tiles', legendary: true },
+            // ============================================
+            // PLAY STREAK ACHIEVEMENTS (12) - Balanced XP progression
+            // Formula: XP grows ~2.5x per tier, matching level progression
+            // ============================================
+            { id: 'streak_1', name: '1-Day Magikarp Splash', desc: 'Daily splash: play today and revive Magikarp!', icon: '🐟', unlocked: false, category: 'streak', xpBonus: 500, avatar: pokemonAvatar(129), badge: '🔥 1 Day' },
+            { id: 'streak_3', name: '3-Day Eevee Spark', desc: '3 days in a row: Eevee sparkles with persistence!', icon: '🐾', unlocked: false, category: 'streak', xpBonus: 1500, avatar: pokemonAvatar(133), badge: '⚡ 3 Days' },
+            { id: 'streak_7', name: '7-Day Pikachu Bolt', desc: 'Week of lightning: Unlock SHINY Pikachu avatar!', icon: '⚡', unlocked: false, category: 'streak', xpBonus: 5000, avatar: pokemonShiny(25), badge: '✨ Week' },
+            { id: 'streak_14', name: '14-Day Charizard Blaze', desc: '14 days of fire: Charizard takes flight!', icon: '🔥', unlocked: false, category: 'streak', xpBonus: 15000, avatar: pokemonAvatar(6), badge: '🔥 2 Weeks' },
+            { id: 'streak_21', name: '21-Day Blastoise Shell', desc: '21 days of protection: Blastoise is impenetrable!', icon: '🌊', unlocked: false, category: 'streak', xpBonus: 35000, legendary: true, avatar: pokemonAvatar(9), badge: '🌊 3 Weeks' },
+            { id: 'streak_30', name: '30-Day Venusaur Bloom', desc: 'Month of growth: Venusaur blooms!', icon: '🌿', unlocked: false, category: 'streak', xpBonus: 80000, legendary: true, avatar: pokemonAvatar(3), badge: '🌿 Month' },
+            { id: 'streak_45', name: '45-Day Dragonite Storm', desc: '45 days of storm: Dragonite guards the streak!', icon: '🐉', unlocked: false, category: 'streak', xpBonus: 200000, legendary: true, avatar: pokemonAvatar(149), badge: '🐉 45 Days' },
+            { id: 'streak_60', name: '60-Day Rayquaza Vortex', desc: '2 months of vortex: Rayquaza rules!', icon: '🐲', unlocked: false, category: 'streak', xpBonus: 500000, legendary: true, avatar: pokemonAvatar(384), badge: '🌪️ 2 Months' },
+            { id: 'streak_75', name: '75-Day Mewtwo Psychic', desc: '75 days: SHINY Mewtwo reads your moves!', icon: '🧠', unlocked: false, category: 'streak', xpBonus: 1200000, legendary: true, avatar: pokemonShiny(150), badge: '🧠 75 Days' },
+            { id: 'streak_90', name: '90-Day Arceus Eternal', desc: '90 days: SHINY Arceus blesses you!', icon: '👑', unlocked: false, category: 'streak', xpBonus: 3000000, legendary: true, avatar: pokemonShiny(493), badge: '👑 3 Months' },
+            { id: 'streak_100', name: '100-Day Kyogre Tsunami', desc: '100 days: SHINY Kyogre drowns failures!', icon: '🌊', unlocked: false, category: 'streak', xpBonus: 8000000, legendary: true, avatar: pokemonShiny(382), badge: '🌊 100 Days' },
+            { id: 'streak_200', name: '200-Day Dialga Time', desc: '200 days: SHINY Dialga warps reality!', icon: '💎', unlocked: false, category: 'streak', xpBonus: 30000000, legendary: true, avatar: pokemonShiny(483), badge: '💎 200 Days' },
             
-            // Достижения за очки
-            { id: 'score_100', name: 'Первая сотня', desc: 'Набрать 100 очков', icon: '💯', unlocked: false, category: 'score' },
-            { id: 'score_500', name: 'Полтысячи', desc: 'Набрать 500 очков', icon: '🔥', unlocked: false, category: 'score' },
-            { id: 'score_1000', name: 'Тысячник', desc: 'Набрать 1000 очков', icon: '🎖️', unlocked: false, category: 'score' },
-            { id: 'score_5000', name: 'Пятитысячник', desc: 'Набрать 5000 очков', icon: '🏅', unlocked: false, category: 'score' },
-            { id: 'score_10000', name: 'Десятитысячник', desc: 'Набрать 10000 очков', icon: '🥇', unlocked: false, category: 'score' },
-            { id: 'score_25000', name: 'Четверть лимона', desc: 'Набрать 25000 очков', icon: '💎', unlocked: false, category: 'score' },
-            { id: 'score_50000', name: 'Полсотни тысяч', desc: 'Набрать 50000 очков', icon: '💰', unlocked: false, category: 'score' },
-            { id: 'score_100000', name: 'СОТНЯ ТЫСЯЧ!', desc: 'Набрать 100000 очков', icon: '🏰', unlocked: false, category: 'score', legendary: true },
+            // ============================================
+            // GM ACHIEVEMENTS (11) - Balanced for daily engagement
+            // ============================================
+            { id: 'gm_first', name: 'Bulbasaur Seed GM', desc: 'First GM: plant the seed of daily habit!', icon: '🌿', unlocked: false, category: 'gm', xpBonus: 300, avatar: pokemonAvatar(1), badge: '☀️ First GM' },
+            { id: 'gm_streak_5', name: 'Squirtle Bubble GM', desc: '5-day GM streak: motivation bubbles never pop!', icon: '🌊', unlocked: false, category: 'gm', xpBonus: 1000, avatar: pokemonAvatar(7), badge: '💧 5 Streak' },
+            { id: 'gm_total_10', name: 'Charmander Ember GM', desc: '10 total GM: the smoldering fire of routine is lit!', icon: '🔥', unlocked: false, category: 'gm', xpBonus: 2500, avatar: pokemonAvatar(4), badge: '🔥 10 GM' },
+            { id: 'gm_morning', name: 'Morning Lucario Aura', desc: 'Morning GM (before 12:00): day aura charged!', icon: '🔵', unlocked: false, category: 'daily', xpBonus: 500, avatar: pokemonAvatar(448), badge: '🌅 Morning' },
+            { id: 'gm_evening', name: 'Evening Snorlax Nap', desc: 'Evening GM (after 20:00): lazy champion rests!', icon: '😴', unlocked: false, category: 'daily', xpBonus: 750, avatar: pokemonAvatar(143), badge: '🌙 Evening' },
+            { id: 'gm_week_perfect', name: 'Gym Boulder Brock', desc: '7 GM in a week: first gym badge for perfect week!', icon: '🪨', unlocked: false, category: 'gm', xpBonus: 8000, avatar: pokemonAvatar(74), badge: '🥇 Gym 1' },
+            { id: 'gm_2week_perfect', name: 'Gym Cascade Misty', desc: '14 GM in 2 weeks: water badge without gaps!', icon: '💧', unlocked: false, category: 'gm', xpBonus: 20000, avatar: pokemonAvatar(121), badge: '🥈 Gym 2' },
+            { id: 'gm_month_20', name: 'Elite Flareon Heat', desc: '20 GM in current month: evolution of heat!', icon: '🐾', unlocked: false, category: 'gm', xpBonus: 40000, avatar: pokemonAvatar(136), badge: '🔥 Elite' },
+            { id: 'gm_streak_30', name: 'Legend Lugia Storm', desc: '30-day GM streak: storm of silver wing!', icon: '🕊️', unlocked: false, category: 'gm', xpBonus: 100000, legendary: true, avatar: pokemonAvatar(249), badge: '🕊️ Legend' },
+            { id: 'gm_total_50', name: 'Master Mew Glide', desc: '50 total GM: psi-glide to mastery!', icon: '🧠', unlocked: false, category: 'gm', xpBonus: 250000, legendary: true, avatar: pokemonAvatar(151), badge: '✨ Master' },
+            { id: 'gm_total_100', name: 'Regional Kanto Complete', desc: '100 GM: entire Kanto region conquered with dailies!', icon: '📜', unlocked: false, category: 'gm', xpBonus: 600000, legendary: true, avatar: pokemonAvatar(150), badge: '🏆 Kanto' },
             
-            // Достижения за стихии
-            { id: 'element_fire', name: 'Повелитель огня', desc: 'Достичь стихии Fire 🔥', icon: '🔥', unlocked: false, category: 'elements' },
-            { id: 'element_water', name: 'Властелин воды', desc: 'Достичь стихии Water 💧', icon: '💧', unlocked: false, category: 'elements' },
-            { id: 'element_electric', name: 'Молниеносный', desc: 'Достичь стихии Electric ⚡', icon: '⚡', unlocked: false, category: 'elements' },
-            { id: 'element_grass', name: 'Друг природы', desc: 'Достичь стихии Grass 🌿', icon: '🌿', unlocked: false, category: 'elements' },
-            { id: 'element_poison', name: 'Токсичный', desc: 'Достичь стихии Poison ☠️', icon: '☠️', unlocked: false, category: 'elements' },
-            { id: 'element_psychic', name: 'Телепат', desc: 'Достичь стихии Psychic 🔮', icon: '🔮', unlocked: false, category: 'elements' },
-            { id: 'element_dragon', name: 'Укротитель драконов', desc: 'Достичь стихии Dragon 🐉', icon: '🐉', unlocked: false, category: 'elements' },
-            { id: 'element_legendary', name: 'ЛЕГЕНДА!', desc: 'Достичь легендарной стихии ✨', icon: '✨', unlocked: false, category: 'elements', legendary: true },
+            // ============================================
+            // MERGE ACHIEVEMENTS (18) - Smooth XP curve ~2x per tier
+            // ============================================
+            { id: 'merge_5', name: 'Magikarp Splash', desc: 'First splash: 5 merges - evolution begins!', icon: '🐟', unlocked: false, category: 'merges', xpBonus: 100, avatar: pokemonAvatar(129), badge: '💫 5' },
+            { id: 'merge_20', name: 'Rattata Gnaw', desc: 'Gnaw tiles: 20 merges for the pack!', icon: '🐀', unlocked: false, category: 'merges', xpBonus: 300, avatar: pokemonAvatar(19), badge: '🦷 20' },
+            { id: 'merge_40', name: 'Pidgey Jump', desc: 'Take off: 40 merges - wings spread!', icon: '🕊️', unlocked: false, category: 'merges', xpBonus: 600, avatar: pokemonAvatar(16), badge: '🪶 40' },
+            { id: 'merge_80', name: 'Pikachu Charge', desc: 'Pikachu charges: 80 merges! Unlock Pikachu avatar!', icon: '⚡', unlocked: false, category: 'merges', xpBonus: 1200, avatar: pokemonAvatar(25), badge: '⚡ 80' },
+            { id: 'merge_150', name: 'Eevee Forms', desc: 'Eevee transforms: 150 evolution merges!', icon: '🐾', unlocked: false, category: 'merges', xpBonus: 2500, avatar: pokemonAvatar(133), badge: '🐾 150' },
+            { id: 'merge_250', name: 'Scyther Slash', desc: 'Blade cuts: 250 merges - grid warrior!', icon: '⚔️', unlocked: false, category: 'merges', xpBonus: 5000, avatar: pokemonAvatar(123), badge: '⚔️ 250' },
+            { id: 'merge_400', name: 'Umbreon Night', desc: 'Darkness merges: 400 shadow merges!', icon: '🌑', unlocked: false, category: 'merges', xpBonus: 10000, avatar: pokemonAvatar(197), badge: '🌙 400' },
+            { id: 'merge_700', name: 'Lucario Sense', desc: 'Aura move: 700 master merges!', icon: '🔵', unlocked: false, category: 'merges', xpBonus: 20000, avatar: pokemonAvatar(448), badge: '🔵 700' },
+            { id: 'merge_1200', name: 'Salamence Flight', desc: 'Dragon soars: 1200 sky merges!', icon: '🐉', unlocked: false, category: 'merges', xpBonus: 40000, avatar: pokemonAvatar(373), badge: '🐉 1.2K' },
+            { id: 'merge_2000', name: 'Staraptor Fury', desc: 'Storm rage: 2000 storm merges!', icon: '🦅', unlocked: false, category: 'merges', xpBonus: 80000, avatar: pokemonAvatar(398), badge: '🦅 2K' },
+            { id: 'merge_3500', name: 'Hydreigon Chaos', desc: 'Three-headed terror: 3500 madness merges!', icon: '🐉', unlocked: false, category: 'merges', xpBonus: 150000, legendary: true, avatar: pokemonShiny(635), badge: '💀 3.5K' },
+            { id: 'merge_6000', name: 'Zekrom Thunder', desc: 'Emperor of current: 6000 lightning merges!', icon: '⚡', unlocked: false, category: 'merges', xpBonus: 300000, legendary: true, avatar: pokemonShiny(644), badge: '⚡ 6K' },
+            { id: 'merge_9000', name: 'Reshiram Flame', desc: 'White fire: 9000 flame merges!', icon: '🔥', unlocked: false, category: 'merges', xpBonus: 600000, legendary: true, avatar: pokemonShiny(643), badge: '🔥 9K' },
+            { id: 'merge_15000', name: 'Kyurem Ice', desc: 'Freeze: 15000 ice merges!', icon: '❄️', unlocked: false, category: 'merges', xpBonus: 1200000, legendary: true, avatar: pokemonShiny(646), badge: '❄️ 15K' },
+            { id: 'merge_25000', name: 'Arceus Forms', desc: 'God changes types: 25000 divine merges!', icon: '✨', unlocked: false, category: 'merges', xpBonus: 2500000, legendary: true, avatar: pokemonShiny(493), badge: '✨ 25K' },
+            { id: 'combo_3', name: 'Triple Vortex', desc: '3 merges in one move: Caterpie vortex!', icon: '🌪️', unlocked: false, category: 'merges', xpBonus: 3000, avatar: pokemonAvatar(10), badge: '🌪️ x3' },
+            { id: 'combo_4', name: 'Fourth Strike', desc: '4 merges in one move: Onix drills tunnel!', icon: '🐍', unlocked: false, category: 'merges', xpBonus: 10000, avatar: pokemonAvatar(95), badge: '💥 x4' },
+            { id: 'combo_5', name: 'Fivefold Claw', desc: '5 merges in one move: Kabutops cuts chain!', icon: '🦀', unlocked: false, category: 'merges', xpBonus: 30000, avatar: pokemonAvatar(141), badge: '⚡ x5' },
             
-            // Достижения за объединения
-            { id: 'merges_10', name: 'Первые слияния', desc: 'Объединить 10 плиток', icon: '🔗', unlocked: false, category: 'merges' },
-            { id: 'merges_50', name: 'Слиятель', desc: 'Объединить 50 плиток', icon: '⛓️', unlocked: false, category: 'merges' },
-            { id: 'merges_100', name: 'Опытный слиятель', desc: 'Объединить 100 плиток', icon: '🔄', unlocked: false, category: 'merges' },
-            { id: 'merges_500', name: 'Мастер слияний', desc: 'Объединить 500 плиток', icon: '🎯', unlocked: false, category: 'merges' },
-            { id: 'merges_1000', name: 'Тысячник', desc: 'Объединить 1000 плиток', icon: '💪', unlocked: false, category: 'merges' },
-            { id: 'merges_2000', name: 'Двухтысячник', desc: 'Объединить 2000 плиток', icon: '🏅', unlocked: false, category: 'merges' },
-            { id: 'merges_3000', name: 'Трёхтысячник', desc: 'Объединить 3000 плиток', icon: '🥇', unlocked: false, category: 'merges' },
-            { id: 'merges_5000', name: 'Король слияний', desc: 'Объединить 5000 плиток', icon: '👑', unlocked: false, category: 'merges' },
-            { id: 'merges_7500', name: 'Император слияний', desc: 'Объединить 7500 плиток', icon: '💎', unlocked: false, category: 'merges' },
-            { id: 'merges_10000', name: 'Легенда слияний', desc: 'Объединить 10000 плиток', icon: '🌟', unlocked: false, category: 'merges', legendary: true },
-            { id: 'merges_15000', name: 'Титан слияний', desc: 'Объединить 15000 плиток', icon: '⚡', unlocked: false, category: 'merges', legendary: true },
-            { id: 'merges_20000', name: 'БОГ СЛИЯНИЙ!', desc: 'Объединить 20000 плиток', icon: '🔱', unlocked: false, category: 'merges', legendary: true },
+            // ============================================
+            // SCORE ACHIEVEMENTS (10) - Based on difficulty ~2.5x per tier
+            // ============================================
+            { id: 'score_500', name: 'Caterpie Silk Shot', desc: 'First silk: 500 pts - web of success!', icon: '🐛', unlocked: false, category: 'score', xpBonus: 200, avatar: pokemonAvatar(10), badge: '🎯 500' },
+            { id: 'score_1000', name: 'Weedle Poison Sting', desc: 'Poison sting: 1000 pts - stinger on target!', icon: '🐝', unlocked: false, category: 'score', xpBonus: 500, avatar: pokemonAvatar(13), badge: '🎯 1K' },
+            { id: 'score_2000', name: 'Pidgey Gust Wing', desc: 'Beginner breeze: 2000 pts of flight!', icon: '🕊️', unlocked: false, category: 'score', xpBonus: 1000, avatar: pokemonAvatar(17), badge: '🎯 2K' },
+            { id: 'score_2048', name: 'Pikachu Quick Attack', desc: 'Lightning strike: 2048 pts - Pikachu victory!', icon: '⚡', unlocked: false, category: 'score', xpBonus: 2500, avatar: pokemonAvatar(25), badge: '🏆 2048' },
+            { id: 'score_4096', name: 'Rattata Hyper Fang', desc: 'Hyper bite: 4096 pts of gnawing!', icon: '🐀', unlocked: false, category: 'score', xpBonus: 5000, avatar: pokemonAvatar(20), badge: '🏆 4K' },
+            { id: 'score_8192', name: 'Eevee Swift Adapt', desc: 'Quick adaptation: 8192 evolution pts!', icon: '🐾', unlocked: false, category: 'score', xpBonus: 12000, avatar: pokemonAvatar(134), badge: '🏆 8K' },
+            { id: 'score_16384', name: 'Grovyle Leaf Blade', desc: 'Leaf blade: 16384 jungle pts!', icon: '🌿', unlocked: false, category: 'score', xpBonus: 30000, legendary: true, avatar: pokemonAvatar(253), badge: '👑 16K' },
+            { id: 'score_32768', name: 'Lucario Bone Rush', desc: 'Aura strike: 32768 power pts!', icon: '🔵', unlocked: false, category: 'score', xpBonus: 75000, legendary: true, avatar: pokemonAvatar(448), badge: '👑 32K' },
+            { id: 'score_65536', name: 'Garchomp Draco Meteor', desc: 'Draco meteor: 65536 earthquake pts!', icon: '🌋', unlocked: false, category: 'score', xpBonus: 180000, legendary: true, avatar: pokemonAvatar(445), badge: '👑 65K' },
+            { id: 'score_131072', name: 'Rayquaza Dragon Ascent', desc: 'Dragon ascent: 131072 sky pts!', icon: '🐲', unlocked: false, category: 'score', xpBonus: 400000, legendary: true, avatar: pokemonAvatar(384), badge: '👑 131K' },
             
-            // Достижения за игры
-            { id: 'games_10', name: 'Новичок', desc: 'Сыграть 10 игр', icon: '🎮', unlocked: false, category: 'games' },
-            { id: 'games_50', name: 'Любитель', desc: 'Сыграть 50 игр', icon: '🎲', unlocked: false, category: 'games' },
-            { id: 'games_100', name: 'Игрок', desc: 'Сыграть 100 игр', icon: '🃏', unlocked: false, category: 'games' },
-            { id: 'games_300', name: 'Заядлый игрок', desc: 'Сыграть 300 игр', icon: '🎯', unlocked: false, category: 'games' },
-            { id: 'games_500', name: 'Фанат', desc: 'Сыграть 500 игр', icon: '❤️', unlocked: false, category: 'games' },
-            { id: 'games_1000', name: 'Ветеран', desc: 'Сыграть 1000 игр', icon: '🏅', unlocked: false, category: 'games' },
-            { id: 'games_1500', name: 'Профессионал', desc: 'Сыграть 1500 игр', icon: '🥇', unlocked: false, category: 'games' },
-            { id: 'games_2000', name: 'Мастер', desc: 'Сыграть 2000 игр', icon: '👑', unlocked: false, category: 'games' },
-            { id: 'games_3000', name: 'Гранд-мастер', desc: 'Сыграть 3000 игр', icon: '💎', unlocked: false, category: 'games' },
-            { id: 'games_4000', name: 'Легенда', desc: 'Сыграть 4000 игр', icon: '🌟', unlocked: false, category: 'games', legendary: true },
-            { id: 'games_5000', name: 'БОГ 2048!', desc: 'Сыграть 5000 игр', icon: '⚡', unlocked: false, category: 'games', legendary: true },
+            // ============================================
+            // LEVEL ACHIEVEMENTS (13) - ~5-10% of XP needed for that level
+            // Helps progression without making it too easy
+            // ============================================
+            { id: 'level_1', name: 'Lvl 1 Seedot Starter', desc: 'First lvl: Seedot plants the seed of legend!', icon: '🌿', unlocked: false, category: 'levels', xpBonus: 500, avatar: pokemonAvatar(273), badge: '⭐ Lvl 1' },
+            { id: 'level_10', name: 'Lvl 10 Pikachu Spark', desc: 'Lvl 10: Pikachu sparks in profile!', icon: '⚡', unlocked: false, category: 'levels', xpBonus: 2000, avatar: pokemonAvatar(25), badge: '⭐ Lvl 10' },
+            { id: 'level_50', name: 'Lvl 50 Treecko Leaf', desc: 'Lvl 50: Treecko grows in XP jungle!', icon: '🌿', unlocked: false, category: 'levels', xpBonus: 8000, avatar: pokemonAvatar(252), badge: '⭐ Lvl 50' },
+            { id: 'level_100', name: 'Lvl 100 Grovyle Blade', desc: 'Lvl 100: Grovyle cuts barriers!', icon: '⚔️', unlocked: false, category: 'levels', xpBonus: 20000, avatar: pokemonAvatar(253), badge: '🌟 Lvl 100' },
+            { id: 'level_500', name: 'Lvl 500 Lucario Aura', desc: 'Lvl 500: Lucario aura illuminates profile!', icon: '🔵', unlocked: false, category: 'levels', xpBonus: 80000, legendary: true, avatar: pokemonAvatar(448), badge: '💫 Lvl 500' },
+            { id: 'level_1000', name: 'Lvl 1000 Garchomp Quake', desc: 'Lvl 1000: Garchomp shakes XP-ground!', icon: '🌋', unlocked: false, category: 'levels', xpBonus: 200000, legendary: true, avatar: pokemonAvatar(445), badge: '🔥 Lvl 1K' },
+            { id: 'level_2000', name: 'Lvl 2000 Rayquaza Ascent', desc: 'Lvl 2000: Rayquaza ascends to heavens!', icon: '🐲', unlocked: false, category: 'levels', xpBonus: 500000, legendary: true, avatar: pokemonAvatar(384), badge: '🐉 Lvl 2K' },
+            { id: 'level_3000', name: 'Lvl 3000 Mewtwo Psyche', desc: 'Lvl 3000: Mewtwo reads lvl-code!', icon: '🧠', unlocked: false, category: 'levels', xpBonus: 1000000, legendary: true, avatar: pokemonAvatar(150), badge: '🧠 Lvl 3K' },
+            { id: 'level_5000', name: 'Lvl 5000 Kyurem Freeze', desc: 'Lvl 5000: SHINY Kyurem freezes competitors!', icon: '❄️', unlocked: false, category: 'levels', xpBonus: 3000000, legendary: true, avatar: pokemonShiny(646), badge: '❄️ Lvl 5K' },
+            { id: 'level_7000', name: 'Lvl 7000 Zekrom Volt', desc: 'Lvl 7000: SHINY Zekrom strikes leaderboard!', icon: '⚡', unlocked: false, category: 'levels', xpBonus: 8000000, legendary: true, avatar: pokemonShiny(644), badge: '⚡ Lvl 7K' },
+            { id: 'level_8000', name: 'Lvl 8000 Reshiram Blaze', desc: 'Lvl 8000: SHINY Reshiram burns XP records!', icon: '🔥', unlocked: false, category: 'levels', xpBonus: 15000000, legendary: true, avatar: pokemonShiny(643), badge: '🔥 Lvl 8K' },
+            { id: 'level_9000', name: 'Lvl 9000 Giratina Void', desc: 'Lvl 9000: SHINY Giratina warps into legend!', icon: '👻', unlocked: false, category: 'levels', xpBonus: 30000000, legendary: true, avatar: pokemonShiny(487), badge: '👻 Lvl 9K' },
+            { id: 'level_10000', name: 'Lvl 10000 Arceus Alpha', desc: 'Lvl 10000: SHINY Arceus - alpha god!', icon: '👑', unlocked: false, category: 'levels', xpBonus: 80000000, legendary: true, avatar: pokemonShiny(493), badge: '👑 MAX' },
             
-            // Особые достижения
-            { id: 'combo_3', name: 'Тройной комбо', desc: '3 объединения за 1 ход', icon: '💥', unlocked: false, category: 'special' },
-            { id: 'quick_1000', name: 'Скоростной старт', desc: '1000 очков за 30 ходов', icon: '🚀', unlocked: false, category: 'special' },
-            { id: 'comeback', name: 'Возвращение', desc: 'Вернуться после заполнения поля', icon: '🔙', unlocked: false, category: 'special' },
-            { id: 'gm_sender', name: 'Доброе утро!', desc: 'Отправить GM транзакцию', icon: '☀️', unlocked: false, category: 'special' },
+            // ============================================
+            // DAILY CHALLENGE ACHIEVEMENTS (11) - Scaled by difficulty
+            // ============================================
+            { id: 'daily_zap', name: 'Daily Pikachu Zap', desc: 'Charge the day with lightning: 1 GM + play 1 game!', icon: '⚡', unlocked: false, category: 'daily', xpBonus: 500, avatar: pokemonAvatar(172), badge: '⚡ Daily' },
+            { id: 'daily_evolve', name: 'Daily Eevee Evolve', desc: 'Evolve routine: 1 GM + reach 128 tile!', icon: '🐾', unlocked: false, category: 'daily', xpBonus: 800, avatar: pokemonAvatar(133), badge: '🐾 128' },
+            { id: 'daily_ignite', name: 'Daily Charmander Ignite', desc: 'Ignite the fire: 1 GM + 500 pts!', icon: '🔥', unlocked: false, category: 'daily', xpBonus: 1000, avatar: pokemonAvatar(4), badge: '🔥 500pts' },
+            { id: 'daily_surge', name: 'Daily Squirtle Surge', desc: 'Wave of activity: 1 GM + 10 merges!', icon: '🌊', unlocked: false, category: 'daily', xpBonus: 1500, avatar: pokemonAvatar(7), badge: '🌊 10x' },
+            { id: 'daily_grow', name: 'Daily Bulbasaur Grow', desc: 'Stretch streak: 1 GM + 20 moves + 1000 pts!', icon: '🌿', unlocked: false, category: 'daily', xpBonus: 2000, avatar: pokemonAvatar(1), badge: '🌿 1Kpts' },
+            { id: 'daily_flight', name: 'Daily Pidgey Flight', desc: 'Fly easy: 1 GM + 3 games!', icon: '🕊️', unlocked: false, category: 'daily', xpBonus: 3000, avatar: pokemonAvatar(18), badge: '🕊️ 3 Games' },
+            { id: 'daily_drill', name: 'Daily Onix Drill', desc: 'Drill the day: 1 GM + 50 merges!', icon: '🐍', unlocked: false, category: 'daily', xpBonus: 5000, avatar: pokemonAvatar(95), badge: '🐍 50x' },
+            { id: 'daily_sing', name: 'Daily Jigglypuff Sing', desc: 'Lull laziness to sleep: 1 GM + 2000 pts!', icon: '💤', unlocked: false, category: 'daily', xpBonus: 8000, avatar: pokemonAvatar(39), badge: '💤 2Kpts' },
+            { id: 'daily_sense', name: 'Daily Lucario Sense', desc: 'Feel the victory: 1 GM + reach 512 tile!', icon: '🔵', unlocked: false, category: 'daily', xpBonus: 15000, avatar: pokemonAvatar(447), badge: '🔵 512' },
+            { id: 'daily_rush', name: 'Daily Rayquaza Rush', desc: 'Draco rush: 1 GM + 2048 in <=50 moves!', icon: '🐉', unlocked: false, category: 'daily', xpBonus: 40000, legendary: true, avatar: pokemonAvatar(384), badge: '🐉 Speed' },
+            { id: 'daily_ritual', name: 'Daily Arceus Ritual', desc: 'Divine ritual: 1 GM + 3000 pts!', icon: '👑', unlocked: false, category: 'daily', xpBonus: 100000, legendary: true, avatar: pokemonAvatar(493), badge: '👑 3Kpts' },
+            
+            // ============================================
+            // ELEMENT ACHIEVEMENTS (12) - Unlock elements by reaching scores
+            // ============================================
+            { id: 'element_fire', name: 'Fire Type Master', desc: 'Reach Fire element (100+ pts)!', icon: '🔥', unlocked: false, category: 'elements', xpBonus: 200, avatar: pokemonAvatar(6), badge: '🔥 Fire' },
+            { id: 'element_water', name: 'Water Type Master', desc: 'Reach Water element (300+ pts)!', icon: '💧', unlocked: false, category: 'elements', xpBonus: 400, avatar: pokemonAvatar(9), badge: '💧 Water' },
+            { id: 'element_electric', name: 'Electric Type Master', desc: 'Reach Electric element (600+ pts)!', icon: '⚡', unlocked: false, category: 'elements', xpBonus: 800, avatar: pokemonAvatar(26), badge: '⚡ Electric' },
+            { id: 'element_grass', name: 'Grass Type Master', desc: 'Reach Grass element (1000+ pts)!', icon: '🌿', unlocked: false, category: 'elements', xpBonus: 1500, avatar: pokemonAvatar(3), badge: '🌿 Grass' },
+            { id: 'element_ice', name: 'Ice Type Master', desc: 'Reach Ice element (7000+ pts)!', icon: '❄️', unlocked: false, category: 'elements', xpBonus: 8000, avatar: pokemonAvatar(131), badge: '❄️ Ice' },
+            { id: 'element_fighting', name: 'Fighting Type Master', desc: 'Reach Fighting element (10000+ pts)!', icon: '🥊', unlocked: false, category: 'elements', xpBonus: 12000, avatar: pokemonAvatar(68), badge: '🥊 Fighting' },
+            { id: 'element_psychic', name: 'Psychic Type Master', desc: 'Reach Psychic element (15000+ pts)!', icon: '🔮', unlocked: false, category: 'elements', xpBonus: 18000, avatar: pokemonAvatar(65), badge: '🔮 Psychic' },
+            { id: 'element_ghost', name: 'Ghost Type Master', desc: 'Reach Ghost element (20000+ pts)!', icon: '👻', unlocked: false, category: 'elements', xpBonus: 25000, avatar: pokemonAvatar(94), badge: '👻 Ghost' },
+            { id: 'element_dragon', name: 'Dragon Type Master', desc: 'Reach Dragon element (50000+ pts)!', icon: '🐉', unlocked: false, category: 'elements', xpBonus: 60000, legendary: true, avatar: pokemonAvatar(149), badge: '🐉 Dragon' },
+            { id: 'element_cosmic', name: 'Cosmic Type Master', desc: 'Reach Cosmic element (60000+ pts)!', icon: '🌌', unlocked: false, category: 'elements', xpBonus: 80000, legendary: true, avatar: pokemonAvatar(385), badge: '🌌 Cosmic' },
+            { id: 'element_shadow', name: 'Shadow Type Master', desc: 'Reach Shadow element (75000+ pts)!', icon: '🖤', unlocked: false, category: 'elements', xpBonus: 100000, legendary: true, avatar: pokemonShiny(197), badge: '🖤 Shadow' },
+            { id: 'element_legendary', name: 'Legendary Type Master', desc: 'Reach Legendary element (100000+ pts)!', icon: '✨', unlocked: false, category: 'elements', xpBonus: 150000, legendary: true, avatar: pokemonShiny(493), badge: '✨ Legendary' },
+            
+            // ============================================
+            // SPECIAL PRO ACHIEVEMENTS (10) - For skilled players
+            // ============================================
+            { id: 'pro_games_10', name: 'Getting Started', desc: 'Play 10 total games!', icon: '🎮', unlocked: false, category: 'special', xpBonus: 1000, avatar: pokemonAvatar(133), badge: '🎮 10 Games' },
+            { id: 'pro_games_25', name: 'Regular Player', desc: 'Play 25 total games!', icon: '🕹️', unlocked: false, category: 'special', xpBonus: 3000, avatar: pokemonAvatar(196), badge: '🕹️ 25 Games' },
+            { id: 'pro_games_50', name: 'Dedicated Player', desc: 'Play 50 total games!', icon: '🎯', unlocked: false, category: 'special', xpBonus: 8000, avatar: pokemonAvatar(376), badge: '🎯 50 Games' },
+            { id: 'pro_games_100', name: 'Veteran Player', desc: 'Play 100 total games!', icon: '🏆', unlocked: false, category: 'special', xpBonus: 20000, legendary: true, avatar: pokemonShiny(376), badge: '🏆 100 Games' },
+            { id: 'pro_speed_1k', name: 'Speed Demon', desc: 'Reach 1000 pts in under 20 moves!', icon: '⚡', unlocked: false, category: 'special', xpBonus: 8000, avatar: pokemonAvatar(135), badge: '⚡ Speed' },
+            { id: 'pro_speed_2k', name: 'Lightning Fast', desc: 'Reach 2000 pts in under 35 moves!', icon: '🏃', unlocked: false, category: 'special', xpBonus: 20000, avatar: pokemonShiny(135), badge: '🏃 Fast' },
+            { id: 'pro_survivor', name: 'Grid Survivor', desc: 'Continue playing after grid was 90% full!', icon: '💪', unlocked: false, category: 'special', xpBonus: 5000, avatar: pokemonAvatar(68), badge: '💪 Survivor' },
+            { id: 'pro_first_merge', name: 'First Blood', desc: 'Make your very first merge!', icon: '🩸', unlocked: false, category: 'special', xpBonus: 100, avatar: pokemonAvatar(133), badge: '🩸 First!' },
+            { id: 'pro_lucky_4', name: 'Lucky Four', desc: 'Get a 4 tile to spawn (25% chance)!', icon: '🍀', unlocked: false, category: 'special', xpBonus: 500, avatar: pokemonAvatar(35), badge: '🍀 Lucky' },
+            { id: 'pro_marathon', name: 'Marathon Runner', desc: 'Play single game for 200+ moves!', icon: '🏃‍♂️', unlocked: false, category: 'special', xpBonus: 8000, avatar: pokemonAvatar(289), badge: '🏃 Marathon' },
+            { id: 'pro_tile_4096', name: 'Beyond Master', desc: 'Reach the legendary 4096 tile!', icon: '💎', unlocked: false, category: 'special', xpBonus: 50000, legendary: true, avatar: pokemonShiny(384), badge: '💎 4096' },
+            { id: 'pro_moves_1k', name: 'First Steps', desc: 'Make 1000 total moves!', icon: '👟', unlocked: false, category: 'special', xpBonus: 2000, avatar: pokemonAvatar(56), badge: '👟 1K' },
+            { id: 'pro_moves_2500', name: 'Keep Moving', desc: 'Make 2500 total moves!', icon: '🚶', unlocked: false, category: 'special', xpBonus: 5000, avatar: pokemonAvatar(107), badge: '🚶 2.5K' },
+            { id: 'pro_moves_5k', name: 'Move Master', desc: 'Make 5000 total moves!', icon: '👣', unlocked: false, category: 'special', xpBonus: 10000, avatar: pokemonAvatar(237), badge: '👣 5K' },
+            { id: 'pro_moves_10k', name: 'Movement God', desc: 'Make 10000 total moves!', icon: '🦶', unlocked: false, category: 'special', xpBonus: 25000, legendary: true, avatar: pokemonShiny(237), badge: '🦶 10K' },
+            { id: 'pro_night_owl', name: 'Night Owl', desc: 'Play a game after midnight!', icon: '🦉', unlocked: false, category: 'special', xpBonus: 2000, avatar: pokemonAvatar(164), badge: '🦉 Night' },
+            { id: 'pro_weekend', name: 'Weekend Warrior', desc: 'Play on Saturday or Sunday!', icon: '🎉', unlocked: false, category: 'special', xpBonus: 1500, avatar: pokemonAvatar(52), badge: '🎉 Weekend' },
+            { id: 'pro_new_record', name: 'Record Breaker', desc: 'Beat your own high score!', icon: '🏅', unlocked: false, category: 'special', xpBonus: 3000, avatar: pokemonAvatar(392), badge: '🏅 Record' },
         ];
         
         this.stats = {
@@ -3268,7 +3374,26 @@ class AchievementSystem {
             highestTile: 0,
             highestScore: 0,
             comboThisTurn: 0,
-            movesThisGame: 0
+            movesThisGame: 0,
+            // Play streak tracking
+            playStreak: 0,
+            lastPlayDate: null,
+            // GM tracking
+            totalGM: 0,
+            gmStreak: 0,
+            lastGMDate: null,
+            gmThisMonth: 0,
+            gmThisWeek: 0,
+            // Daily challenge tracking
+            todayGM: false,
+            todayGames: 0,
+            todayMerges: 0,
+            todayScore: 0,
+            todayHighestTile: 0,
+            todayMoves: 0,
+            lastDailyReset: null,
+            // Special achievements tracking
+            gridWas90Full: false
         };
         
         this.loadProgress();
@@ -3324,64 +3449,88 @@ class AchievementSystem {
         return false;
     }
     
-    // Показать уведомление о достижении
+    // Show achievement notification
     showNotification(achievement) {
+        const xpBonusHtml = achievement.xpBonus 
+            ? `<div class="achievement-notification-xp">+${this.formatXP(achievement.xpBonus)} XP</div>` 
+            : '';
+        
+        const avatarHtml = achievement.avatar 
+            ? `<div class="achievement-notification-avatar"><img src="${achievement.avatar}" alt="Avatar Reward" onerror="this.style.display='none'"><span>🖼️ Avatar Unlocked!</span></div>`
+            : '';
+        
+        const iconContent = achievement.avatar 
+            ? `<img src="${achievement.avatar}" alt="${achievement.name}" class="notification-avatar-img" onerror="this.outerHTML='${achievement.icon}'">`
+            : achievement.icon;
+        
         const notification = document.createElement('div');
-        notification.className = `achievement-notification ${achievement.legendary ? 'legendary' : ''}`;
+        notification.className = `achievement-notification ${achievement.legendary ? 'legendary' : ''} ${achievement.avatar ? 'has-avatar' : ''}`;
         notification.innerHTML = `
             <div class="achievement-notification-content">
-                <div class="achievement-notification-icon">${achievement.icon}</div>
+                <div class="achievement-notification-icon">${iconContent}</div>
                 <div class="achievement-notification-info">
-                    <div class="achievement-notification-title">🏆 Достижение!</div>
+                    <div class="achievement-notification-title">🏆 Achievement!</div>
                     <div class="achievement-notification-name">${achievement.name}</div>
                     <div class="achievement-notification-desc">${achievement.desc}</div>
+                    ${xpBonusHtml}
+                    ${avatarHtml}
                 </div>
             </div>
         `;
         document.body.appendChild(notification);
         
-        // Звуковой эффект (опционально)
-        // this.playSound();
-        
-        // Удаляем через 4 секунды
+        // Remove after 5 seconds (longer for avatar rewards)
+        const displayTime = achievement.avatar ? 5000 : 4000;
         setTimeout(() => {
             notification.classList.add('fade-out');
             setTimeout(() => notification.remove(), 500);
-        }, 4000);
+        }, displayTime);
     }
     
-    // Проверить достижения за плитки
+    // Check tile achievements
     checkTileAchievements(value) {
         if (value > this.stats.highestTile) {
             this.stats.highestTile = value;
         }
         
-        const tileAchievements = {
-            8: 'tile_8', 16: 'tile_16', 32: 'tile_32', 64: 'tile_64',
-            128: 'tile_128', 256: 'tile_256', 512: 'tile_512',
-            1024: 'tile_1024', 2048: 'tile_2048', 4096: 'tile_4096'
-        };
-        
-        if (tileAchievements[value]) {
-            this.unlock(tileAchievements[value]);
+        // Track daily highest tile
+        this.resetDailyIfNeeded();
+        if (value > this.stats.todayHighestTile) {
+            this.stats.todayHighestTile = value;
         }
+        
+        // Beyond Master: Reach 4096 tile
+        if (value >= 4096) {
+            this.unlock('pro_tile_4096');
+        }
+        
+        // Check daily achievements
+        this.checkDailyAchievements();
     }
     
-    // Проверить достижения за очки
+    // Check score achievements
     checkScoreAchievements(score) {
         if (score > this.stats.highestScore) {
             this.stats.highestScore = score;
         }
         
+        // Track daily score
+        this.resetDailyIfNeeded();
+        if (score > this.stats.todayScore) {
+            this.stats.todayScore = score;
+        }
+        
         const scoreThresholds = [
-            { score: 100, id: 'score_100' },
             { score: 500, id: 'score_500' },
             { score: 1000, id: 'score_1000' },
-            { score: 5000, id: 'score_5000' },
-            { score: 10000, id: 'score_10000' },
-            { score: 25000, id: 'score_25000' },
-            { score: 50000, id: 'score_50000' },
-            { score: 100000, id: 'score_100000' }
+            { score: 2000, id: 'score_2000' },
+            { score: 2048, id: 'score_2048' },
+            { score: 4096, id: 'score_4096' },
+            { score: 8192, id: 'score_8192' },
+            { score: 16384, id: 'score_16384' },
+            { score: 32768, id: 'score_32768' },
+            { score: 65536, id: 'score_65536' },
+            { score: 131072, id: 'score_131072' }
         ];
         
         scoreThresholds.forEach(t => {
@@ -3389,18 +3538,48 @@ class AchievementSystem {
                 this.unlock(t.id);
             }
         });
+        
+        // Speed achievements (check moves in current game)
+        if (score >= 1000 && this.stats.movesThisGame < 20) {
+            this.unlock('pro_speed_1k');
+        }
+        if (score >= 2000 && this.stats.movesThisGame < 35) {
+            this.unlock('pro_speed_2k');
+        }
+        
+        // Time-based achievements
+        const hour = new Date().getHours();
+        if (hour >= 0 && hour < 5) {
+            this.unlock('pro_night_owl');
+        }
+        const day = new Date().getDay();
+        if (day === 0 || day === 6) {
+            this.unlock('pro_weekend');
+        }
+        
+        // Marathon: 200+ moves in one game
+        if (this.stats.movesThisGame >= 200) {
+            this.unlock('pro_marathon');
+        }
+        
+        // Check daily achievements
+        this.checkDailyAchievements();
     }
     
-    // Проверить достижения за стихии
+    // Check element achievements
     checkElementAchievement(elementType) {
         const elementAchievements = {
             'fire': 'element_fire',
             'water': 'element_water',
             'electric': 'element_electric',
             'grass': 'element_grass',
-            'poison': 'element_poison',
+            'ice': 'element_ice',
+            'fighting': 'element_fighting',
             'psychic': 'element_psychic',
+            'ghost': 'element_ghost',
             'dragon': 'element_dragon',
+            'cosmic': 'element_cosmic',
+            'shadow': 'element_shadow',
             'legendary': 'element_legendary'
         };
         
@@ -3409,25 +3588,262 @@ class AchievementSystem {
         }
     }
     
-    // Зарегистрировать объединение плиток
+    // Check special pro achievements (legacy - most checks are now inline)
+    checkSpecialAchievements(gameData) {
+        // Special achievements are now checked directly in:
+        // - checkScoreAchievements: speed, time-based, marathon
+        // - checkTileAchievements: 4096 tile
+        // - registerMove: cumulative moves
+        // - registerNewGame: cumulative games
+        // - trackGridFull: survivor
+    }
+    
+    // Check first merge achievement
+    checkFirstMerge() {
+        this.unlock('pro_first_merge');
+    }
+    
+    // Check lucky 4 spawn
+    checkLucky4Spawn() {
+        this.unlock('pro_lucky_4');
+    }
+    
+    // Check new record
+    checkNewRecord(newScore, oldRecord) {
+        if (newScore > oldRecord && oldRecord > 0) {
+            this.unlock('pro_new_record');
+        }
+    }
+    
+    // Track grid was full (for survivor achievement)
+    trackGridFull() {
+        this.stats.gridWas90Full = true;
+        this.unlock('pro_survivor');
+        this.saveProgress();
+    }
+    
+    // Check level achievements
+    checkLevelAchievement(level) {
+        const levelAchievements = {
+            1: 'level_1',
+            10: 'level_10',
+            50: 'level_50',
+            100: 'level_100',
+            500: 'level_500',
+            1000: 'level_1000',
+            2000: 'level_2000',
+            3000: 'level_3000',
+            5000: 'level_5000',
+            7000: 'level_7000',
+            8000: 'level_8000',
+            9000: 'level_9000',
+            10000: 'level_10000'
+        };
+        
+        // Check all levels up to current
+        Object.keys(levelAchievements).forEach(lvl => {
+            if (level >= parseInt(lvl)) {
+                const unlocked = this.unlock(levelAchievements[lvl]);
+                
+                // If unlocked - award bonus XP
+                if (unlocked && window.menuSystem) {
+                    const achievement = this.achievements.find(a => a.id === levelAchievements[lvl]);
+                    if (achievement && achievement.xpBonus) {
+                        window.menuSystem.addXP(achievement.xpBonus, 'achievement');
+                    }
+                }
+            }
+        });
+    }
+    
+    // Check play streak achievements
+    checkStreakAchievements() {
+        const today = new Date().toDateString();
+        
+        if (this.stats.lastPlayDate !== today) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            if (this.stats.lastPlayDate === yesterday.toDateString()) {
+                this.stats.playStreak++;
+            } else if (this.stats.lastPlayDate !== today) {
+                this.stats.playStreak = 1;
+            }
+            this.stats.lastPlayDate = today;
+            this.saveProgress();
+        }
+        
+        const streakAchievements = {
+            1: 'streak_1',
+            3: 'streak_3',
+            7: 'streak_7',
+            14: 'streak_14',
+            21: 'streak_21',
+            30: 'streak_30',
+            45: 'streak_45',
+            60: 'streak_60',
+            75: 'streak_75',
+            90: 'streak_90',
+            100: 'streak_100',
+            200: 'streak_200'
+        };
+        
+        Object.keys(streakAchievements).forEach(days => {
+            if (this.stats.playStreak >= parseInt(days)) {
+                this.unlock(streakAchievements[days]);
+            }
+        });
+    }
+    
+    // Check GM achievements
+    checkGMAchievements(isMorning = false, isEvening = false) {
+        const today = new Date().toDateString();
+        const currentMonth = new Date().getMonth();
+        const currentWeek = this.getWeekNumber(new Date());
+        
+        // Reset daily tracking if new day
+        this.resetDailyIfNeeded();
+        
+        // Update GM streak
+        if (this.stats.lastGMDate !== today) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            if (this.stats.lastGMDate === yesterday.toDateString()) {
+                this.stats.gmStreak++;
+            } else {
+                this.stats.gmStreak = 1;
+            }
+            this.stats.lastGMDate = today;
+            this.stats.totalGM++;
+            this.stats.gmThisMonth++;
+            this.stats.gmThisWeek++;
+            this.stats.todayGM = true;
+        }
+        
+        // Check GM achievements
+        if (this.stats.totalGM >= 1) this.unlock('gm_first');
+        if (this.stats.gmStreak >= 5) this.unlock('gm_streak_5');
+        if (this.stats.totalGM >= 10) this.unlock('gm_total_10');
+        if (isMorning) this.unlock('gm_morning');
+        if (isEvening) this.unlock('gm_evening');
+        if (this.stats.gmThisWeek >= 7) this.unlock('gm_week_perfect');
+        if (this.stats.gmStreak >= 14) this.unlock('gm_2week_perfect');
+        if (this.stats.gmThisMonth >= 20) this.unlock('gm_month_20');
+        if (this.stats.gmStreak >= 30) this.unlock('gm_streak_30');
+        if (this.stats.totalGM >= 50) this.unlock('gm_total_50');
+        if (this.stats.totalGM >= 100) this.unlock('gm_total_100');
+        
+        this.checkDailyAchievements();
+        this.saveProgress();
+    }
+    
+    // Get week number
+    getWeekNumber(date) {
+        const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+        const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+        return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+    }
+    
+    // Reset daily stats if new day
+    resetDailyIfNeeded() {
+        const today = new Date().toDateString();
+        if (this.stats.lastDailyReset !== today) {
+            this.stats.todayGM = false;
+            this.stats.todayGames = 0;
+            this.stats.todayMerges = 0;
+            this.stats.todayScore = 0;
+            this.stats.todayHighestTile = 0;
+            this.stats.todayMoves = 0;
+            this.stats.lastDailyReset = today;
+            
+            // Reset weekly GM if new week
+            const currentWeek = this.getWeekNumber(new Date());
+            const lastWeek = this.stats.lastWeekNumber || 0;
+            if (currentWeek !== lastWeek) {
+                this.stats.gmThisWeek = 0;
+                this.stats.lastWeekNumber = currentWeek;
+            }
+            
+            // Reset monthly GM if new month
+            const currentMonth = new Date().getMonth();
+            const lastMonth = this.stats.lastMonthNumber;
+            if (currentMonth !== lastMonth) {
+                this.stats.gmThisMonth = 0;
+                this.stats.lastMonthNumber = currentMonth;
+            }
+        }
+    }
+    
+    // Check daily challenge achievements
+    checkDailyAchievements() {
+        if (!this.stats.todayGM) return;
+        
+        // Daily Pikachu Zap: 1 GM + 1 game
+        if (this.stats.todayGames >= 1) this.unlock('daily_zap');
+        
+        // Daily Eevee Evolve: 1 GM + 128 tile
+        if (this.stats.todayHighestTile >= 128) this.unlock('daily_evolve');
+        
+        // Daily Charmander Ignite: 1 GM + 500 pts
+        if (this.stats.todayScore >= 500) this.unlock('daily_ignite');
+        
+        // Daily Squirtle Surge: 1 GM + 10 merges
+        if (this.stats.todayMerges >= 10) this.unlock('daily_surge');
+        
+        // Daily Bulbasaur Grow: 1 GM + 20 moves + 1000 pts
+        if (this.stats.todayMoves >= 20 && this.stats.todayScore >= 1000) this.unlock('daily_grow');
+        
+        // Daily Pidgey Flight: 1 GM + 3 games
+        if (this.stats.todayGames >= 3) this.unlock('daily_flight');
+        
+        // Daily Onix Drill: 1 GM + 50 merges
+        if (this.stats.todayMerges >= 50) this.unlock('daily_drill');
+        
+        // Daily Jigglypuff Sing: 1 GM + 2000 pts
+        if (this.stats.todayScore >= 2000) this.unlock('daily_sing');
+        
+        // Daily Lucario Sense: 1 GM + 512 tile
+        if (this.stats.todayHighestTile >= 512) this.unlock('daily_sense');
+        
+        // Daily Rayquaza Rush: 1 GM + 2048 in <=50 moves
+        if (this.stats.todayHighestTile >= 2048 && this.stats.todayMoves <= 50) this.unlock('daily_rush');
+        
+        // Daily Arceus Ritual: 1 GM + 3000 pts
+        if (this.stats.todayScore >= 3000) this.unlock('daily_ritual');
+    }
+    
+    // Register tile merge
     registerMerge(count = 1) {
+        // First merge achievement
+        if (this.stats.totalMerges === 0) {
+            this.checkFirstMerge();
+        }
+        
         this.stats.totalMerges += count;
         this.stats.comboThisTurn += count;
         
-        // Проверяем достижения за объединения
+        // Track daily merges
+        this.resetDailyIfNeeded();
+        this.stats.todayMerges += count;
+        
+        // Check merge achievements
         const mergeThresholds = [
-            { count: 10, id: 'merges_10' },
-            { count: 50, id: 'merges_50' },
-            { count: 100, id: 'merges_100' },
-            { count: 500, id: 'merges_500' },
-            { count: 1000, id: 'merges_1000' },
-            { count: 2000, id: 'merges_2000' },
-            { count: 3000, id: 'merges_3000' },
-            { count: 5000, id: 'merges_5000' },
-            { count: 7500, id: 'merges_7500' },
-            { count: 10000, id: 'merges_10000' },
-            { count: 15000, id: 'merges_15000' },
-            { count: 20000, id: 'merges_20000' }
+            { count: 5, id: 'merge_5' },
+            { count: 20, id: 'merge_20' },
+            { count: 40, id: 'merge_40' },
+            { count: 80, id: 'merge_80' },
+            { count: 150, id: 'merge_150' },
+            { count: 250, id: 'merge_250' },
+            { count: 400, id: 'merge_400' },
+            { count: 700, id: 'merge_700' },
+            { count: 1200, id: 'merge_1200' },
+            { count: 2000, id: 'merge_2000' },
+            { count: 3500, id: 'merge_3500' },
+            { count: 6000, id: 'merge_6000' },
+            { count: 9000, id: 'merge_9000' },
+            { count: 15000, id: 'merge_15000' },
+            { count: 25000, id: 'merge_25000' }
         ];
         
         mergeThresholds.forEach(t => {
@@ -3436,64 +3852,77 @@ class AchievementSystem {
             }
         });
         
+        // Check daily achievements
+        this.checkDailyAchievements();
         this.saveProgress();
     }
     
-    // Зарегистрировать ход
+    // Register move
     registerMove() {
         this.stats.totalMoves++;
         this.stats.movesThisGame++;
         
-        // Проверяем комбо за ход
-        if (this.stats.comboThisTurn >= 3) {
-            this.unlock('combo_3');
-        }
+        // Track daily moves
+        this.resetDailyIfNeeded();
+        this.stats.todayMoves++;
         
-        // Сбрасываем комбо для следующего хода
+        // Check combo achievements
+        if (this.stats.comboThisTurn >= 3) this.unlock('combo_3');
+        if (this.stats.comboThisTurn >= 4) this.unlock('combo_4');
+        if (this.stats.comboThisTurn >= 5) this.unlock('combo_5');
+        
+        // Reset combo for next move
         this.stats.comboThisTurn = 0;
         
+        // Check cumulative move achievements
+        if (this.stats.totalMoves >= 1000) this.unlock('pro_moves_1k');
+        if (this.stats.totalMoves >= 2500) this.unlock('pro_moves_2500');
+        if (this.stats.totalMoves >= 5000) this.unlock('pro_moves_5k');
+        if (this.stats.totalMoves >= 10000) this.unlock('pro_moves_10k');
+        
+        // Check daily achievements
+        this.checkDailyAchievements();
         this.saveProgress();
     }
     
-    // Зарегистрировать новую игру
+    // Register new game
     registerNewGame() {
         this.stats.totalGames++;
         this.stats.movesThisGame = 0;
         this.stats.comboThisTurn = 0;
+        this.stats.gridWas90Full = false; // Reset for new game
         
-        const gameThresholds = [
-            { count: 10, id: 'games_10' },
-            { count: 50, id: 'games_50' },
-            { count: 100, id: 'games_100' },
-            { count: 300, id: 'games_300' },
-            { count: 500, id: 'games_500' },
-            { count: 1000, id: 'games_1000' },
-            { count: 1500, id: 'games_1500' },
-            { count: 2000, id: 'games_2000' },
-            { count: 3000, id: 'games_3000' },
-            { count: 4000, id: 'games_4000' },
-            { count: 5000, id: 'games_5000' }
-        ];
+        // Track daily games
+        this.resetDailyIfNeeded();
+        this.stats.todayGames++;
         
-        gameThresholds.forEach(t => {
-            if (this.stats.totalGames >= t.count) {
-                this.unlock(t.id);
-            }
-        });
+        // Check play streak achievements
+        this.checkStreakAchievements();
+        
+        // Check games achievements (cumulative)
+        if (this.stats.totalGames >= 10) this.unlock('pro_games_10');
+        if (this.stats.totalGames >= 25) this.unlock('pro_games_25');
+        if (this.stats.totalGames >= 50) this.unlock('pro_games_50');
+        if (this.stats.totalGames >= 100) this.unlock('pro_games_100');
+        
+        // Check daily achievements
+        this.checkDailyAchievements();
         
         this.saveProgress();
     }
     
-    // Проверить быстрый старт
+    // Check quick start (deprecated - kept for compatibility)
     checkQuickStart(score) {
-        if (score >= 1000 && this.stats.movesThisGame <= 30) {
-            this.unlock('quick_1000');
-        }
+        // Quick start achievement has been replaced with Pokemon-themed achievements
     }
     
-    // Зарегистрировать GM транзакцию
+    // Register GM transaction
     registerGM() {
-        this.unlock('gm_sender');
+        const currentHour = new Date().getHours();
+        const isMorning = currentHour < 12;
+        const isEvening = currentHour >= 20;
+        
+        this.checkGMAchievements(isMorning, isEvening);
     }
     
     // Создать UI для достижений
@@ -3526,15 +3955,25 @@ class AchievementSystem {
         });
     }
     
-    // Генерация HTML панели
+    // Format XP for display (1000000 -> 1M, etc.)
+    formatXP(xp) {
+        if (xp >= 1000000000) return (xp / 1000000000).toFixed(1) + 'B';
+        if (xp >= 1000000) return (xp / 1000000).toFixed(1) + 'M';
+        if (xp >= 1000) return (xp / 1000).toFixed(0) + 'K';
+        return xp.toString();
+    }
+    
+    // Generate panel HTML
     generatePanelHTML() {
         const categories = {
-            'tiles': { name: 'Плитки 🎯', achievements: [] },
-            'score': { name: 'Очки 💰', achievements: [] },
-            'elements': { name: 'Стихии 🌈', achievements: [] },
-            'merges': { name: 'Слияния 🔗', achievements: [] },
-            'games': { name: 'Игры 🎮', achievements: [] },
-            'special': { name: 'Особые ⭐', achievements: [] }
+            'streak': { name: 'Play Streak 🔥', achievements: [] },
+            'gm': { name: 'GM Missions ☀️', achievements: [] },
+            'merges': { name: 'Merges 🔗', achievements: [] },
+            'score': { name: 'Score 🏆', achievements: [] },
+            'levels': { name: 'Profile Levels ⭐', achievements: [] },
+            'daily': { name: 'Daily Challenges 📅', achievements: [] },
+            'elements': { name: 'Elements 🌈', achievements: [] },
+            'special': { name: 'Pro Skills 🎯', achievements: [] }
         };
         
         this.achievements.forEach(a => {
@@ -3585,11 +4024,37 @@ class AchievementSystem {
                     <div class="achievements-grid">`;
                 
                 cat.achievements.forEach(a => {
+                    const hasAvatar = !!a.avatar;
+                    
+                    // Always show colorful animated Pokemon (no grayscale!)
+                    const iconContent = hasAvatar 
+                        ? `<img src="${a.avatar}" alt="${a.name}" class="achievement-avatar ${a.unlocked ? 'unlocked-avatar' : 'preview-avatar'}" onerror="this.outerHTML='<span class=\\'emoji-icon\\'>${a.icon}</span>'">`
+                        : `<span class="emoji-icon ${a.unlocked ? 'unlocked-emoji' : 'preview-emoji'}">${a.icon}</span>`;
+                    
+                    // Status indicator (checkmark for unlocked, lock for locked)
+                    const statusIcon = a.unlocked 
+                        ? '<div class="status-unlocked">✅</div>' 
+                        : '<div class="status-locked">🔒</div>';
+                    
+                    const xpBadge = a.xpBonus ? `<div class="achievement-xp ${a.legendary ? 'legendary-xp' : ''}">+${this.formatXP(a.xpBonus)} XP</div>` : '';
+                    
+                    // Colorful custom badge from achievement data
+                    const badgeText = a.badge || a.icon;
+                    const badgeClass = a.legendary ? 'legendary-badge' : (a.unlocked ? 'unlocked-badge' : 'locked-badge');
+                    const rewardBadge = `<div class="achievement-badge ${badgeClass}">${badgeText}</div>`;
+                    
                     html += `
-                        <div class="achievement-item ${a.unlocked ? 'unlocked' : 'locked'} ${a.legendary ? 'legendary' : ''}">
-                            <div class="achievement-icon">${a.unlocked ? a.icon : '🔒'}</div>
-                            <div class="achievement-name">${a.unlocked ? a.name : '???'}</div>
-                            <div class="achievement-desc">${a.desc}</div>
+                        <div class="achievement-item ${a.unlocked ? 'unlocked' : 'locked'} ${a.legendary ? 'legendary' : ''} ${hasAvatar ? 'has-avatar' : ''}">
+                            <div class="achievement-icon-wrapper">
+                                <div class="achievement-icon">${iconContent}</div>
+                                ${statusIcon}
+                            </div>
+                            <div class="achievement-info">
+                                <div class="achievement-name">${a.name}</div>
+                                <div class="achievement-desc">${a.desc}</div>
+                                ${xpBadge}
+                            </div>
+                            ${rewardBadge}
                         </div>
                     `;
                 });
@@ -3605,6 +4070,205 @@ class AchievementSystem {
     // Получить количество разблокированных
     getUnlockedCount() {
         return this.achievements.filter(a => a.unlocked).length;
+    }
+    
+    // Get all unique avatars from achievements
+    getAllAvatars() {
+        const avatars = [];
+        const seenUrls = new Set();
+        
+        // Add Pikachu variants first
+        this.pikachuVariants.forEach(variant => {
+            avatars.push({
+                id: variant.id,
+                name: variant.name,
+                avatar: variant.avatar,
+                color: variant.color,
+                unlocked: this.isPikachuVariantUnlocked(variant.id),
+                isPikachu: true
+            });
+        });
+        
+        // Add avatars from achievements
+        this.achievements.forEach(a => {
+            if (a.avatar && !seenUrls.has(a.avatar)) {
+                seenUrls.add(a.avatar);
+                avatars.push({
+                    id: a.id,
+                    name: a.name,
+                    avatar: a.avatar,
+                    badge: a.badge,
+                    unlocked: a.unlocked,
+                    legendary: a.legendary,
+                    isPikachu: false
+                });
+            }
+        });
+        
+        return avatars;
+    }
+    
+    // Check if Pikachu variant is unlocked
+    isPikachuVariantUnlocked(variantId) {
+        // Unlock conditions for Pikachu variants
+        const conditions = {
+            'pikachu_normal': true, // Always unlocked
+            'pikachu_shiny': this.stats.playStreak >= 7, // 7-day streak
+            'pikachu_female': this.stats.totalGM >= 10, // 10 total GM
+            'raichu_normal': this.stats.totalMerges >= 500, // 500 merges
+            'raichu_shiny': this.stats.totalMerges >= 2000, // 2000 merges
+            'pichu_normal': this.stats.totalGames >= 10, // 10 games
+            'pichu_shiny': this.stats.totalGames >= 50, // 50 games
+        };
+        return conditions[variantId] || false;
+    }
+    
+    // Get selected avatar
+    getSelectedAvatar() {
+        try {
+            const saved = localStorage.getItem('pokemon2048_selected_avatar');
+            if (saved) {
+                return JSON.parse(saved);
+            }
+        } catch (e) {}
+        // Default to classic Pikachu
+        return { 
+            id: 'pikachu_normal', 
+            avatar: this.pikachuVariants[0].avatar,
+            name: 'Pikachu Classic'
+        };
+    }
+    
+    // Set selected avatar
+    setSelectedAvatar(avatarData) {
+        try {
+            localStorage.setItem('pokemon2048_selected_avatar', JSON.stringify(avatarData));
+            // Update profile avatar
+            const profileImg = document.getElementById('profile-avatar-img');
+            if (profileImg) {
+                profileImg.src = avatarData.avatar;
+            }
+            // Show notification
+            this.showAvatarChangeNotification(avatarData);
+        } catch (e) {
+            console.log('Avatar save error:', e);
+        }
+    }
+    
+    // Show avatar change notification
+    showAvatarChangeNotification(avatarData) {
+        const notification = document.createElement('div');
+        notification.className = 'avatar-change-notification';
+        notification.innerHTML = `
+            <div class="avatar-change-content">
+                <img src="${avatarData.avatar}" alt="${avatarData.name}" class="avatar-change-img">
+                <div class="avatar-change-text">
+                    <div class="avatar-change-title">Avatar Changed!</div>
+                    <div class="avatar-change-name">${avatarData.name}</div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 500);
+        }, 2000);
+    }
+    
+    // Generate avatar collection HTML for profile
+    generateAvatarCollectionHTML() {
+        const avatars = this.getAllAvatars();
+        const selectedAvatar = this.getSelectedAvatar();
+        
+        let html = '';
+        
+        // Pikachu variants section
+        html += '<div class="avatar-section"><div class="avatar-section-title">⚡ Pikachu Family</div><div class="avatar-section-grid">';
+        avatars.filter(a => a.isPikachu).forEach(a => {
+            const isSelected = selectedAvatar.id === a.id;
+            html += `
+                <div class="avatar-collection-item ${a.unlocked ? 'unlocked' : 'locked'} ${isSelected ? 'selected' : ''}" 
+                     onclick="window.achievementSystem.selectAvatar('${a.id}')"
+                     style="${a.color ? `--avatar-color: ${a.color}` : ''}">
+                    <img src="${a.avatar}" alt="${a.name}" class="avatar-collection-img" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png'">
+                    <div class="avatar-collection-name">${a.name}</div>
+                    ${!a.unlocked ? '<div class="avatar-lock">🔒</div>' : ''}
+                    ${isSelected ? '<div class="avatar-selected">✓</div>' : ''}
+                </div>
+            `;
+        });
+        html += '</div></div>';
+        
+        // Achievement avatars section
+        html += '<div class="avatar-section"><div class="avatar-section-title">🏆 Achievement Avatars</div><div class="avatar-section-grid">';
+        avatars.filter(a => !a.isPikachu).forEach(a => {
+            const isSelected = selectedAvatar.id === a.id;
+            html += `
+                <div class="avatar-collection-item ${a.unlocked ? 'unlocked' : 'locked'} ${isSelected ? 'selected' : ''} ${a.legendary ? 'legendary' : ''}" 
+                     onclick="window.achievementSystem.selectAvatar('${a.id}')">
+                    <img src="${a.avatar}" alt="${a.name}" class="avatar-collection-img">
+                    <div class="avatar-collection-name">${a.badge || a.name.split(' ')[0]}</div>
+                    ${!a.unlocked ? '<div class="avatar-lock">🔒</div>' : ''}
+                    ${isSelected ? '<div class="avatar-selected">✓</div>' : ''}
+                </div>
+            `;
+        });
+        html += '</div></div>';
+        
+        return html;
+    }
+    
+    // Select an avatar
+    selectAvatar(avatarId) {
+        const avatars = this.getAllAvatars();
+        const avatar = avatars.find(a => a.id === avatarId);
+        
+        if (!avatar) return;
+        
+        if (!avatar.unlocked) {
+            // Show "locked" message
+            this.showLockedAvatarMessage(avatar);
+            return;
+        }
+        
+        this.setSelectedAvatar({
+            id: avatar.id,
+            avatar: avatar.avatar,
+            name: avatar.name
+        });
+        
+        // Update avatar collection UI
+        this.updateAvatarCollectionUI();
+    }
+    
+    // Show locked avatar message
+    showLockedAvatarMessage(avatar) {
+        const notification = document.createElement('div');
+        notification.className = 'avatar-locked-notification';
+        notification.innerHTML = `
+            <div class="avatar-locked-content">
+                <img src="${avatar.avatar}" alt="${avatar.name}" class="avatar-locked-img">
+                <div class="avatar-locked-text">
+                    <div class="avatar-locked-title">🔒 Locked!</div>
+                    <div class="avatar-locked-hint">Complete achievements to unlock</div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 500);
+        }, 2000);
+    }
+    
+    // Update avatar collection UI
+    updateAvatarCollectionUI() {
+        const grid = document.getElementById('avatar-collection-grid');
+        if (grid) {
+            grid.innerHTML = this.generateAvatarCollectionHTML();
+        }
     }
     
     // Обновить UI
@@ -3833,6 +4497,11 @@ const leaderboardSystem = {
         const previousBest = this.getBestScore();
         const isNewRecord = score > previousBest;
         
+        // Record Breaker achievement
+        if (isNewRecord && window.achievementSystem) {
+            window.achievementSystem.checkNewRecord(score, previousBest);
+        }
+        
         const newEntry = {
             score: score,
             element: element || 'normal',
@@ -4057,6 +4726,274 @@ const menuSystem = {
         lastGmDate: null
     },
     
+    // ============================================
+    // СИСТЕМА УРОВНЕЙ И ОПЫТА (10,000 уровней)
+    // ============================================
+    
+    // XP данные
+    xpData: {
+        currentXP: 0,       // Текущий XP на уровне
+        totalXP: 0,         // Общий XP за всё время
+        level: 1,           // Текущий уровень
+        lastGameXP: 0       // XP за последнюю игру
+    },
+    
+    // Максимальный уровень
+    MAX_LEVEL: 10000,
+    
+    // Формула расчета XP для уровня (x3 для долгой прокачки до конца 2026!)
+    // Прогрессия: начинаем легко, к высоким уровням нужно ОЧЕНЬ МНОГО опыта
+    getXPForLevel(level) {
+        if (level <= 0) return 0;
+        if (level > this.MAX_LEVEL) return Infinity;
+        
+        // Формула: (100 + level*20 + (level/5)^1.7) * 3
+        // x3 множитель для вовлечённости!
+        // Уровень 1: ~360 XP
+        // Уровень 10: ~960 XP  
+        // Уровень 100: ~11,100 XP
+        // Уровень 1000: ~150,000 XP
+        // Уровень 5000: ~1,050,000 XP
+        // Уровень 10000: ~2,700,000 XP per level!
+        return Math.floor((100 + level * 20 + Math.pow(level / 5, 1.7)) * 3);
+    },
+    
+    // Получить общий XP нужный для достижения уровня
+    getTotalXPForLevel(level) {
+        if (level <= 1) return 0;
+        let total = 0;
+        for (let i = 1; i < level; i++) {
+            total += this.getXPForLevel(i);
+        }
+        return total;
+    },
+    
+    // Получить уровень по общему XP
+    getLevelFromTotalXP(totalXP) {
+        let level = 1;
+        let xpNeeded = 0;
+        while (level < this.MAX_LEVEL) {
+            xpNeeded += this.getXPForLevel(level);
+            if (totalXP < xpNeeded) break;
+            level++;
+        }
+        return Math.min(level, this.MAX_LEVEL);
+    },
+    
+    // Добавить XP (возвращает true если был level up)
+    addXP(amount, source = 'game') {
+        if (amount <= 0) return false;
+        
+        const oldLevel = this.xpData.level;
+        this.xpData.totalXP += amount;
+        this.xpData.lastGameXP = amount;
+        
+        // Пересчитываем уровень
+        const newLevel = this.getLevelFromTotalXP(this.xpData.totalXP);
+        
+        // Вычисляем текущий XP на уровне
+        const xpForCurrentLevel = this.getTotalXPForLevel(newLevel);
+        this.xpData.currentXP = this.xpData.totalXP - xpForCurrentLevel;
+        this.xpData.level = newLevel;
+        
+        // Сохраняем
+        this.saveXPData();
+        
+        // Показываем уведомление о получении XP
+        this.showXPGainNotification(amount, source);
+        
+        // Обновляем уровень в главном меню
+        const menuLevelEl = document.getElementById('menu-level');
+        if (menuLevelEl) {
+            menuLevelEl.textContent = this.formatNumber(newLevel);
+        }
+        
+        // Проверяем level up
+        if (newLevel > oldLevel) {
+            // Показываем уведомления для всех новых уровней
+            for (let lvl = oldLevel + 1; lvl <= newLevel; lvl++) {
+                setTimeout(() => {
+                    this.showLevelUpNotification(lvl);
+                }, (lvl - oldLevel - 1) * 500);
+            }
+            return true;
+        }
+        
+        return false;
+    },
+    
+    // Начислить XP за игру (вызывается при game over)
+    awardGameXP(score, achievements = []) {
+        // Фиксированный XP за завершённую игру = 100 XP
+        let xp = 100;
+        
+        // Бонус за достижения (если есть)
+        achievements.forEach(ach => {
+            xp += ach.xpBonus || 0;
+        });
+        
+        // Множитель за серию игр (streak)
+        const streakBonus = this.getStreakBonus();
+        xp = Math.floor(xp * streakBonus);
+        
+        // Бонус первой игры дня (+25%)
+        if (this.isFirstGameToday()) {
+            xp = Math.floor(xp * 1.25);
+            this.markFirstGamePlayed();
+        }
+        
+        this.addXP(xp, 'game');
+        return xp;
+    },
+    
+    // Бонус за серию (streak)
+    getStreakBonus() {
+        // +2% за каждый день подряд, максимум +50%
+        const streak = this.profileStats.gmStreak || 0;
+        const bonus = Math.min(streak * 0.02, 0.5);
+        return 1 + bonus;
+    },
+    
+    // Проверка первой игры за день
+    isFirstGameToday() {
+        try {
+            const lastPlay = localStorage.getItem('pokemon2048_lastPlayDate');
+            const today = new Date().toDateString();
+            return lastPlay !== today;
+        } catch (e) {
+            return true;
+        }
+    },
+    
+    markFirstGamePlayed() {
+        try {
+            localStorage.setItem('pokemon2048_lastPlayDate', new Date().toDateString());
+        } catch (e) {}
+    },
+    
+    // Показать уведомление о получении XP
+    showXPGainNotification(amount, source) {
+        const notification = document.createElement('div');
+        notification.className = 'xp-gain-notification';
+        notification.innerHTML = `
+            <div class="xp-gain-content">
+                <span class="xp-icon">⚡</span>+${this.formatNumber(amount)} XP
+            </div>
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => notification.remove(), 2000);
+    },
+    
+    // Показать уведомление о повышении уровня
+    showLevelUpNotification(level) {
+        const title = this.getTitleForLevel(level);
+        const pokemonId = this.getPokemonForLevel(level);
+        
+        const notification = document.createElement('div');
+        notification.className = 'level-up-notification';
+        notification.innerHTML = `
+            <div class="level-up-content">
+                <div class="level-up-stars">⭐ ⭐ ⭐</div>
+                <div class="level-up-title">LEVEL UP!</div>
+                <div class="level-up-level">${level}</div>
+                <div class="level-up-title-new">${title}</div>
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${pokemonId}.gif" 
+                     alt="Pokemon" class="level-up-pokemon">
+            </div>
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => notification.remove(), 2500);
+        
+        // Проверяем milestone достижения
+        this.checkLevelMilestone(level);
+    },
+    
+    // Проверка milestone уровней
+    checkLevelMilestone(level) {
+        const milestones = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 7500, 10000];
+        if (milestones.includes(level) && window.achievementSystem) {
+            window.achievementSystem.checkLevelAchievement(level);
+        }
+    },
+    
+    // Сохранить XP данные
+    saveXPData() {
+        try {
+            localStorage.setItem('pokemon2048_xp', JSON.stringify(this.xpData));
+        } catch (e) {
+            console.log('XP save error:', e);
+        }
+    },
+    
+    // Загрузить XP данные
+    loadXPData() {
+        try {
+            const saved = localStorage.getItem('pokemon2048_xp');
+            if (saved) {
+                this.xpData = { ...this.xpData, ...JSON.parse(saved) };
+            }
+        } catch (e) {
+            console.log('XP load error:', e);
+        }
+    },
+    
+    // Получить покемона для уровня (аватар)
+    getPokemonForLevel(level) {
+        // Прогрессия аватаров по уровням
+        const avatars = [
+            { level: 1, id: 25 },      // Pikachu
+            { level: 10, id: 133 },    // Eevee
+            { level: 25, id: 6 },      // Charizard
+            { level: 50, id: 149 },    // Dragonite
+            { level: 100, id: 130 },   // Gyarados
+            { level: 250, id: 150 },   // Mewtwo
+            { level: 500, id: 151 },   // Mew
+            { level: 1000, id: 384 },  // Rayquaza
+            { level: 2500, id: 483 },  // Dialga
+            { level: 5000, id: 493 },  // Arceus
+            { level: 7500, id: 249 },  // Lugia
+            { level: 10000, id: 250 }  // Ho-Oh (max level)
+        ];
+        
+        let pokemonId = 25;
+        for (const avatar of avatars) {
+            if (level >= avatar.level) pokemonId = avatar.id;
+        }
+        return pokemonId;
+    },
+    
+    // Получить звание для уровня
+    getTitleForLevel(level) {
+        const titles = [
+            { level: 1, title: 'Beginner' },
+            { level: 5, title: 'Rookie Trainer' },
+            { level: 10, title: 'Pokemon Fan' },
+            { level: 25, title: 'Skilled Trainer' },
+            { level: 50, title: 'Pokemon Catcher' },
+            { level: 100, title: 'Expert Trainer' },
+            { level: 250, title: 'Elite Trainer' },
+            { level: 500, title: 'Champion' },
+            { level: 1000, title: 'Pokemon Master' },
+            { level: 2000, title: 'Grand Master' },
+            { level: 3000, title: 'Legend' },
+            { level: 4000, title: 'Mythical Trainer' },
+            { level: 5000, title: 'Pokemon God' },
+            { level: 6000, title: 'Cosmic Being' },
+            { level: 7000, title: 'Dimensional Lord' },
+            { level: 8000, title: 'Reality Shaper' },
+            { level: 9000, title: 'Universe Master' },
+            { level: 10000, title: 'SUPREME POKEMON LORD' }
+        ];
+        
+        let currentTitle = 'Beginner';
+        for (const t of titles) {
+            if (level >= t.level) currentTitle = t.title;
+        }
+        return currentTitle;
+    },
+    
     // Список всех элементов
     allElements: [
         { type: 'normal', emoji: '⭐', name: 'Normal', minScore: 0 },
@@ -4228,33 +5165,57 @@ const menuSystem = {
             }
         }
         
-        // Вычисляем уровень (на основе общего счета)
-        const level = Math.floor(Math.sqrt(this.profileStats.totalScore / 100)) + 1;
+        // Получаем данные уровня из XP системы
+        const level = this.xpData.level;
+        const title = this.getTitleForLevel(level);
+        const avatarId = this.getPokemonForLevel(level);
         
-        // Определяем звание
-        let title = 'Beginner';
-        for (const [lvl, t] of Object.entries(this.titles)) {
-            if (level >= parseInt(lvl)) title = t;
-        }
+        // XP для текущего уровня
+        const xpNeededForLevel = this.getXPForLevel(level);
+        const currentXP = this.xpData.currentXP;
+        const xpPercent = Math.min((currentXP / xpNeededForLevel) * 100, 100);
         
-        // Определяем аватар
-        let avatarId = 25;
-        for (const [lvl, id] of Object.entries(this.avatarPokemon)) {
-            if (level >= parseInt(lvl)) avatarId = id;
-        }
+        // Прогресс до максимального уровня
+        const levelPercent = ((level - 1) / (this.MAX_LEVEL - 1)) * 100;
         
-        // Обновляем UI
+        // Обновляем UI - Аватар
         const avatarImg = document.getElementById('profile-avatar-img');
         if (avatarImg) {
             avatarImg.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${avatarId}.gif`;
         }
         
+        // Уровень
         const levelEl = document.getElementById('profile-level');
-        if (levelEl) levelEl.textContent = `Lv.${level}`;
+        if (levelEl) levelEl.textContent = `Lv.${this.formatNumber(level)}`;
         
+        // Звание
         const titleEl = document.getElementById('profile-title');
         if (titleEl) titleEl.textContent = title;
         
+        // XP Section
+        const xpCurrentEl = document.getElementById('xp-current');
+        if (xpCurrentEl) xpCurrentEl.textContent = this.formatNumber(currentXP);
+        
+        const xpNeededEl = document.getElementById('xp-needed');
+        if (xpNeededEl) xpNeededEl.textContent = this.formatNumber(xpNeededForLevel);
+        
+        const xpBarFill = document.getElementById('xp-bar-fill');
+        if (xpBarFill) xpBarFill.style.width = `${xpPercent}%`;
+        
+        const xpTotalEl = document.getElementById('xp-total-value');
+        if (xpTotalEl) xpTotalEl.textContent = this.formatNumber(this.xpData.totalXP);
+        
+        // Level Progress Section
+        const levelProgressPercent = document.getElementById('level-progress-percent');
+        if (levelProgressPercent) levelProgressPercent.textContent = `${levelPercent.toFixed(2)}%`;
+        
+        const levelProgressFill = document.getElementById('level-progress-fill');
+        if (levelProgressFill) levelProgressFill.style.width = `${levelPercent}%`;
+        
+        const currentLevelDisplay = document.getElementById('current-level-display');
+        if (currentLevelDisplay) currentLevelDisplay.textContent = this.formatNumber(level);
+        
+        // Stats
         const gamesEl = document.getElementById('profile-games');
         if (gamesEl) gamesEl.textContent = this.profileStats.games;
         
@@ -4292,6 +5253,20 @@ const menuSystem = {
                     </div>
                 `;
             }).join('');
+        }
+        
+        // Update avatar collection
+        if (window.achievementSystem) {
+            const avatarGrid = document.getElementById('avatar-collection-grid');
+            if (avatarGrid) {
+                avatarGrid.innerHTML = window.achievementSystem.generateAvatarCollectionHTML();
+            }
+            
+            // Update profile avatar to selected one
+            const selectedAvatar = window.achievementSystem.getSelectedAvatar();
+            if (avatarImg && selectedAvatar && selectedAvatar.avatar) {
+                avatarImg.src = selectedAvatar.avatar;
+            }
         }
         
         this.saveSettings();
@@ -4385,12 +5360,14 @@ const menuSystem = {
     
     // Сбросить все данные
     resetAllData() {
-        if (confirm('Are you sure you want to reset ALL data? This will clear:\n- All scores\n- All achievements\n- All settings\n\nThis cannot be undone!')) {
+        if (confirm('Are you sure you want to reset ALL data? This will clear:\n- All scores & XP\n- All achievements\n- All settings\n- Your level progress\n\nThis cannot be undone!')) {
             localStorage.removeItem('pokemon2048_settings');
             localStorage.removeItem('pokemon2048_profile');
             localStorage.removeItem('pokemon2048_achievements');
             localStorage.removeItem('pokemon2048_leaderboard');
             localStorage.removeItem('pokemon2048_gm');
+            localStorage.removeItem('pokemon2048_xp');
+            localStorage.removeItem('pokemon2048_lastPlayDate');
             
             alert('All data has been reset. The page will now reload.');
             location.reload();
@@ -4429,6 +5406,7 @@ const menuSystem = {
     // Инициализация
     init() {
         this.loadSettings();
+        this.loadXPData();
         this.applySettings();
         
         // Закрытие панелей по клику вне контента
@@ -4454,7 +5432,14 @@ const menuSystem = {
             }
         });
         
+        // Обновляем уровень в меню из загруженных данных
+        const menuLevelEl = document.getElementById('menu-level');
+        if (menuLevelEl) {
+            menuLevelEl.textContent = this.formatNumber(this.xpData.level);
+        }
+        
         console.log('📱 Menu system initialized');
+        console.log(`⭐ Level: ${this.xpData.level} | Total XP: ${this.formatNumber(this.xpData.totalXP)}`);
     }
 };
 
@@ -4470,6 +5455,16 @@ window.menuSystem = menuSystem;
 // Обновление статистики в главном меню
 function updateMainMenuStats() {
     try {
+        // Уровень
+        const xpData = localStorage.getItem('pokemon2048_xp');
+        if (xpData) {
+            const data = JSON.parse(xpData);
+            const levelEl = document.getElementById('menu-level');
+            if (levelEl) {
+                levelEl.textContent = data.level || 1;
+            }
+        }
+        
         // Лучший счёт
         const leaderboardData = localStorage.getItem('pokemon2048_leaderboard');
         if (leaderboardData) {
