@@ -3403,6 +3403,17 @@ class AchievementSystem {
     // Загрузка прогресса из localStorage
     loadProgress() {
         try {
+            // ONE-TIME RESET: Сброс достижений полученных через баг с тестом
+            // Этот код выполнится один раз и удалит себя
+            const resetVersion = localStorage.getItem('pokemon2048_achievements_reset_v2');
+            if (!resetVersion) {
+                console.log('🔄 One-time achievements reset (test mode bug fix)');
+                localStorage.removeItem('pokemon2048_achievements');
+                localStorage.setItem('pokemon2048_achievements_reset_v2', 'done');
+                // Не загружаем старые данные - начинаем с чистого листа
+                return;
+            }
+            
             const saved = localStorage.getItem('pokemon2048_achievements');
             if (saved) {
                 const data = JSON.parse(saved);
