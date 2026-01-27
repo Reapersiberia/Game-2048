@@ -103,8 +103,8 @@ class Game2048 {
             // Обновляем покемонов для новой стихии
             this.pokemonMap = this.elementPokemon[element.type];
             
-            // Проверяем достижения за стихии
-            if (window.achievementSystem) {
+            // Проверяем достижения за стихии (только в реальной игре, не в тесте!)
+            if (window.achievementSystem && !window.isTestMode) {
                 window.achievementSystem.checkElementAchievement(element.type);
             }
         }
@@ -749,7 +749,7 @@ function testElements() {
         
         // Показываем уведомление о стихии
         if (typeof showStatus === 'function') {
-            showStatus('👁️ PREVIEW: ' + testData.emoji + ' ' + testData.name + ' (' + testData.score.toLocaleString() + '+ pts) - ' + testData.desc, 'success');
+            showStatus('👁️ PREVIEW: ' + testData.emoji + ' ' + testData.name + ' (' + testData.score.toLocaleString() + '+ pts) • No achievements!', 'success');
         }
         
         // Показываем подсказку
@@ -758,7 +758,7 @@ function testElements() {
             hint = document.createElement('div');
             hint.id = 'test-mode-hint';
             hint.className = 'test-mode-hint';
-            hint.innerHTML = '👁️ Preview Mode • Press <strong>New Game</strong> to start playing!';
+            hint.innerHTML = '👁️ PREVIEW MODE • No achievements earned! • Press <strong>New Game</strong> to play!';
             const container = document.querySelector('.container');
             if (container) {
                 const gameContainer = container.querySelector('.game-container');
@@ -3438,6 +3438,11 @@ class AchievementSystem {
     
     // Разблокировать достижение
     unlock(id) {
+        // Блокируем получение достижений в тестовом режиме!
+        if (window.isTestMode) {
+            return false;
+        }
+        
         const achievement = this.achievements.find(a => a.id === id);
         if (achievement && !achievement.unlocked) {
             achievement.unlocked = true;
