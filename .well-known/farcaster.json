@@ -17,7 +17,7 @@
       "https://game-2048-theta-eosin.vercel.app/screenshot-1.png"
     ],
     "primaryCategory": "games",
-    "tags": ["game", "2048", "puzzle", "base", "onchain", "gm"],
+    "tags": ["game", "2048", "puzzle", "base", "gm"],
     "heroImageUrl": "https://game-2048-theta-eosin.vercel.app/og.png",
     "tagline": "Play 2048, send GM onchain!",
     "ogTitle": "Game 2048 - Base MiniApp",

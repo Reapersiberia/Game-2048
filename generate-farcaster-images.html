@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор изображений для Farcaster Mini App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        .info {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .image-section {
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .image-section h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+            color: #00ff88;
+        }
+        .image-section .specs {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 15px;
+        }
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+            overflow: auto;
+        }
+        canvas {
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            max-width: 100%;
+            height: auto;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .status {
+            text-align: center;
+            color: #00ff88;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .warning {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #ffc107;
+        }
+        .scale-info {
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 Farcaster Images</h1>
+    <p class="info">Генератор изображений для Mini App</p>
+    
+    <div class="warning">
+        ⚠️ Нажмите на кнопку "Скачать" под каждым изображением и сохраните файл в папку проекта с нужным именем.
+    </div>
+
+    <!-- ICON 1024x1024 -->
+    <div class="image-section">
+        <h2>📱 icon.png</h2>
+        <div class="specs">Требуется: 1024×1024px PNG (без прозрачности)</div>
+        <div class="canvas-container">
+            <canvas id="icon-canvas" width="1024" height="1024"></canvas>
+        </div>
+        <p class="scale-info">Показано в масштабе</p>
+        <button class="btn" onclick="downloadCanvas('icon-canvas', 'icon.png')">📥 Скачать icon.png</button>
+        <div class="status" id="icon-status"></div>
+    </div>
+
+    <!-- SPLASH 200x200 -->
+    <div class="image-section">
+        <h2>🌊 splash.png</h2>
+        <div class="specs">Требуется: 200×200px PNG</div>
+        <div class="canvas-container">
+            <canvas id="splash-canvas" width="200" height="200"></canvas>
+        </div>
+        <button class="btn" onclick="downloadCanvas('splash-canvas', 'splash.png')">📥 Скачать splash.png</button>
+        <div class="status" id="splash-status"></div>
+    </div>
+
+    <!-- OG IMAGE 1200x630 -->
+    <div class="image-section">
+        <h2>🖼️ og.png (Hero Image)</h2>
+        <div class="specs">Требуется: 1200×630px PNG (соотношение 1.91:1)</div>
+        <div class="canvas-container">
+            <canvas id="og-canvas" width="1200" height="630"></canvas>
+        </div>
+        <p class="scale-info">Показано в масштабе</p>
+        <button class="btn" onclick="downloadCanvas('og-canvas', 'og.png')">📥 Скачать og.png</button>
+        <div class="status" id="og-status"></div>
+    </div>
+
+    <!-- SCREENSHOT 1284x2778 -->
+    <div class="image-section">
+        <h2>📸 screenshot-1.png</h2>
+        <div class="specs">Требуется: 1284×2778px PNG (портрет iPhone)</div>
+        <div class="canvas-container">
+            <canvas id="screenshot-canvas" width="1284" height="2778"></canvas>
+        </div>
+        <p class="scale-info">Показано в масштабе (очень длинное)</p>
+        <button class="btn" onclick="downloadCanvas('screenshot-canvas', 'screenshot-1.png')">📥 Скачать screenshot-1.png</button>
+        <div class="status" id="screenshot-status"></div>
+    </div>
+
+    <script>
+        // Градиент для фона
+        function createGradient(ctx, width, height) {
+            const gradient = ctx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(0.5, '#764ba2');
+            gradient.addColorStop(1, '#6B8DD6');
+            return gradient;
+        }
+
+        // === ICON 1024x1024 ===
+        function drawIcon() {
+            const canvas = document.getElementById('icon-canvas');
+            const ctx = canvas.getContext('2d');
+            const w = 1024, h = 1024;
+
+            // Фон градиент
+            ctx.fillStyle = createGradient(ctx, w, h);
+            ctx.fillRect(0, 0, w, h);
+
+            // Текст 2048
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 280px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 10;
+            ctx.fillText('2048', w/2, h/2);
+
+            // Сброс тени
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+        }
+
+        // === SPLASH 200x200 ===
+        function drawSplash() {
+            const canvas = document.getElementById('splash-canvas');
+            const ctx = canvas.getContext('2d');
+            const w = 200, h = 200;
+
+            // Фон
+            ctx.fillStyle = createGradient(ctx, w, h);
+            ctx.fillRect(0, 0, w, h);
+
+            // Текст 2048
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 56px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 4;
+            ctx.fillText('2048', w/2, h/2);
+        }
+
+        // === OG IMAGE 1200x630 ===
+        function drawOG() {
+            const canvas = document.getElementById('og-canvas');
+            const ctx = canvas.getContext('2d');
+            const w = 1200, h = 630;
+
+            // Фон
+            ctx.fillStyle = createGradient(ctx, w, h);
+            ctx.fillRect(0, 0, w, h);
+
+            // Заголовок
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 90px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 10;
+            ctx.fillText('Game 2048', w/2, h/2 - 40);
+
+            // Подзаголовок
+            ctx.font = '36px Arial, sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.fillText('Play 2048 on Base • Send GM Onchain', w/2, h/2 + 60);
+
+            // Декоративные элементы
+            ctx.font = '48px Arial, sans-serif';
+            ctx.fillText('🎮 ⛓️ 🏆', w/2, h/2 + 140);
+        }
+
+        // === SCREENSHOT 1284x2778 ===
+        function drawScreenshot() {
+            const canvas = document.getElementById('screenshot-canvas');
+            const ctx = canvas.getContext('2d');
+            const w = 1284, h = 2778;
+
+            // Фон приложения
+            const bgGradient = ctx.createLinearGradient(0, 0, 0, h);
+            bgGradient.addColorStop(0, '#faf8ef');
+            bgGradient.addColorStop(1, '#f0ebe0');
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, w, h);
+
+            // Статус бар область (верх)
+            ctx.fillStyle = '#667eea';
+            ctx.fillRect(0, 0, w, 120);
+
+            // Заголовок
+            ctx.fillStyle = '#776e65';
+            ctx.font = 'bold 120px Arial, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('2048', w/2, 320);
+
+            // Игровое поле
+            const gridX = 92;
+            const gridY = 500;
+            const gridSize = 1100;
+            const cellSize = 250;
+            const gap = 20;
+
+            // Фон сетки
+            ctx.fillStyle = '#bbada0';
+            roundRect(ctx, gridX, gridY, gridSize, gridSize, 20);
+
+            // Ячейки сетки
+            const tiles = [
+                [2, 4, 8, 16],
+                [32, 64, 128, 256],
+                [512, 1024, 2048, 0],
+                [4, 2, 0, 0]
+            ];
+
+            const tileColors = {
+                0: '#cdc1b4',
+                2: '#eee4da',
+                4: '#ede0c8',
+                8: '#f2b179',
+                16: '#f59563',
+                32: '#f67c5f',
+                64: '#f65e3b',
+                128: '#edcf72',
+                256: '#edcc61',
+                512: '#edc850',
+                1024: '#edc53f',
+                2048: '#edc22e'
+            };
+
+            const textColors = {
+                2: '#776e65',
+                4: '#776e65',
+                8: '#f9f6f2',
+                16: '#f9f6f2',
+                32: '#f9f6f2',
+                64: '#f9f6f2',
+                128: '#f9f6f2',
+                256: '#f9f6f2',
+                512: '#f9f6f2',
+                1024: '#f9f6f2',
+                2048: '#f9f6f2'
+            };
+
+            for (let row = 0; row < 4; row++) {
+                for (let col = 0; col < 4; col++) {
+                    const x = gridX + gap + col * (cellSize + gap);
+                    const y = gridY + gap + row * (cellSize + gap);
+                    const value = tiles[row][col];
+
+                    ctx.fillStyle = tileColors[value] || '#cdc1b4';
+                    roundRect(ctx, x, y, cellSize, cellSize, 10);
+
+                    if (value > 0) {
+                        ctx.fillStyle = textColors[value] || '#776e65';
+                        ctx.font = value >= 1000 ? 'bold 60px Arial' : 'bold 80px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(value.toString(), x + cellSize/2, y + cellSize/2);
+                    }
+                }
+            }
+
+            // Score box
+            ctx.fillStyle = '#bbada0';
+            roundRect(ctx, gridX, gridY + gridSize + 60, 350, 150, 10);
+            ctx.fillStyle = '#eee4da';
+            ctx.font = 'bold 32px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('SCORE', gridX + 175, gridY + gridSize + 110);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 56px Arial';
+            ctx.fillText('12480', gridX + 175, gridY + gridSize + 170);
+
+            // Best box
+            ctx.fillStyle = '#bbada0';
+            roundRect(ctx, gridX + 400, gridY + gridSize + 60, 350, 150, 10);
+            ctx.fillStyle = '#eee4da';
+            ctx.font = 'bold 32px Arial';
+            ctx.fillText('BEST', gridX + 575, gridY + gridSize + 110);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 56px Arial';
+            ctx.fillText('24960', gridX + 575, gridY + gridSize + 170);
+
+            // GM Button
+            ctx.fillStyle = '#00ff88';
+            roundRect(ctx, gridX + 800, gridY + gridSize + 60, 280, 150, 15);
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 48px Arial';
+            ctx.fillText('☀️ GM', gridX + 940, gridY + gridSize + 145);
+
+            // Нижний текст
+            ctx.fillStyle = '#776e65';
+            ctx.font = '36px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Swipe to move tiles • Merge same numbers!', w/2, gridY + gridSize + 320);
+
+            // Branding
+            ctx.fillStyle = '#667eea';
+            ctx.font = 'bold 42px Arial';
+            ctx.fillText('🎮 Pokemon 2048 on Base', w/2, h - 200);
+        }
+
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function downloadCanvas(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            
+            const statusId = canvasId.replace('-canvas', '-status');
+            document.getElementById(statusId).textContent = '✅ ' + filename + ' скачан!';
+        }
+
+        // Отрисовка всех изображений при загрузке
+        window.onload = function() {
+            drawIcon();
+            drawSplash();
+            drawOG();
+            drawScreenshot();
+        };
+    </script>
+</body>
+</html>
