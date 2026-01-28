@@ -3042,6 +3042,20 @@ function getLastGMTx() {
     return localStorage.getItem('gm_last_tx');
 }
 
+// Update GM panel info (remaining, streak, etc)
+function updateGMPanelInfo() {
+    const remaining = getRemainingGMToday();
+    const gmRemainingEl = document.getElementById('gm-remaining');
+    if (gmRemainingEl) {
+        gmRemainingEl.textContent = remaining;
+    }
+    
+    const gmPanelValue = document.getElementById('gm-panel-value');
+    if (gmPanelValue) {
+        gmPanelValue.textContent = getGMCount();
+    }
+}
+
 // GM function - gasless транзакция для Base App (спонсируется Base)
 async function sendGM() {
     console.log('🌞 sendGM called');
@@ -3134,6 +3148,7 @@ async function sendGM() {
         showStatus(`GM sent! ☀️ (${newRemaining}/2 left)`, 'success');
         
         updateGMCounter();
+        updateGMPanelInfo();
         
         const gmPanelValue = document.getElementById('gm-panel-value');
         if (gmPanelValue) gmPanelValue.textContent = getGMCount();
@@ -3172,6 +3187,9 @@ window.addEventListener('DOMContentLoaded', () => {
         const btn = document.getElementById('gm-btn');
         const gmSendBtn = document.querySelector('.gm-send-btn');
         const remaining = getRemainingGMToday();
+        
+        // Обновляем панель GM
+        updateGMPanelInfo();
         
         if (remaining <= 0) {
             if (btn) btn.disabled = true;
