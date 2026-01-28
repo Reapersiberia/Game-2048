@@ -45,7 +45,7 @@ input, textarea, [contenteditable] {
     -webkit-touch-callout: default;
 }
 
-/* Глобальные стили для всех кнопок - плавность */
+/* Глобальные стили для всех кнопок - быстрый отклик */
 button {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
@@ -56,16 +56,55 @@ button {
     transform: translateZ(0);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    /* Быстрые переходы */
+    transition: transform 0.08s ease,
+                background 0.1s ease,
+                box-shadow 0.1s ease,
+                opacity 0.1s ease;
+    will-change: transform;
+    cursor: pointer;
+}
+
+button:active {
+    transform: scale(0.92) translateZ(0);
+    transition: transform 0.05s ease;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Мобильные тач-оптимизации */
+@media (hover: none) and (pointer: coarse) {
+    button {
+        /* Мгновенный отклик на тач-устройствах */
+        transition: transform 0.05s ease,
+                    background 0.08s ease;
+    }
+    
+    button:active {
+        transform: scale(0.93) translateZ(0);
+        transition: transform 0.08s ease;
+    }
 }
 
 .container {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 20px;
-    padding: 30px;
+    padding: 20px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     max-width: 500px;
     width: 100%;
     overflow-x: hidden;
+}
+
+@media (max-width: 500px) {
+    .container {
+        padding: 15px;
+        border-radius: 16px;
+    }
 }
 
 h1 {
@@ -76,14 +115,30 @@ h1 {
     font-weight: bold;
 }
 
-.score-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    gap: 10px;
-}
 
+
+/* Цвета стихий */
+.element-indicator-normal { background: linear-gradient(135deg, #A8A878 0%, #8a8a5c 100%); }
+.element-indicator-fire { background: linear-gradient(135deg, #F08030 0%, #dd6610 100%); }
+.element-indicator-water { background: linear-gradient(135deg, #6890F0 0%, #4a70d0 100%); }
+.element-indicator-electric { background: linear-gradient(135deg, #F8D030 0%, #e0b010 100%); }
+.element-indicator-grass { background: linear-gradient(135deg, #78C850 0%, #5aa030 100%); }
+.element-indicator-poison { background: linear-gradient(135deg, #A040A0 0%, #803080 100%); }
+.element-indicator-ground { background: linear-gradient(135deg, #E0C068 0%, #c0a048 100%); }
+.element-indicator-flying { background: linear-gradient(135deg, #A890F0 0%, #8870d0 100%); }
+.element-indicator-bug { background: linear-gradient(135deg, #A8B820 0%, #889810 100%); }
+.element-indicator-rock { background: linear-gradient(135deg, #B8A038 0%, #988020 100%); }
+.element-indicator-ice { background: linear-gradient(135deg, #98D8D8 0%, #78b8b8 100%); }
+.element-indicator-fighting { background: linear-gradient(135deg, #C03028 0%, #a01810 100%); }
+.element-indicator-psychic { background: linear-gradient(135deg, #F85888 0%, #d83868 100%); }
+.element-indicator-ghost { background: linear-gradient(135deg, #705898 0%, #503878 100%); }
+.element-indicator-dark { background: linear-gradient(135deg, #705848 0%, #503828 100%); }
+.element-indicator-steel { background: linear-gradient(135deg, #B8B8D0 0%, #9898b0 100%); }
+.element-indicator-fairy { background: linear-gradient(135deg, #EE99AC 0%, #ce798c 100%); }
+.element-indicator-dragon { background: linear-gradient(135deg, #7038F8 0%, #5018d8 100%); }
+.element-indicator-cosmic { background: linear-gradient(135deg, #3D1A78 0%, #1d0a58 100%); }
+.element-indicator-shadow { background: linear-gradient(135deg, #1A1A2E 0%, #0a0a1e 100%); }
+.element-indicator-legendary { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); }
 
 .score-box {
     background: #bbada0;
@@ -193,6 +248,78 @@ h1 {
     text-decoration: underline;
 }
 
+
+/* Панель: New Game сверху, NORMAL и SCORE внизу 50/50 */
+.game-controls-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.game-controls-panel .new-game-btn {
+    align-self: flex-start;
+}
+
+/* Строка NORMAL + SCORE */
+.controls-row {
+    display: flex;
+    gap: 8px;
+}
+
+/* NORMAL слева - 50% */
+.element-indicator {
+    flex: 1;
+    background: #A8A878;
+    color: white;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* SCORE справа - 50% */
+.score-box-small {
+    flex: 1;
+    background: #bbada0;
+    border-radius: 6px;
+    padding: 8px;
+    text-align: center;
+}
+
+.score-box-small .score-label {
+    color: #eee4da;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.score-box-small .score-value {
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Цвета для разных стихий */
+.element-indicator-normal { background: #A8A878; }
+.element-indicator-fire { background: #F08030; }
+.element-indicator-water { background: #6890F0; }
+.element-indicator-electric { background: #F8D030; color: #333; }
+.element-indicator-grass { background: #78C850; }
+.element-indicator-ice { background: #98D8D8; color: #333; }
+.element-indicator-fighting { background: #C03028; }
+.element-indicator-poison { background: #A040A0; }
+.element-indicator-ground { background: #E0C068; color: #333; }
+.element-indicator-flying { background: #A890F0; }
+.element-indicator-psychic { background: #F85888; }
+.element-indicator-bug { background: #A8B820; }
+.element-indicator-rock { background: #B8A038; }
+.element-indicator-ghost { background: #705898; }
+.element-indicator-dragon { background: #7038F8; }
+.element-indicator-dark { background: #705848; }
+.element-indicator-steel { background: #B8B8D0; color: #333; }
+.element-indicator-fairy { background: #EE99AC; }
 
 .game-container {
     position: relative;
@@ -320,21 +447,55 @@ h1 {
     left: 0;
     overflow: hidden;
     border: 1px solid rgba(0, 0, 0, 0.1);
-    /* GPU ускорение */
-    will-change: transform;
+    /* GPU ускорение для плавности */
+    will-change: transform, opacity;
     transform-style: preserve-3d;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    /* Плавные переходы только на десктопе */
-    transition: none;
-    animation: none;
+    /* Плавные анимации перемещения - работают везде */
+    transition: transform 0.12s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                opacity 0.1s ease-out;
+    animation: tileAppear 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Анимации только для десктопа */
-@media (min-width: 501px) {
+/* Плавное появление плитки */
+@keyframes tileAppear {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Анимация слияния */
+@keyframes tileMerge {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.15);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.tile.merged {
+    animation: tileMerge 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Мобильные оптимизации */
+@media (max-width: 500px) {
     .tile {
-        transition: transform 0.1s ease-out;
-        animation: appear 0.12s ease-out;
+        /* Ещё более плавные анимации на мобильных */
+        transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        animation: tileAppear 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 }
 
@@ -1527,57 +1688,93 @@ h1 {
 /* Web3 кнопки */
 .web3-buttons {
     display: flex;
-    gap: 15px;
+    gap: 10px;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-top: 15px;
+    margin-bottom: 10px;
 }
 
 .web3-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 12px 24px;
-    min-height: 44px;
-    min-width: 44px;
+    gap: 6px;
+    padding: 10px 18px;
+    min-height: 42px;
+    min-width: 42px;
     border: none;
     border-radius: 12px;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: bold;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    /* Плавные переходы */
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                box-shadow 0.25s ease,
+                background 0.3s ease;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
-    will-change: transform;
+    will-change: transform, box-shadow;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    /* Для ripple эффекта */
+    position: relative;
+    overflow: hidden;
+}
+
+.web3-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease, opacity 0.4s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.web3-btn:active::after {
+    width: 200px;
+    height: 200px;
+    opacity: 1;
+    transition: width 0s, height 0s, opacity 0s;
 }
 
 .web3-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .web3-btn:active {
-    transform: scale(0.95);
+    transform: scale(0.92);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    transition: transform 0.08s ease, box-shadow 0.1s ease;
 }
 
 .web3-btn:disabled {
-    opacity: 0.6;
+    opacity: 0.5;
     cursor: not-allowed;
-    transform: none;
+    transform: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .gm-btn {
     background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
     color: #333;
+    box-shadow: 0 4px 20px rgba(246, 211, 101, 0.4);
 }
 
 .gm-btn:hover {
     background: linear-gradient(135deg, #fda085 0%, #f6d365 100%);
+    box-shadow: 0 8px 30px rgba(246, 211, 101, 0.5);
+}
+
+.gm-btn:active {
+    box-shadow: 0 2px 10px rgba(246, 211, 101, 0.3);
 }
 
 .deploy-btn {
@@ -1638,10 +1835,10 @@ h1 {
 
 .web3-status {
     text-align: center;
-    margin-bottom: 15px;
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 14px;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 13px;
     min-height: 0;
     transition: all 0.3s ease;
 }
@@ -1669,25 +1866,29 @@ h1 {
 
 .wallet-info {
     text-align: center;
-    margin-bottom: 15px;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 12px;
+    margin-bottom: 8px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
     font-family: monospace;
-    min-height: 20px;
+    min-height: 0;
+}
+
+.wallet-info:empty {
+    display: none;
 }
 
 .wallet-info.connected {
-    background: rgba(76, 175, 80, 0.15);
-    color: #2e7d32;
-    border: 1px solid rgba(76, 175, 80, 0.3);
+    background: linear-gradient(135deg, rgba(59, 91, 167, 0.15) 0%, rgba(255, 203, 5, 0.15) 100%);
+    color: #3B5BA7;
+    border: 1px solid rgba(59, 91, 167, 0.3);
 }
 
 .wallet-name {
     font-family: 'Segoe UI', Arial, sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    color: #1a73e8;
+    color: #3B5BA7;
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -1695,9 +1896,12 @@ h1 {
 
 .instructions {
     text-align: center;
-    color: #776e65;
-    font-size: 14px;
-    line-height: 1.6;
+    color: #999;
+    font-size: 12px;
+    line-height: 1.4;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    opacity: 0.8;
 }
 
 .instructions-desktop {
@@ -1714,14 +1918,46 @@ h1 {
     }
     .instructions-mobile {
         display: block;
+        font-size: 11px;
     }
 }
 
 /* GM Counter */
 .gm-counter-container {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+    margin-top: 10px;
     display: flex;
     justify-content: center;
+}
+
+/* Компактная версия GM counter */
+.gm-counter-container.compact {
+    margin-bottom: 8px;
+    margin-top: 8px;
+}
+
+.gm-counter-container.compact .gm-counter-box {
+    padding: 8px 14px;
+    min-width: auto;
+    gap: 10px;
+    border-radius: 25px;
+}
+
+.gm-counter-container.compact .gm-counter-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.gm-counter-container.compact .gm-counter-label {
+    font-size: 10px;
+}
+
+.gm-counter-container.compact .gm-counter-value {
+    font-size: 18px;
+}
+
+.gm-counter-container.compact .gm-counter-date {
+    display: none;
 }
 
 .gm-counter-box {
@@ -1733,11 +1969,11 @@ h1 {
     gap: 15px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     min-width: 200px;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .gm-counter-box:hover {
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.02);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
@@ -2041,6 +2277,7 @@ h1 {
 .language-selector {
     position: relative;
     margin-top: 10px;
+    z-index: 10000;
 }
 
 .lang-btn {
@@ -2079,36 +2316,76 @@ h1 {
 
 .lang-dropdown {
     position: absolute;
-    top: 100%;
+    bottom: 100%;
     left: 50%;
-    transform: translateX(-50%);
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-    padding: 8px 0;
-    margin-top: 8px;
-    z-index: 100;
-    display: none;
-    min-width: 140px;
-    max-height: 300px;
+    transform: translateX(-50%) translateY(10px) scale(0.95);
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 16px;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3), 
+                0 -2px 10px rgba(0, 0, 0, 0.1),
+                inset 0 -1px 0 rgba(255, 255, 255, 0.8);
+    padding: 10px 0;
+    margin-bottom: 10px;
+    z-index: 10000;
+    min-width: 160px;
+    max-height: 320px;
     overflow-y: auto;
-    animation: dropdownFadeIn 0.2s ease;
+    overflow-x: hidden;
+    /* Скрыто по умолчанию */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    /* Плавные переходы */
+    transition: opacity 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                visibility 0.25s;
+    /* GPU ускорение */
+    will-change: transform, opacity;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 .lang-dropdown.show {
-    display: block;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0) scale(1);
 }
 
-@keyframes dropdownFadeIn {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
+/* Для правого покемона - dropdown тоже вверх */
+#lang-dropdown-right {
+    left: auto;
+    right: 0;
+    transform: translateX(0) translateY(10px) scale(0.95);
 }
+
+#lang-dropdown-right.show {
+    transform: translateX(0) translateY(0) scale(1);
+}
+
+/* Плавное появление элементов внутри dropdown */
+.lang-dropdown .lang-option {
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease, background 0.15s ease;
+}
+
+.lang-dropdown.show .lang-option {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Последовательная анимация появления */
+.lang-dropdown.show .lang-option:nth-child(1) { transition-delay: 0.02s; }
+.lang-dropdown.show .lang-option:nth-child(2) { transition-delay: 0.04s; }
+.lang-dropdown.show .lang-option:nth-child(3) { transition-delay: 0.06s; }
+.lang-dropdown.show .lang-option:nth-child(4) { transition-delay: 0.08s; }
+.lang-dropdown.show .lang-option:nth-child(5) { transition-delay: 0.1s; }
+.lang-dropdown.show .lang-option:nth-child(6) { transition-delay: 0.12s; }
+.lang-dropdown.show .lang-option:nth-child(7) { transition-delay: 0.14s; }
+.lang-dropdown.show .lang-option:nth-child(8) { transition-delay: 0.16s; }
+.lang-dropdown.show .lang-option:nth-child(9) { transition-delay: 0.18s; }
+.lang-dropdown.show .lang-option:nth-child(10) { transition-delay: 0.2s; }
 
 .lang-dropdown::-webkit-scrollbar {
     width: 6px;
@@ -2131,23 +2408,66 @@ h1 {
 .lang-option {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 16px;
-    min-height: 44px;
+    gap: 12px;
+    padding: 12px 18px;
+    min-height: 48px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     border: none;
-    background: none;
+    background: transparent;
     width: 100%;
     text-align: left;
-    font-size: 13px;
+    font-size: 14px;
     color: #333;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    border-radius: 8px;
+    margin: 2px 6px;
+    width: calc(100% - 12px);
+    /* GPU ускорение для плавности */
+    will-change: transform, background;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 .lang-option:hover {
-    background: linear-gradient(135deg, #e8eaf0 0%, #d8dae0 100%);
+    background: linear-gradient(135deg, #e8f0fe 0%, #d2e3fc 100%);
+    transform: translateX(4px);
+}
+
+.lang-option:active {
+    transform: scale(0.97) translateX(4px);
+    background: linear-gradient(135deg, #d2e3fc 0%, #c2d9f7 100%);
+    transition: transform 0.1s ease;
+}
+
+.lang-option.active {
+    background: linear-gradient(135deg, #4285f4 0%, #3367d6 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(66, 133, 244, 0.4);
+}
+
+.lang-option.active:hover {
+    background: linear-gradient(135deg, #5a95f5 0%, #4477e6 100%);
+    transform: translateX(4px);
+}
+
+.lang-option-flag {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.lang-option-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.lang-option-code {
+    font-size: 11px;
+    text-transform: uppercase;
+    opacity: 0.6;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .lang-option.active {
@@ -2256,10 +2576,30 @@ h1 {
         margin-bottom: 12px;
     }
 
-    .score-container {
-        margin-bottom: 12px;
-        flex-wrap: wrap;
-        gap: 8px;
+    .game-controls-panel {
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .controls-row {
+        gap: 6px;
+    }
+
+    .element-indicator {
+        padding: 8px;
+        font-size: 11px;
+    }
+
+    .score-box-small {
+        padding: 6px;
+    }
+
+    .score-box-small .score-label {
+        font-size: 9px;
+    }
+
+    .score-box-small .score-value {
+        font-size: 18px;
     }
 
     .score-box {
@@ -2628,7 +2968,19 @@ h1 {
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
     z-index: 9000;
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    /* Быстрое появление */
+    opacity: 0;
+    transform: translateY(100%);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    will-change: transform, opacity;
+    touch-action: manipulation;
+}
+
+.bottom-nav[style*="display: flex"] {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .nav-item {
@@ -2642,13 +2994,21 @@ h1 {
     background: transparent;
     color: rgba(255, 255, 255, 0.6);
     cursor: pointer;
-    transition: color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+    transition: color 0.1s ease, 
+                background 0.1s ease, 
+                transform 0.1s ease;
     border-radius: 12px;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     user-select: none;
-    will-change: transform;
+    will-change: transform, background;
+    /* GPU ускорение */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 .nav-item:hover {
@@ -2657,8 +3017,9 @@ h1 {
 }
 
 .nav-item:active {
-    transform: scale(0.92);
-    transition: transform 0.1s ease;
+    transform: scale(0.9);
+    transition: transform 0.03s ease;
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .nav-item.active {
@@ -2672,7 +3033,7 @@ h1 {
 
 .nav-icon {
     font-size: 22px;
-    transition: transform 0.2s ease;
+    transition: transform 0.1s ease;
     will-change: transform;
 }
 
@@ -2692,7 +3053,7 @@ h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(10, 15, 25, 0.95);
+    background: rgba(10, 15, 25, 0);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -2700,46 +3061,66 @@ h1 {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.2s ease-out;
+    /* Быстрые переходы */
+    transition: opacity 0.15s ease,
+                background 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                visibility 0.3s;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     /* GPU ускорение */
     transform: translateZ(0);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    will-change: opacity, background;
 }
 
 .menu-panel.show {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
+    background: rgba(10, 15, 25, 0.95);
 }
 
 .menu-panel-content {
     background: linear-gradient(135deg, #252d38 0%, #2a3340 50%, #303a48 100%);
-    border-radius: 20px;
+    border-radius: 24px;
     width: 92%;
     max-width: 500px;
     max-height: 85vh;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    transform: translateZ(0);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6),
+                0 10px 30px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    /* Начальное состояние для анимации */
+    transform: translateY(20px) scale(0.97);
+    opacity: 0;
+    /* Быстрый переход */
+    transition: transform 0.15s ease,
+                opacity 0.12s ease;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    will-change: transform, opacity;
 }
 
 .menu-panel.show .menu-panel-content {
-    /* Убрали анимацию для скорости */
+    transform: translateY(0) scale(1);
+    opacity: 1;
 }
 
-/* Анимация закрытия - быстрая */
+/* Быстрое закрытие */
 .menu-panel.closing {
     opacity: 0;
-    transition: opacity 0.15s ease-out;
+    background: rgba(10, 15, 25, 0);
+    transition: opacity 0.12s ease,
+                background 0.12s ease,
+                visibility 0.12s;
 }
 
 .menu-panel.closing .menu-panel-content {
-    /* Без анимации для скорости */
+    transform: translateY(15px) scale(0.98);
+    opacity: 0;
+    transition: transform 0.25s cubic-bezier(0.55, 0.06, 0.68, 0.19),
+                opacity 0.2s ease-out;
 }
 
 .menu-header {
@@ -4079,20 +4460,28 @@ body {
     transform: translateZ(0);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    /* Плавные переходы */
+    transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: opacity, transform;
 }
 
 @keyframes menuFadeIn {
-    from { opacity: 0; transform: scale(0.95); }
+    from { opacity: 0; transform: scale(0.92); }
     to { opacity: 1; transform: scale(1); }
 }
 
 .main-menu.hide {
-    animation: menuFadeOut 0.5s ease-out forwards;
+    opacity: 0;
+    transform: scale(1.08);
+    pointer-events: none;
+    transition: opacity 0.35s cubic-bezier(0.55, 0.06, 0.68, 0.19),
+                transform 0.35s cubic-bezier(0.55, 0.06, 0.68, 0.19);
 }
 
 @keyframes menuFadeOut {
     from { opacity: 1; transform: scale(1); }
-    to { opacity: 0; transform: scale(1.05); pointer-events: none; }
+    to { opacity: 0; transform: scale(1.08); pointer-events: none; }
 }
 
 .main-menu-content {
@@ -4102,6 +4491,20 @@ body {
     width: 90%;
     /* GPU-ускорение */
     transform: translateZ(0);
+    will-change: transform, opacity;
+    /* Плавное появление содержимого */
+    animation: contentFadeIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+@keyframes contentFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .menu-logo {
@@ -4182,9 +4585,15 @@ body {
     font-weight: 900;
     color: #333;
     cursor: pointer;
-    transition: all 0.3s ease;
+    /* Плавные переходы */
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.3s ease,
+                background 0.3s ease;
     box-shadow: 0 8px 30px rgba(255, 165, 0, 0.5);
     text-transform: uppercase;
+    /* Ripple эффект */
+    position: relative;
+    overflow: hidden;
     letter-spacing: 3px;
     animation: playBtnPulse 2s ease-in-out infinite;
 }
@@ -4195,14 +4604,37 @@ body {
 }
 
 .menu-play-btn:hover {
-    transform: scale(1.05);
+    transform: scale(1.05) translateZ(0);
     box-shadow: 0 15px 50px rgba(255, 165, 0, 0.8);
 }
 
 .menu-play-btn:active {
-    transform: scale(0.95);
-    transition: transform 0.1s ease;
+    transform: scale(0.92) translateZ(0);
+    transition: transform 0.08s ease;
     box-shadow: 0 4px 15px rgba(255, 165, 0, 0.4);
+}
+
+/* Ripple эффект для кнопки Play */
+.menu-play-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.5s ease, height 0.5s ease, opacity 0.5s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.menu-play-btn:active::after {
+    width: 300px;
+    height: 300px;
+    opacity: 1;
+    transition: width 0s, height 0s, opacity 0s;
 }
 
 .play-icon {
@@ -4223,27 +4655,59 @@ body {
     font-weight: 600;
     color: rgba(255, 255, 255, 0.9);
     cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+    /* Плавные переходы */
+    transition: background 0.25s ease, 
+                border-color 0.25s ease, 
+                transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.25s ease;
     /* GPU-ускорение и плавность */
     transform: translateZ(0);
-    will-change: transform;
+    will-change: transform, background;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     user-select: none;
+    /* Для ripple */
+    position: relative;
+    overflow: hidden;
 }
 
 .menu-secondary-btn:hover {
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.4);
-    transform: translateY(-2px);
+    transform: translateY(-3px) translateZ(0);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
 .menu-secondary-btn:active {
-    transform: scale(0.95);
-    transition: transform 0.1s ease;
+    transform: scale(0.93) translateZ(0);
+    transition: transform 0.08s ease;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* Ripple эффект */
+.menu-secondary-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease, opacity 0.4s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.menu-secondary-btn:active::after {
+    width: 200px;
+    height: 200px;
+    opacity: 1;
+    transition: width 0s, height 0s, opacity 0s;
 }
 
 .menu-stats-preview {
@@ -4819,9 +5283,11 @@ body.no-particles .element-legendary .pokemon-sprite {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 12px;
     border: 2px solid transparent;
-    transition: all 0.3s ease;
-    cursor: default;
+    transition: transform 0.1s ease, background 0.1s ease, box-shadow 0.1s ease;
+    cursor: pointer;
     gap: 12px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .achievement-item.unlocked {
@@ -5370,25 +5836,25 @@ body.no-particles .element-legendary .pokemon-sprite {
 .leaderboard-btn-container {
     display: flex;
     justify-content: center;
-    margin-top: 15px;
+    margin-top: 10px;
 }
 
 .leaderboard-toggle-btn {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 24px;
-    min-height: 44px;
-    min-width: 44px;
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    gap: 8px;
+    padding: 10px 18px;
+    min-height: 40px;
+    min-width: 40px;
+    background: linear-gradient(135deg, #3B5BA7 0%, #2A75BB 100%);
     border: none;
-    border-radius: 12px;
-    font-size: 16px;
+    border-radius: 10px;
+    font-size: 14px;
     font-weight: bold;
-    color: #333;
+    color: #fff;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+    box-shadow: 0 3px 12px rgba(59, 91, 167, 0.4);
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     will-change: transform;
@@ -5398,20 +5864,21 @@ body.no-particles .element-legendary .pokemon-sprite {
 
 .leaderboard-toggle-btn:hover {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 6px 25px rgba(255, 215, 0, 0.6);
+    box-shadow: 0 6px 20px rgba(59, 91, 167, 0.5);
 }
 
 .leaderboard-toggle-btn:active {
-    transform: scale(0.95);
-    box-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    transform: scale(0.93);
+    box-shadow: 0 2px 8px rgba(59, 91, 167, 0.3);
+    transition: transform 0.08s ease, box-shadow 0.1s ease;
 }
 
 .best-score-badge {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 14px;
+    background: rgba(255, 203, 5, 0.9);
+    color: #333;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 12px;
     font-weight: bold;
 }
 
@@ -5433,7 +5900,6 @@ body.no-particles .element-legendary .pokemon-sprite {
     visibility: hidden;
     pointer-events: none;
     transition: opacity 0.3s ease, visibility 0.3s ease;
-    touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -5531,7 +5997,6 @@ body.no-particles .element-legendary .pokemon-sprite {
     max-height: 400px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
 }
 
 .leaderboard-list::-webkit-scrollbar {
@@ -5970,4 +6435,102 @@ body.no-particles .element-legendary .pokemon-sprite {
         width: 65px;
         height: 65px;
     }
+}
+
+/* ============================================
+   ГЛОБАЛЬНЫЕ МОБИЛЬНЫЕ ОПТИМИЗАЦИИ
+   ============================================ */
+
+/* Оптимизации для тач-устройств (iPhone, Android) */
+@media (hover: none) and (pointer: coarse) {
+    /* Отключаем hover эффекты на тач-устройствах */
+    * {
+        -webkit-tap-highlight-color: transparent !important;
+    }
+    
+    /* Быстрый отклик на все интерактивные элементы */
+    button, a, .clickable, [onclick] {
+        touch-action: manipulation;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    
+    /* Плавные переходы для всех анимированных элементов */
+    .tile, .menu-panel, .menu-panel-content, .lang-dropdown, 
+    .bottom-nav, .nav-item, .web3-btn, .menu-play-btn, .menu-secondary-btn {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
+    
+    /* Ускоренные тапы для кнопок */
+    .menu-play-btn:active,
+    .menu-secondary-btn:active,
+    .nav-item:active,
+    .web3-btn:active {
+        transition-duration: 0.08s !important;
+    }
+    
+    /* Предотвращение случайного зума */
+    input, select, textarea {
+        font-size: 16px !important; /* iOS не зумит при 16px+ */
+    }
+}
+
+/* Оптимизации для iOS Safari */
+@supports (-webkit-touch-callout: none) {
+    body {
+        /* Предотвращаем bounce эффект */
+        overscroll-behavior-y: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Безопасные области для iPhone X+ */
+    .bottom-nav {
+        padding-bottom: max(10px, env(safe-area-inset-bottom)) !important;
+    }
+    
+    .main-menu {
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+}
+
+/* Оптимизации для Android */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    /* Оптимизация скролла */
+    .menu-panel-content,
+    .profile-body,
+    .tutorial-body,
+    .settings-body,
+    .gm-body,
+    .leaderboard-list {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+}
+
+/* Оптимизации производительности анимаций */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* GPU-ускорение для часто анимируемых элементов */
+.tile,
+.menu-panel,
+.menu-panel-content,
+.lang-dropdown,
+.bottom-nav,
+.nav-item,
+.menu-play-btn,
+.menu-secondary-btn,
+.web3-btn,
+.pokemon-sprite {
+    will-change: transform, opacity;
+    contain: layout style paint;
 }

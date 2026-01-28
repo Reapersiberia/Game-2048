@@ -434,22 +434,15 @@
 
     <div class="container">
         <h1>2048</h1>
-        <div class="score-container">
-            <div class="score-box">
-                <div class="score-label">Score</div>
-                <div class="score-value" id="score">0</div>
-            </div>
-            <button class="new-game-btn" onclick="game.newGame()">New Game</button>
-        </div>
-
-        <!-- GM Counter -->
+        
+        <!-- GM Counter наверху -->
         <div class="gm-counter-container">
             <div class="gm-counter-box">
                 <div class="gm-counter-icon">
                     <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif" 
                          alt="Pikachu" 
                          class="gm-pokemon-sprite"
-                         onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif'; this.onerror=function(){this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png'; this.onerror=null;}">
+                         onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png';">
                 </div>
                 <div class="gm-counter-content">
                     <div class="gm-counter-label">GM Count</div>
@@ -474,8 +467,21 @@
                 <span class="btn-text">Test</span>
             </button>
         </div>
+
         <div id="web3-status" class="web3-status"></div>
         <div id="wallet-info" class="wallet-info"></div>
+
+        <!-- Панель перед игрой -->
+        <div class="game-controls-panel">
+            <button class="new-game-btn" onclick="game.newGame()">New Game</button>
+            <div class="controls-row">
+                <div class="element-indicator" id="element-indicator">⭐ NORMAL</div>
+                <div class="score-box-small">
+                    <div class="score-label">Score</div>
+                    <div class="score-value" id="score">0</div>
+                </div>
+            </div>
+        </div>
 
         <div class="game-container">
             <div class="grid-container" id="grid"></div>

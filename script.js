@@ -108,6 +108,7 @@ class Game2048 {
                 window.achievementSystem.checkElementAchievement(element.type);
             }
         }
+        
         return element;
     }
     
@@ -480,18 +481,11 @@ class Game2048 {
     
     // Обновить индикатор текущей стихии
     updateElementIndicator(element) {
-        let indicator = document.getElementById('element-indicator');
-        if (!indicator) {
-            indicator = document.createElement('div');
-            indicator.id = 'element-indicator';
-            indicator.className = 'element-indicator';
-            const scoreContainer = document.querySelector('.score-container');
-            if (scoreContainer) {
-                scoreContainer.appendChild(indicator);
-            }
+        const indicator = document.getElementById('element-indicator');
+        if (indicator) {
+            indicator.className = `element-indicator element-indicator-${element.type}`;
+            indicator.textContent = `${element.emoji} ${element.type.toUpperCase()}`;
         }
-        indicator.className = `element-indicator element-indicator-${element.type}`;
-        indicator.innerHTML = `<span class="indicator-emoji">${element.emoji}</span><span class="indicator-name">${element.type.toUpperCase()}</span>`;
     }
     
     // Эмодзи для стихий
@@ -2998,18 +2992,33 @@ function getLastGMTx() {
 
 // GM function - автоматический без popup'ов для Base MiniApp
 async function sendGM() {
+    console.log('🌞 sendGM called');
     const btn = document.getElementById('gm-btn');
+    const gmSendBtn = document.querySelector('.gm-send-btn'); // Кнопка в панели GM
+    
+    // Визуальный feedback при нажатии
+    if (btn) {
+        btn.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            btn.style.transform = '';
+        }, 150);
+    }
     
     // Check if already sent today
     if (!canSendGMToday()) {
+        console.log('GM already sent today');
         showStatus('GM уже отправлен сегодня! ☀️ Приходи завтра!', 'success');
         if (btn) btn.disabled = true;
+        if (gmSendBtn) gmSendBtn.disabled = true;
         return;
     }
     
+    // Отключаем кнопки на время выполнения
     if (btn) btn.disabled = true;
+    if (gmSendBtn) gmSendBtn.disabled = true;
     
     try {
+        console.log('Sending GM...');
         showStatus('Sending GM... ☀️', 'loading');
         
         // Получаем адрес если есть (без запроса)
@@ -3079,9 +3088,31 @@ async function sendGM() {
     } catch (error) {
         console.error('GM Error:', error);
         showStatus('GM Error: ' + (error.message || 'Unknown'), 'error');
+        // Включаем кнопки обратно при ошибке
         if (btn) btn.disabled = false;
+        const gmSendBtn = document.querySelector('.gm-send-btn');
+        if (gmSendBtn) gmSendBtn.disabled = false;
     }
 }
+
+// Также делаем кнопку GM в панели работающей
+window.addEventListener('DOMContentLoaded', () => {
+    // Инициализируем состояние кнопки GM
+    setTimeout(() => {
+        const btn = document.getElementById('gm-btn');
+        const gmSendBtn = document.querySelector('.gm-send-btn');
+        
+        if (!canSendGMToday()) {
+            if (btn) btn.disabled = true;
+            if (gmSendBtn) gmSendBtn.disabled = true;
+        } else {
+            // Убеждаемся что кнопка активна
+            if (btn) btn.disabled = false;
+            if (gmSendBtn) gmSendBtn.disabled = false;
+        }
+        console.log('GM button state initialized, canSend:', canSendGMToday());
+    }, 100);
+});
 
 // Создаем визуальный эффект GM
 function createGMEffect() {
@@ -5124,10 +5155,10 @@ const menuSystem = {
             }
         });
         
-        // Специальные случаи
+        // Специальные случаи - без задержки
         if (tab === 'leaderboard') {
             if (window.leaderboardSystem) {
-                setTimeout(() => leaderboardSystem.showPanel(), 150);
+                leaderboardSystem.showPanel();
             }
             this.currentTab = tab;
             return;
@@ -5135,22 +5166,21 @@ const menuSystem = {
         
         if (tab === 'achievements') {
             if (window.achievementSystem) {
-                setTimeout(() => achievementSystem.showPanel(), 150);
+                achievementSystem.showPanel();
             }
             this.currentTab = tab;
             return;
         }
         
-        // Открываем нужную панель с задержкой для плавности
+        // Открываем нужную панель мгновенно
         const panel = document.getElementById(`${tab}-panel`);
         if (panel) {
-            setTimeout(() => {
-                panel.classList.add('show');
-                
-                // Обновляем данные панели
-                if (tab === 'profile') this.updateProfile();
-                if (tab === 'gm') this.updateGmPanel();
-            }, 150);
+            panel.classList.add('show');
+            
+            // Обновляем данные панели
+            if (tab === 'profile') this.updateProfile();
+            if (tab === 'gm') this.updateGmPanel();
+            
             this.currentTab = tab;
         }
     },
