@@ -3010,19 +3010,17 @@ function getLastGMTx() {
     return localStorage.getItem('gm_last_tx');
 }
 
-// GM function - нулевая транзакция для Base App (автоподключение + gasless)
+// GM function - gasless транзакция для Base App (спонсируется Base)
 async function sendGM() {
     console.log('🌞 sendGM called');
     const btn = document.getElementById('gm-btn');
     const gmSendBtn = document.querySelector('.gm-send-btn');
     
-    // Визуальный feedback
     if (btn) {
         btn.style.transform = 'scale(0.95)';
         setTimeout(() => btn.style.transform = '', 150);
     }
     
-    // Check if already sent today
     if (!canSendGMToday()) {
         showStatus('GM уже отправлен сегодня! ☀️', 'success');
         if (btn) btn.disabled = true;
@@ -3034,64 +3032,75 @@ async function sendGM() {
     if (gmSendBtn) gmSendBtn.disabled = true;
     
     try {
-        showStatus('Connecting... 🔗', 'loading');
+        showStatus('Signing GM... ☀️', 'loading');
         
-        // Получаем провайдер - приоритет Farcaster SDK (автоподключение в Base App)
+        // Получаем провайдер из Base App / Farcaster SDK
         let ethProvider = null;
         
-        // В Base App кошелек уже подключен через SDK
         if (window.farcasterSDK && window.farcasterSDK.wallet) {
             try {
                 ethProvider = await window.farcasterSDK.wallet.getEthereumProvider();
-                console.log('✅ Using Farcaster/Base App wallet (auto-connected)');
+                console.log('✅ Base App wallet');
             } catch (e) {
-                console.log('Farcaster wallet:', e.message);
+                console.log('Wallet:', e.message);
             }
         }
         
-        // Fallback
         if (!ethProvider && typeof window.ethereum !== 'undefined') {
             ethProvider = window.ethereum;
         }
         
         if (!ethProvider) {
-            throw new Error('Open in Base App or Warpcast');
+            throw new Error('Open in Base App');
         }
         
-        // Получаем аккаунт (в Base App уже подключен)
+        // Получаем аккаунт (автоподключен в Base App)
         let accounts = await ethProvider.request({ method: 'eth_accounts' });
         if (!accounts || accounts.length === 0) {
             accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
         }
         
-        if (!accounts || accounts.length === 0) {
-            throw new Error('No wallet connected');
-        }
-        
         const userAddr = accounts[0];
         console.log('Wallet:', userAddr);
         
-        showStatus('Sign GM transaction... ☀️', 'loading');
+        // GM данные в hex
+        const gmData = '0x' + Array.from('gm').map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
         
-        // Нулевая транзакция GM - 0 ETH, только подпись
-        // data содержит "GM" сообщение в hex
-        const gmMessage = 'gm';
-        const gmData = '0x' + Array.from(gmMessage).map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+        let txHash;
         
-        // Отправляем 0 ETH транзакцию на свой адрес
-        const txHash = await ethProvider.request({
-            method: 'eth_sendTransaction',
-            params: [{
-                from: userAddr,
-                to: userAddr,
-                value: '0x0',
-                data: gmData
-            }]
-        });
+        // Пробуем wallet_sendCalls (EIP-5792) - поддерживает gasless в Base App
+        try {
+            const callId = await ethProvider.request({
+                method: 'wallet_sendCalls',
+                params: [{
+                    version: '1.0',
+                    from: userAddr,
+                    chainId: '0x2105', // Base
+                    calls: [{
+                        to: userAddr,
+                        value: '0x0',
+                        data: gmData
+                    }]
+                }]
+            });
+            txHash = callId;
+            console.log('✅ GM via wallet_sendCalls:', callId);
+        } catch (e) {
+            console.log('wallet_sendCalls not supported, using eth_sendTransaction');
+            // Fallback на обычную транзакцию
+            txHash = await ethProvider.request({
+                method: 'eth_sendTransaction',
+                params: [{
+                    from: userAddr,
+                    to: userAddr,
+                    value: '0x0',
+                    data: gmData
+                }]
+            });
+        }
         
         console.log('✅ GM TX:', txHash);
         
-        // Сохраняем
         let username = window.farcasterUser?.username || window.farcasterUser?.displayName || userAddr.slice(0,6) + '...' + userAddr.slice(-4);
         
         const gmRecord = {
@@ -3195,26 +3204,26 @@ function createGMEffect() {
 // Deploy Contract Function - автоматический без popup'а для Base MiniApp
 // ============================================
 
-// Deploy Contract - нулевая транзакция для Base App
+// Deploy Contract - gasless транзакция для Base App (спонсируется Base)
 async function deployContract() {
     console.log('📜 deployContract called');
     const btn = document.getElementById('deploy-btn');
     if (btn) btn.disabled = true;
     
     try {
-        showStatus('Connecting... 🔗', 'loading');
+        showStatus('Signing deploy... 📜', 'loading');
         
         const currentScore = window.game ? window.game.score : 0;
         
-        // Получаем провайдер - приоритет Farcaster SDK
+        // Получаем провайдер из Base App
         let ethProvider = null;
         
         if (window.farcasterSDK && window.farcasterSDK.wallet) {
             try {
                 ethProvider = await window.farcasterSDK.wallet.getEthereumProvider();
-                console.log('✅ Using Farcaster/Base App wallet');
+                console.log('✅ Base App wallet');
             } catch (e) {
-                console.log('Farcaster wallet:', e.message);
+                console.log('Wallet:', e.message);
             }
         }
         
@@ -3223,42 +3232,51 @@ async function deployContract() {
         }
         
         if (!ethProvider) {
-            throw new Error('Open in Base App or Warpcast');
+            throw new Error('Open in Base App');
         }
         
-        // Получаем аккаунт (автоподключение)
+        // Получаем аккаунт (автоподключен)
         let accounts = await ethProvider.request({ method: 'eth_accounts' });
         if (!accounts || accounts.length === 0) {
             accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
         }
         
-        if (!accounts || accounts.length === 0) {
-            throw new Error('No wallet connected');
-        }
-        
         const userAddr = accounts[0];
         console.log('Wallet:', userAddr);
         
-        showStatus('Sign deploy transaction... 📜', 'loading');
-        
-        // Нулевая транзакция деплоя - отправляем данные контракта
-        // Минимальный байткод который создаст пустой контракт
-        // 0x600080fd = PUSH1 0x00, DUP1, REVERT (минимальный контракт)
-        const minimalBytecode = '0x6000600055'; // PUSH1 0, PUSH1 0, SSTORE (сохраняет 0 в slot 0)
-        
-        // Добавляем score в данные
+        // Минимальный байткод контракта
+        // PUSH1 0x00, PUSH1 0x00, SSTORE, STOP = сохраняет 0 и останавливается
         const scoreHex = currentScore.toString(16).padStart(8, '0');
-        const deployData = minimalBytecode + scoreHex;
+        const deployData = '0x6000600055' + scoreHex;
         
-        // Транзакция создания контракта (to = undefined/null)
-        const txHash = await ethProvider.request({
-            method: 'eth_sendTransaction',
-            params: [{
-                from: userAddr,
-                data: deployData
-                // БЕЗ 'to' = деплой контракта
-            }]
-        });
+        let txHash;
+        
+        // Пробуем wallet_sendCalls (EIP-5792) для gasless деплоя
+        try {
+            const callId = await ethProvider.request({
+                method: 'wallet_sendCalls',
+                params: [{
+                    version: '1.0',
+                    from: userAddr,
+                    chainId: '0x2105', // Base
+                    calls: [{
+                        data: deployData
+                        // Без 'to' = деплой контракта
+                    }]
+                }]
+            });
+            txHash = callId;
+            console.log('✅ Deploy via wallet_sendCalls:', callId);
+        } catch (e) {
+            console.log('wallet_sendCalls not supported, using eth_sendTransaction');
+            txHash = await ethProvider.request({
+                method: 'eth_sendTransaction',
+                params: [{
+                    from: userAddr,
+                    data: deployData
+                }]
+            });
+        }
         
         console.log('✅ Deploy TX:', txHash);
         
