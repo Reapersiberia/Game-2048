@@ -2988,21 +2988,53 @@ function updateGMCounter() {
     }
 }
 
-// Check if GM was already sent today
+// Check if GM can be sent (max 2 per day)
 function canSendGMToday() {
     const today = new Date().toDateString();
     const lastGMDate = localStorage.getItem('gm_last_date');
-    return lastGMDate !== today;
+    const gmTodayCount = parseInt(localStorage.getItem('gm_today_count') || '0');
+    
+    // Если другой день - сбрасываем счётчик
+    if (lastGMDate !== today) {
+        localStorage.setItem('gm_today_count', '0');
+        return true;
+    }
+    
+    // Максимум 2 GM в день
+    return gmTodayCount < 2;
+}
+
+// Get remaining GM count for today
+function getRemainingGMToday() {
+    const today = new Date().toDateString();
+    const lastGMDate = localStorage.getItem('gm_last_date');
+    const gmTodayCount = parseInt(localStorage.getItem('gm_today_count') || '0');
+    
+    if (lastGMDate !== today) {
+        return 2;
+    }
+    return Math.max(0, 2 - gmTodayCount);
 }
 
 // Save GM for today with optional tx hash
 function saveGMToday(txHash) {
     const today = new Date().toDateString();
+    const lastGMDate = localStorage.getItem('gm_last_date');
+    let gmTodayCount = parseInt(localStorage.getItem('gm_today_count') || '0');
+    
+    // Если новый день - сбрасываем счётчик
+    if (lastGMDate !== today) {
+        gmTodayCount = 0;
+    }
+    
+    gmTodayCount++;
     localStorage.setItem('gm_last_date', today);
+    localStorage.setItem('gm_today_count', gmTodayCount.toString());
+    
     if (txHash) {
         localStorage.setItem('gm_last_tx', txHash);
     }
-    incrementGMCount(); // Увеличиваем счетчик
+    incrementGMCount(); // Увеличиваем общий счетчик
 }
 
 // Get last GM transaction hash
@@ -3021,8 +3053,9 @@ async function sendGM() {
         setTimeout(() => btn.style.transform = '', 150);
     }
     
-    if (!canSendGMToday()) {
-        showStatus('GM уже отправлен сегодня! ☀️', 'success');
+    const remaining = getRemainingGMToday();
+    if (remaining <= 0) {
+        showStatus('GM лимит исчерпан! Завтра ещё 2 ☀️', 'success');
         if (btn) btn.disabled = true;
         if (gmSendBtn) gmSendBtn.disabled = true;
         return;
@@ -3063,40 +3096,61 @@ async function sendGM() {
         const userAddr = accounts[0];
         console.log('Wallet:', userAddr);
         
-        // GM данные в hex
-        const gmData = '0x' + Array.from('gm').map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+        // GM данные - просто "gm" в hex
+        const gmData = '0x676d'; // "gm" in hex
         
         let txHash;
         
-        // Пробуем wallet_sendCalls (EIP-5792) - поддерживает gasless в Base App
+        // Используем wallet_sendCalls с capabilities для gasless (Base App спонсирует)
         try {
-            const callId = await ethProvider.request({
+            const result = await ethProvider.request({
                 method: 'wallet_sendCalls',
                 params: [{
                     version: '1.0',
+                    chainId: '0x2105', // Base mainnet
                     from: userAddr,
-                    chainId: '0x2105', // Base
                     calls: [{
+                        to: userAddr,
+                        data: gmData
+                    }],
+                    capabilities: {
+                        paymasterService: {
+                            url: 'https://paymaster.base.org'
+                        }
+                    }
+                }]
+            });
+            txHash = result;
+            console.log('✅ GM gasless:', result);
+        } catch (e) {
+            console.log('Trying without paymaster:', e.message);
+            // Пробуем без capabilities
+            try {
+                const result = await ethProvider.request({
+                    method: 'wallet_sendCalls',
+                    params: [{
+                        version: '1.0',
+                        chainId: '0x2105',
+                        from: userAddr,
+                        calls: [{
+                            to: userAddr,
+                            data: gmData
+                        }]
+                    }]
+                });
+                txHash = result;
+            } catch (e2) {
+                console.log('Fallback to eth_sendTransaction');
+                txHash = await ethProvider.request({
+                    method: 'eth_sendTransaction',
+                    params: [{
+                        from: userAddr,
                         to: userAddr,
                         value: '0x0',
                         data: gmData
                     }]
-                }]
-            });
-            txHash = callId;
-            console.log('✅ GM via wallet_sendCalls:', callId);
-        } catch (e) {
-            console.log('wallet_sendCalls not supported, using eth_sendTransaction');
-            // Fallback на обычную транзакцию
-            txHash = await ethProvider.request({
-                method: 'eth_sendTransaction',
-                params: [{
-                    from: userAddr,
-                    to: userAddr,
-                    value: '0x0',
-                    data: gmData
-                }]
-            });
+                });
+            }
         }
         
         console.log('✅ GM TX:', txHash);
@@ -3119,8 +3173,9 @@ async function sendGM() {
         
         saveGMToday(txHash);
         
+        const newRemaining = getRemainingGMToday();
         const shortHash = txHash.slice(0, 8) + '...' + txHash.slice(-4);
-        showStatus(`GM sent! ☀️ ${shortHash}`, 'success');
+        showStatus(`GM sent! ☀️ (${newRemaining}/2 left)`, 'success');
         
         updateGMCounter();
         
@@ -3131,6 +3186,12 @@ async function sendGM() {
         if (gmLastDate) gmLastDate.textContent = 'Today';
         
         createGMEffect();
+        
+        // Включаем кнопку обратно если ещё есть лимит
+        if (newRemaining > 0) {
+            if (btn) btn.disabled = false;
+            if (gmSendBtn) gmSendBtn.disabled = false;
+        }
         
         console.log('🔗 BaseScan: https://basescan.org/tx/' + txHash);
         
@@ -3154,16 +3215,16 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         const btn = document.getElementById('gm-btn');
         const gmSendBtn = document.querySelector('.gm-send-btn');
+        const remaining = getRemainingGMToday();
         
-        if (!canSendGMToday()) {
+        if (remaining <= 0) {
             if (btn) btn.disabled = true;
             if (gmSendBtn) gmSendBtn.disabled = true;
         } else {
-            // Убеждаемся что кнопка активна
             if (btn) btn.disabled = false;
             if (gmSendBtn) gmSendBtn.disabled = false;
         }
-        console.log('GM button state initialized, canSend:', canSendGMToday());
+        console.log('GM button state initialized, remaining:', remaining);
     }, 100);
 });
 
@@ -3244,38 +3305,58 @@ async function deployContract() {
         const userAddr = accounts[0];
         console.log('Wallet:', userAddr);
         
-        // Минимальный байткод контракта
-        // PUSH1 0x00, PUSH1 0x00, SSTORE, STOP = сохраняет 0 и останавливается
+        // Минимальный байткод контракта для деплоя
         const scoreHex = currentScore.toString(16).padStart(8, '0');
         const deployData = '0x6000600055' + scoreHex;
         
         let txHash;
         
-        // Пробуем wallet_sendCalls (EIP-5792) для gasless деплоя
+        // Используем wallet_sendCalls с paymaster для gasless
         try {
-            const callId = await ethProvider.request({
+            const result = await ethProvider.request({
                 method: 'wallet_sendCalls',
                 params: [{
                     version: '1.0',
+                    chainId: '0x2105',
                     from: userAddr,
-                    chainId: '0x2105', // Base
                     calls: [{
                         data: deployData
                         // Без 'to' = деплой контракта
-                    }]
+                    }],
+                    capabilities: {
+                        paymasterService: {
+                            url: 'https://paymaster.base.org'
+                        }
+                    }
                 }]
             });
-            txHash = callId;
-            console.log('✅ Deploy via wallet_sendCalls:', callId);
+            txHash = result;
+            console.log('✅ Deploy gasless:', result);
         } catch (e) {
-            console.log('wallet_sendCalls not supported, using eth_sendTransaction');
-            txHash = await ethProvider.request({
-                method: 'eth_sendTransaction',
-                params: [{
-                    from: userAddr,
-                    data: deployData
-                }]
-            });
+            console.log('Trying without paymaster:', e.message);
+            try {
+                const result = await ethProvider.request({
+                    method: 'wallet_sendCalls',
+                    params: [{
+                        version: '1.0',
+                        chainId: '0x2105',
+                        from: userAddr,
+                        calls: [{
+                            data: deployData
+                        }]
+                    }]
+                });
+                txHash = result;
+            } catch (e2) {
+                console.log('Fallback to eth_sendTransaction');
+                txHash = await ethProvider.request({
+                    method: 'eth_sendTransaction',
+                    params: [{
+                        from: userAddr,
+                        data: deployData
+                    }]
+                });
+            }
         }
         
         console.log('✅ Deploy TX:', txHash);
@@ -4605,8 +4686,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         clearStatus();
     }, 500);
     
-    // Check if GM was already sent today - disable button
-    if (!canSendGMToday()) {
+    // Check if GM limit reached - disable button
+    if (getRemainingGMToday() <= 0) {
         const btn = document.getElementById('gm-btn');
         if (btn) {
             btn.disabled = true;
