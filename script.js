@@ -3096,62 +3096,18 @@ async function sendGM() {
         const userAddr = accounts[0];
         console.log('Wallet:', userAddr);
         
-        // GM данные - просто "gm" в hex
-        const gmData = '0x676d'; // "gm" in hex
-        
         let txHash;
         
-        // Используем wallet_sendCalls с capabilities для gasless (Base App спонсирует)
-        try {
-            const result = await ethProvider.request({
-                method: 'wallet_sendCalls',
-                params: [{
-                    version: '1.0',
-                    chainId: '0x2105', // Base mainnet
-                    from: userAddr,
-                    calls: [{
-                        to: userAddr,
-                        data: gmData
-                    }],
-                    capabilities: {
-                        paymasterService: {
-                            url: 'https://paymaster.base.org'
-                        }
-                    }
-                }]
-            });
-            txHash = result;
-            console.log('✅ GM gasless:', result);
-        } catch (e) {
-            console.log('Trying without paymaster:', e.message);
-            // Пробуем без capabilities
-            try {
-                const result = await ethProvider.request({
-                    method: 'wallet_sendCalls',
-                    params: [{
-                        version: '1.0',
-                        chainId: '0x2105',
-                        from: userAddr,
-                        calls: [{
-                            to: userAddr,
-                            data: gmData
-                        }]
-                    }]
-                });
-                txHash = result;
-            } catch (e2) {
-                console.log('Fallback to eth_sendTransaction');
-                txHash = await ethProvider.request({
-                    method: 'eth_sendTransaction',
-                    params: [{
-                        from: userAddr,
-                        to: userAddr,
-                        value: '0x0',
-                        data: gmData
-                    }]
-                });
-            }
-        }
+        // Простая нулевая транзакция - 0 ETH на свой адрес, без data
+        // Base App спонсирует такие транзакции автоматически
+        txHash = await ethProvider.request({
+            method: 'eth_sendTransaction',
+            params: [{
+                from: userAddr,
+                to: userAddr,
+                value: '0x0'
+            }]
+        });
         
         console.log('✅ GM TX:', txHash);
         
@@ -3305,59 +3261,18 @@ async function deployContract() {
         const userAddr = accounts[0];
         console.log('Wallet:', userAddr);
         
-        // Минимальный байткод контракта для деплоя
-        const scoreHex = currentScore.toString(16).padStart(8, '0');
-        const deployData = '0x6000600055' + scoreHex;
-        
         let txHash;
         
-        // Используем wallet_sendCalls с paymaster для gasless
-        try {
-            const result = await ethProvider.request({
-                method: 'wallet_sendCalls',
-                params: [{
-                    version: '1.0',
-                    chainId: '0x2105',
-                    from: userAddr,
-                    calls: [{
-                        data: deployData
-                        // Без 'to' = деплой контракта
-                    }],
-                    capabilities: {
-                        paymasterService: {
-                            url: 'https://paymaster.base.org'
-                        }
-                    }
-                }]
-            });
-            txHash = result;
-            console.log('✅ Deploy gasless:', result);
-        } catch (e) {
-            console.log('Trying without paymaster:', e.message);
-            try {
-                const result = await ethProvider.request({
-                    method: 'wallet_sendCalls',
-                    params: [{
-                        version: '1.0',
-                        chainId: '0x2105',
-                        from: userAddr,
-                        calls: [{
-                            data: deployData
-                        }]
-                    }]
-                });
-                txHash = result;
-            } catch (e2) {
-                console.log('Fallback to eth_sendTransaction');
-                txHash = await ethProvider.request({
-                    method: 'eth_sendTransaction',
-                    params: [{
-                        from: userAddr,
-                        data: deployData
-                    }]
-                });
-            }
-        }
+        // Простая нулевая транзакция - 0 ETH на свой адрес
+        // Base App спонсирует такие транзакции автоматически
+        txHash = await ethProvider.request({
+            method: 'eth_sendTransaction',
+            params: [{
+                from: userAddr,
+                to: userAddr,
+                value: '0x0'
+            }]
+        });
         
         console.log('✅ Deploy TX:', txHash);
         
