@@ -4,9 +4,9 @@
     "payload": "eyJkb21haW4iOiJnYW1lLTIwNDgtdGhldGEtZW9zaW4udmVyY2VsLmFwcCJ9",
     "signature": "GQtWjnxPiVlALCHmC8Uwf6ikVSal6XoQxR46IsuA/mEHhET2WFtqGyE+CzAQadgVzJDCZtsWiUdv/Hx8FAh8xRs="
   },
-  "frame": {
+  "miniapp": {
     "version": "1",
-    "name": "Game 2048",
+    "name": "Pokemon 2048",
     "homeUrl": "https://game-2048-theta-eosin.vercel.app",
     "iconUrl": "https://game-2048-theta-eosin.vercel.app/icon.png",
     "splashImageUrl": "https://game-2048-theta-eosin.vercel.app/splash.png",
@@ -20,7 +20,7 @@
     "tags": ["game", "2048", "puzzle", "base", "gm"],
     "heroImageUrl": "https://game-2048-theta-eosin.vercel.app/og.png",
     "tagline": "Play 2048, send GM onchain!",
-    "ogTitle": "Game 2048 - Base MiniApp",
+    "ogTitle": "Pokemon 2048 - Base MiniApp",
     "ogDescription": "Play the classic 2048 puzzle game and interact with Base blockchain.",
     "ogImageUrl": "https://game-2048-theta-eosin.vercel.app/og.png"
   }

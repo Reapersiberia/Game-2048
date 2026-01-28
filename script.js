@@ -2675,23 +2675,43 @@ function updateUserDisplay() {
     tryAutoConnectWallet();
 }
 
-// Автоподключение кошелька
+// Автоподключение кошелька - приоритет Base App / Farcaster SDK
 async function tryAutoConnectWallet() {
-    if (typeof window.ethereum !== 'undefined') {
-        try {
-            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    try {
+        let ethProvider = null;
+        
+        // Приоритет 1: Farcaster SDK (Base App)
+        if (window.farcasterSDK && window.farcasterSDK.wallet) {
+            try {
+                ethProvider = await window.farcasterSDK.wallet.getEthereumProvider();
+                console.log('✅ Base App wallet provider detected');
+            } catch (e) {
+                console.log('Farcaster wallet init:', e.message);
+            }
+        }
+        
+        // Приоритет 2: window.ethereum
+        if (!ethProvider && typeof window.ethereum !== 'undefined') {
+            ethProvider = window.ethereum;
+        }
+        
+        if (ethProvider) {
+            // Пробуем получить уже подключенные аккаунты (без popup)
+            const accounts = await ethProvider.request({ method: 'eth_accounts' });
             if (accounts && accounts.length > 0) {
                 userAddress = accounts[0];
-                console.log('Auto-connected wallet:', userAddress.slice(0, 10) + '...');
+                console.log('✅ Auto-connected wallet:', userAddress.slice(0, 8) + '...');
                 
-                // Обновляем UI если нет Farcaster пользователя
                 if (!window.farcasterUser) {
                     showWalletInfo(userAddress);
                 }
+                
+                // Сохраняем провайдер глобально
+                window.connectedProvider = ethProvider;
             }
-        } catch (e) {
-            console.log('Auto-connect failed:', e.message);
         }
+    } catch (e) {
+        console.log('Auto-connect:', e.message);
     }
 }
 
@@ -2990,107 +3010,131 @@ function getLastGMTx() {
     return localStorage.getItem('gm_last_tx');
 }
 
-// GM function - автоматический без popup'ов для Base MiniApp
+// GM function - нулевая транзакция для Base App (автоподключение + gasless)
 async function sendGM() {
     console.log('🌞 sendGM called');
     const btn = document.getElementById('gm-btn');
-    const gmSendBtn = document.querySelector('.gm-send-btn'); // Кнопка в панели GM
+    const gmSendBtn = document.querySelector('.gm-send-btn');
     
-    // Визуальный feedback при нажатии
+    // Визуальный feedback
     if (btn) {
         btn.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-            btn.style.transform = '';
-        }, 150);
+        setTimeout(() => btn.style.transform = '', 150);
     }
     
     // Check if already sent today
     if (!canSendGMToday()) {
-        console.log('GM already sent today');
-        showStatus('GM уже отправлен сегодня! ☀️ Приходи завтра!', 'success');
+        showStatus('GM уже отправлен сегодня! ☀️', 'success');
         if (btn) btn.disabled = true;
         if (gmSendBtn) gmSendBtn.disabled = true;
         return;
     }
     
-    // Отключаем кнопки на время выполнения
     if (btn) btn.disabled = true;
     if (gmSendBtn) gmSendBtn.disabled = true;
     
     try {
-        console.log('Sending GM...');
-        showStatus('Sending GM... ☀️', 'loading');
+        showStatus('Connecting... 🔗', 'loading');
         
-        // Получаем адрес если есть (без запроса)
-        let userAddr = userAddress;
-        if (!userAddr && typeof window.ethereum !== 'undefined') {
+        // Получаем провайдер - приоритет Farcaster SDK (автоподключение в Base App)
+        let ethProvider = null;
+        
+        // В Base App кошелек уже подключен через SDK
+        if (window.farcasterSDK && window.farcasterSDK.wallet) {
             try {
-                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                if (accounts && accounts.length > 0) {
-                    userAddr = accounts[0];
-                }
+                ethProvider = await window.farcasterSDK.wallet.getEthereumProvider();
+                console.log('✅ Using Farcaster/Base App wallet (auto-connected)');
             } catch (e) {
-                console.log('Could not get accounts:', e.message);
+                console.log('Farcaster wallet:', e.message);
             }
         }
         
-        // Получаем имя пользователя
-        let username = 'Anonymous';
-        if (window.farcasterUser) {
-            username = window.farcasterUser.username || window.farcasterUser.displayName || 'Farcaster User';
-        } else if (userAddr) {
-            username = userAddr.slice(0, 6) + '...' + userAddr.slice(-4);
+        // Fallback
+        if (!ethProvider && typeof window.ethereum !== 'undefined') {
+            ethProvider = window.ethereum;
         }
         
-        // Создаем GM запись
-        const today = new Date().toISOString().split('T')[0];
+        if (!ethProvider) {
+            throw new Error('Open in Base App or Warpcast');
+        }
+        
+        // Получаем аккаунт (в Base App уже подключен)
+        let accounts = await ethProvider.request({ method: 'eth_accounts' });
+        if (!accounts || accounts.length === 0) {
+            accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
+        }
+        
+        if (!accounts || accounts.length === 0) {
+            throw new Error('No wallet connected');
+        }
+        
+        const userAddr = accounts[0];
+        console.log('Wallet:', userAddr);
+        
+        showStatus('Sign GM transaction... ☀️', 'loading');
+        
+        // Нулевая транзакция GM - 0 ETH, только подпись
+        // data содержит "GM" сообщение в hex
+        const gmMessage = 'gm';
+        const gmData = '0x' + Array.from(gmMessage).map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+        
+        // Отправляем 0 ETH транзакцию на свой адрес
+        const txHash = await ethProvider.request({
+            method: 'eth_sendTransaction',
+            params: [{
+                from: userAddr,
+                to: userAddr,
+                value: '0x0',
+                data: gmData
+            }]
+        });
+        
+        console.log('✅ GM TX:', txHash);
+        
+        // Сохраняем
+        let username = window.farcasterUser?.username || window.farcasterUser?.displayName || userAddr.slice(0,6) + '...' + userAddr.slice(-4);
+        
         const gmRecord = {
-            date: today,
+            date: new Date().toISOString().split('T')[0],
             timestamp: Date.now(),
             user: username,
-            address: userAddr || 'local',
+            address: userAddr,
+            txHash: txHash,
             network: 'Base'
         };
         
-        // Сохраняем GM локально
         const gmHistory = JSON.parse(localStorage.getItem('gm_history') || '[]');
         gmHistory.unshift(gmRecord);
         if (gmHistory.length > 30) gmHistory.pop();
         localStorage.setItem('gm_history', JSON.stringify(gmHistory));
         
-        // Анимация успеха
-        await new Promise(r => setTimeout(r, 500));
+        saveGMToday(txHash);
         
-        // Сохраняем успешный GM
-        saveGMToday('local-' + Date.now());
+        const shortHash = txHash.slice(0, 8) + '...' + txHash.slice(-4);
+        showStatus(`GM sent! ☀️ ${shortHash}`, 'success');
         
-        // Показываем успех
-        showStatus(`GM sent! ☀️ Hello ${username}!`, 'success');
-        
-        // Обновляем UI
         updateGMCounter();
         
-        // Обновляем панель GM если открыта
         const gmPanelValue = document.getElementById('gm-panel-value');
-        if (gmPanelValue) {
-            gmPanelValue.textContent = getGMCount();
-        }
-        const gmLastDate = document.getElementById('gm-last-date');
-        if (gmLastDate) {
-            gmLastDate.textContent = 'Today';
-        }
+        if (gmPanelValue) gmPanelValue.textContent = getGMCount();
         
-        // Создаем визуальный эффект
+        const gmLastDate = document.getElementById('gm-last-date');
+        if (gmLastDate) gmLastDate.textContent = 'Today';
+        
         createGMEffect();
         
-        console.log('GM sent successfully:', gmRecord);
+        console.log('🔗 BaseScan: https://basescan.org/tx/' + txHash);
         
     } catch (error) {
         console.error('GM Error:', error);
-        showStatus('GM Error: ' + (error.message || 'Unknown'), 'error');
-        // Включаем кнопки обратно при ошибке
+        
+        if (error.code === 4001 || error.message?.includes('rejected') || error.message?.includes('denied')) {
+            showStatus('Cancelled', 'error');
+        } else {
+            showStatus('Error: ' + (error.message || 'Unknown'), 'error');
+        }
+        
         if (btn) btn.disabled = false;
-        const gmSendBtn = document.querySelector('.gm-send-btn');
         if (gmSendBtn) gmSendBtn.disabled = false;
     }
 }
@@ -3151,40 +3195,82 @@ function createGMEffect() {
 // Deploy Contract Function - автоматический без popup'а для Base MiniApp
 // ============================================
 
+// Deploy Contract - нулевая транзакция для Base App
 async function deployContract() {
+    console.log('📜 deployContract called');
     const btn = document.getElementById('deploy-btn');
     if (btn) btn.disabled = true;
     
     try {
-        showStatus('Deploying contract... 📜', 'loading');
+        showStatus('Connecting... 🔗', 'loading');
         
         const currentScore = window.game ? window.game.score : 0;
         
-        // Получаем имя пользователя
-        let username = 'Anonymous';
-        if (window.farcasterUser) {
-            username = window.farcasterUser.username || window.farcasterUser.displayName || 'Farcaster User';
-        } else if (userAddress) {
-            username = userAddress.slice(0, 6) + '...' + userAddress.slice(-4);
+        // Получаем провайдер - приоритет Farcaster SDK
+        let ethProvider = null;
+        
+        if (window.farcasterSDK && window.farcasterSDK.wallet) {
+            try {
+                ethProvider = await window.farcasterSDK.wallet.getEthereumProvider();
+                console.log('✅ Using Farcaster/Base App wallet');
+            } catch (e) {
+                console.log('Farcaster wallet:', e.message);
+            }
         }
         
-        // Анимация "деплоя"
-        await new Promise(r => setTimeout(r, 800));
+        if (!ethProvider && typeof window.ethereum !== 'undefined') {
+            ethProvider = window.ethereum;
+        }
         
-        // Генерируем "адрес контракта" на основе score и времени
-        const timestamp = Date.now();
-        const hash = '0x' + Array.from({length: 40}, () => 
-            '0123456789abcdef'[Math.floor(Math.random() * 16)]
-        ).join('');
+        if (!ethProvider) {
+            throw new Error('Open in Base App or Warpcast');
+        }
         
-        // Сохраняем деплой локально
+        // Получаем аккаунт (автоподключение)
+        let accounts = await ethProvider.request({ method: 'eth_accounts' });
+        if (!accounts || accounts.length === 0) {
+            accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
+        }
+        
+        if (!accounts || accounts.length === 0) {
+            throw new Error('No wallet connected');
+        }
+        
+        const userAddr = accounts[0];
+        console.log('Wallet:', userAddr);
+        
+        showStatus('Sign deploy transaction... 📜', 'loading');
+        
+        // Нулевая транзакция деплоя - отправляем данные контракта
+        // Минимальный байткод который создаст пустой контракт
+        // 0x600080fd = PUSH1 0x00, DUP1, REVERT (минимальный контракт)
+        const minimalBytecode = '0x6000600055'; // PUSH1 0, PUSH1 0, SSTORE (сохраняет 0 в slot 0)
+        
+        // Добавляем score в данные
+        const scoreHex = currentScore.toString(16).padStart(8, '0');
+        const deployData = minimalBytecode + scoreHex;
+        
+        // Транзакция создания контракта (to = undefined/null)
+        const txHash = await ethProvider.request({
+            method: 'eth_sendTransaction',
+            params: [{
+                from: userAddr,
+                data: deployData
+                // БЕЗ 'to' = деплой контракта
+            }]
+        });
+        
+        console.log('✅ Deploy TX:', txHash);
+        
+        let username = window.farcasterUser?.username || window.farcasterUser?.displayName || userAddr.slice(0,6) + '...' + userAddr.slice(-4);
+        
         const deployRecord = {
-            contractAddress: hash,
+            txHash: txHash,
             score: currentScore,
             user: username,
-            timestamp: timestamp,
-            network: 'Base',
-            date: new Date().toISOString()
+            address: userAddr,
+            timestamp: Date.now(),
+            network: 'Base'
         };
         
         const deployHistory = JSON.parse(localStorage.getItem('deploy_history') || '[]');
@@ -3192,23 +3278,21 @@ async function deployContract() {
         if (deployHistory.length > 10) deployHistory.pop();
         localStorage.setItem('deploy_history', JSON.stringify(deployHistory));
         
-        // Показываем успех
-        const shortHash = hash.slice(0, 10) + '...' + hash.slice(-6);
-        showStatus(`Deployed! ${shortHash}`, 'success');
+        const shortHash = txHash.slice(0, 8) + '...' + txHash.slice(-4);
+        showStatus(`Deployed! 📜 ${shortHash}`, 'success');
         
-        // Создаем визуальный эффект
         createDeployEffect();
         
-        console.log('Contract deployed (simulation):', deployRecord);
-        
-        // Достижение за деплой (если есть)
-        if (window.achievementSystem) {
-            // Можно добавить достижение за деплой
-        }
+        console.log('🔗 BaseScan: https://basescan.org/tx/' + txHash);
         
     } catch (error) {
         console.error('Deploy Error:', error);
-        showStatus('Deploy Error: ' + (error.message || 'Unknown'), 'error');
+        
+        if (error.code === 4001 || error.message?.includes('rejected') || error.message?.includes('denied')) {
+            showStatus('Cancelled', 'error');
+        } else {
+            showStatus('Error: ' + (error.message || 'Unknown'), 'error');
+        }
     } finally {
         if (btn) btn.disabled = false;
     }

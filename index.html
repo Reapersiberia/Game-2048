@@ -890,21 +890,38 @@
     
     <!-- Farcaster MiniApp SDK -->
     <script type="module">
-        import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk@0.1.10';
+        import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk@0.2.2';
         window.farcasterSDK = sdk;
         
         // Initialize SDK and get user context
         (async () => {
             try {
                 await sdk.actions.ready();
-                console.log('Farcaster SDK ready');
+                console.log('✅ Farcaster SDK ready');
+                
+                // Автоподключение кошелька в Base App
+                if (sdk.wallet) {
+                    try {
+                        const ethProvider = await sdk.wallet.getEthereumProvider();
+                        window.connectedProvider = ethProvider;
+                        
+                        // Получаем адрес (уже подключен в Base App)
+                        const accounts = await ethProvider.request({ method: 'eth_accounts' });
+                        if (accounts && accounts.length > 0) {
+                            window.connectedAddress = accounts[0];
+                            console.log('✅ Wallet auto-connected:', accounts[0].slice(0,8) + '...');
+                        }
+                    } catch (e) {
+                        console.log('Wallet init:', e.message);
+                    }
+                }
                 
                 // Try to get user context
                 if (sdk.context) {
                     const context = await sdk.context;
                     if (context && context.user) {
                         const user = context.user;
-                        console.log('Farcaster user:', user.username || user.displayName);
+                        console.log('✅ Farcaster user:', user.username || user.displayName);
                         window.farcasterUser = user;
                         
                         // Автоматически обновляем UI с информацией о пользователе
