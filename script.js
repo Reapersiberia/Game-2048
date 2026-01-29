@@ -3207,7 +3207,78 @@ function startGMCountdownTimer() {
 
 // Таймер запускается в основной инициализации GM ниже
 
-// GM function - gasless транзакция для Base App (спонсируется Base)
+// Константы сети Base
+const BASE_CHAIN_ID = '0x2105'; // 8453 в hex
+const BASE_CHAIN_CONFIG = {
+    chainId: BASE_CHAIN_ID,
+    chainName: 'Base',
+    nativeCurrency: {
+        name: 'Ethereum',
+        symbol: 'ETH',
+        decimals: 18
+    },
+    rpcUrls: ['https://mainnet.base.org'],
+    blockExplorerUrls: ['https://basescan.org']
+};
+
+// Функция переключения на сеть Base
+async function switchToBase(ethProvider) {
+    try {
+        await ethProvider.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: BASE_CHAIN_ID }]
+        });
+        console.log('✅ Switched to Base network');
+        return true;
+    } catch (switchError) {
+        // Если сеть не добавлена - добавляем её
+        if (switchError.code === 4902) {
+            try {
+                await ethProvider.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [BASE_CHAIN_CONFIG]
+                });
+                console.log('✅ Base network added');
+                return true;
+            } catch (addError) {
+                console.error('Failed to add Base network:', addError);
+                return false;
+            }
+        }
+        console.error('Failed to switch network:', switchError);
+        return false;
+    }
+}
+
+// Получить лучший провайдер для спонсируемых транзакций
+async function getBestProvider() {
+    // 1. Farcaster/Base App (мобильный) - всегда спонсируется
+    if (window.farcasterSDK && window.farcasterSDK.wallet) {
+        try {
+            const provider = await window.farcasterSDK.wallet.getEthereumProvider();
+            console.log('✅ Using Farcaster/Base App (sponsored)');
+            return { provider, type: 'farcaster', sponsored: true };
+        } catch (e) {
+            console.log('Farcaster not available:', e.message);
+        }
+    }
+    
+    // 2. Coinbase Smart Wallet (браузер) - спонсируемые транзакции
+    if (window.coinbaseProvider) {
+        console.log('✅ Using Coinbase Smart Wallet (sponsored)');
+        return { provider: window.coinbaseProvider, type: 'coinbase', sponsored: true };
+    }
+    
+    // 3. Обычный браузерный кошелёк (MetaMask и др.) - не спонсируется
+    if (typeof window.ethereum !== 'undefined') {
+        console.log('⚠️ Using browser wallet (NOT sponsored, needs gas)');
+        return { provider: window.ethereum, type: 'browser', sponsored: false };
+    }
+    
+    return null;
+}
+
+// GM function - спонсируемая транзакция через Coinbase Smart Wallet
 async function sendGM() {
     console.log('🌞 sendGM called');
     const btn = document.getElementById('gm-btn');
@@ -3233,47 +3304,78 @@ async function sendGM() {
     if (gmSendBtn) gmSendBtn.disabled = true;
     
     try {
-        showStatus('Signing GM... ☀️', 'loading');
+        showStatus('Connecting Smart Wallet... 🔗', 'loading');
         
-        // Получаем провайдер из Base App / Farcaster SDK
-        let ethProvider = null;
+        // Получаем лучший провайдер
+        const walletInfo = await getBestProvider();
         
-        if (window.farcasterSDK && window.farcasterSDK.wallet) {
-            try {
-                ethProvider = await window.farcasterSDK.wallet.getEthereumProvider();
-                console.log('✅ Base App wallet');
-            } catch (e) {
-                console.log('Wallet:', e.message);
+        if (!walletInfo) {
+            showStatus('Click to connect Coinbase Smart Wallet 🔵', 'error');
+            if (btn) btn.disabled = false;
+            if (gmSendBtn) gmSendBtn.disabled = false;
+            return;
+        }
+        
+        const ethProvider = walletInfo.provider;
+        const isSponsored = walletInfo.sponsored;
+        
+        // Запрашиваем подключение
+        let accounts;
+        try {
+            accounts = await ethProvider.request({ method: 'eth_accounts' });
+            if (!accounts || accounts.length === 0) {
+                showStatus('Opening wallet...', 'loading');
+                accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
             }
+        } catch (e) {
+            if (e.code === 4001) {
+                showStatus('Connection cancelled', 'error');
+            } else {
+                showStatus('Connect wallet first', 'error');
+            }
+            if (btn) btn.disabled = false;
+            if (gmSendBtn) gmSendBtn.disabled = false;
+            return;
         }
         
-        if (!ethProvider && typeof window.ethereum !== 'undefined') {
-            ethProvider = window.ethereum;
-        }
-        
-        if (!ethProvider) {
-            throw new Error('Open in Base App');
-        }
-        
-        // Получаем аккаунт (автоподключен в Base App)
-        let accounts = await ethProvider.request({ method: 'eth_accounts' });
         if (!accounts || accounts.length === 0) {
-            accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
+            showStatus('Please connect your wallet', 'error');
+            if (btn) btn.disabled = false;
+            if (gmSendBtn) gmSendBtn.disabled = false;
+            return;
         }
         
         const userAddr = accounts[0];
-        console.log('Wallet:', userAddr);
+        console.log('Wallet:', userAddr, '| Sponsored:', isSponsored);
+        
+        // Для обычного браузерного кошелька - проверяем сеть
+        if (walletInfo.type === 'browser') {
+            const chainId = await ethProvider.request({ method: 'eth_chainId' });
+            if (chainId !== BASE_CHAIN_ID) {
+                showStatus('Switching to Base... 🔄', 'loading');
+                const switched = await switchToBase(ethProvider);
+                if (!switched) {
+                    showStatus('Switch to Base network', 'error');
+                    if (btn) btn.disabled = false;
+                    if (gmSendBtn) gmSendBtn.disabled = false;
+                    return;
+                }
+            }
+        }
+        
+        showStatus(isSponsored ? 'Signing GM (FREE)... ☀️' : 'Signing GM... ☀️', 'loading');
         
         let txHash;
         
-        // Простая нулевая транзакция - 0 ETH на свой адрес, без data
-        // Base App спонсирует такие транзакции автоматически
+        // Отправляем нулевую транзакцию
+        // Coinbase Smart Wallet автоматически спонсирует её
         txHash = await ethProvider.request({
             method: 'eth_sendTransaction',
             params: [{
                 from: userAddr,
                 to: userAddr,
-                value: '0x0'
+                value: '0x0',
+                data: '0x'
             }]
         });
         
@@ -3287,7 +3389,8 @@ async function sendGM() {
             user: username,
             address: userAddr,
             txHash: txHash,
-            network: 'Base'
+            network: 'Base',
+            sponsored: isSponsored
         };
         
         const gmHistory = JSON.parse(localStorage.getItem('gm_history') || '[]');
@@ -3299,7 +3402,7 @@ async function sendGM() {
         
         const newRemaining = getRemainingGMToday();
         const shortHash = txHash.slice(0, 8) + '...' + txHash.slice(-4);
-        showStatus(`GM sent! ☀️ (${newRemaining}/2 left)`, 'success');
+        showStatus(`GM sent! ☀️ ${shortHash}${isSponsored ? ' (FREE)' : ''}`, 'success');
         
         updateGMCounter();
         updateGMPanelInfo();
@@ -3324,9 +3427,11 @@ async function sendGM() {
         console.error('GM Error:', error);
         
         if (error.code === 4001 || error.message?.includes('rejected') || error.message?.includes('denied')) {
-            showStatus('Cancelled', 'error');
+            showStatus('Transaction cancelled', 'error');
+        } else if (error.message?.includes('insufficient')) {
+            showStatus('Use Coinbase Smart Wallet for FREE tx', 'error');
         } else {
-            showStatus('Error: ' + (error.message || 'Unknown'), 'error');
+            showStatus('Error: ' + (error.message || 'Try Coinbase Wallet'), 'error');
         }
         
         if (btn) btn.disabled = false;
@@ -3399,56 +3504,82 @@ function createGMEffect() {
 // Deploy Contract Function - автоматический без popup'а для Base MiniApp
 // ============================================
 
-// Deploy Contract - gasless транзакция для Base App (спонсируется Base)
+// Deploy Contract - спонсируемая транзакция через Coinbase Smart Wallet
 async function deployContract() {
     console.log('📜 deployContract called');
     const btn = document.getElementById('deploy-btn');
     if (btn) btn.disabled = true;
     
     try {
-        showStatus('Signing deploy... 📜', 'loading');
+        showStatus('Connecting Smart Wallet... 🔗', 'loading');
         
         const currentScore = window.game ? window.game.score : 0;
         
-        // Получаем провайдер из Base App
-        let ethProvider = null;
+        // Получаем лучший провайдер
+        const walletInfo = await getBestProvider();
         
-        if (window.farcasterSDK && window.farcasterSDK.wallet) {
-            try {
-                ethProvider = await window.farcasterSDK.wallet.getEthereumProvider();
-                console.log('✅ Base App wallet');
-            } catch (e) {
-                console.log('Wallet:', e.message);
+        if (!walletInfo) {
+            showStatus('Click to connect Coinbase Smart Wallet 🔵', 'error');
+            if (btn) btn.disabled = false;
+            return;
+        }
+        
+        const ethProvider = walletInfo.provider;
+        const isSponsored = walletInfo.sponsored;
+        
+        // Запрашиваем подключение
+        let accounts;
+        try {
+            accounts = await ethProvider.request({ method: 'eth_accounts' });
+            if (!accounts || accounts.length === 0) {
+                showStatus('Opening wallet...', 'loading');
+                accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
             }
+        } catch (e) {
+            if (e.code === 4001) {
+                showStatus('Connection cancelled', 'error');
+            } else {
+                showStatus('Connect wallet first', 'error');
+            }
+            if (btn) btn.disabled = false;
+            return;
         }
         
-        if (!ethProvider && typeof window.ethereum !== 'undefined') {
-            ethProvider = window.ethereum;
-        }
-        
-        if (!ethProvider) {
-            throw new Error('Open in Base App');
-        }
-        
-        // Получаем аккаунт (автоподключен)
-        let accounts = await ethProvider.request({ method: 'eth_accounts' });
         if (!accounts || accounts.length === 0) {
-            accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
+            showStatus('Please connect your wallet', 'error');
+            if (btn) btn.disabled = false;
+            return;
         }
         
         const userAddr = accounts[0];
-        console.log('Wallet:', userAddr);
+        console.log('Wallet:', userAddr, '| Sponsored:', isSponsored);
+        
+        // Для обычного браузерного кошелька - проверяем сеть
+        if (walletInfo.type === 'browser') {
+            const chainId = await ethProvider.request({ method: 'eth_chainId' });
+            if (chainId !== BASE_CHAIN_ID) {
+                showStatus('Switching to Base... 🔄', 'loading');
+                const switched = await switchToBase(ethProvider);
+                if (!switched) {
+                    showStatus('Switch to Base network', 'error');
+                    if (btn) btn.disabled = false;
+                    return;
+                }
+            }
+        }
+        
+        showStatus(isSponsored ? 'Signing deploy (FREE)... 📜' : 'Signing deploy... 📜', 'loading');
         
         let txHash;
         
-        // Простая нулевая транзакция - 0 ETH на свой адрес
-        // Base App спонсирует такие транзакции автоматически
+        // Нулевая транзакция - спонсируется Coinbase Smart Wallet
         txHash = await ethProvider.request({
             method: 'eth_sendTransaction',
             params: [{
                 from: userAddr,
                 to: userAddr,
-                value: '0x0'
+                value: '0x0',
+                data: '0x'
             }]
         });
         
@@ -3462,7 +3593,8 @@ async function deployContract() {
             user: username,
             address: userAddr,
             timestamp: Date.now(),
-            network: 'Base'
+            network: 'Base',
+            sponsored: isSponsored
         };
         
         const deployHistory = JSON.parse(localStorage.getItem('deploy_history') || '[]');
@@ -3471,7 +3603,7 @@ async function deployContract() {
         localStorage.setItem('deploy_history', JSON.stringify(deployHistory));
         
         const shortHash = txHash.slice(0, 8) + '...' + txHash.slice(-4);
-        showStatus(`Deployed! 📜 ${shortHash}`, 'success');
+        showStatus(`Deployed! 📜 ${shortHash}${isSponsored ? ' (FREE)' : ''}`, 'success');
         
         createDeployEffect();
         
@@ -3481,9 +3613,11 @@ async function deployContract() {
         console.error('Deploy Error:', error);
         
         if (error.code === 4001 || error.message?.includes('rejected') || error.message?.includes('denied')) {
-            showStatus('Cancelled', 'error');
+            showStatus('Transaction cancelled', 'error');
+        } else if (error.message?.includes('insufficient')) {
+            showStatus('Use Coinbase Smart Wallet for FREE tx', 'error');
         } else {
-            showStatus('Error: ' + (error.message || 'Unknown'), 'error');
+            showStatus('Error: ' + (error.message || 'Try Coinbase Wallet'), 'error');
         }
     } finally {
         if (btn) btn.disabled = false;
@@ -5839,3 +5973,115 @@ document.addEventListener('keydown', (e) => {
 });
 
 window.startGame = startGame;
+
+// ============================================
+// УЛУЧШЕННАЯ ОБРАБОТКА КНОПОК ДЛЯ НОУТБУКОВ
+// ============================================
+// Решает проблему с не работающими кнопками на ноутбуках с тачскрином
+
+(function() {
+    // Флаг для предотвращения двойных срабатываний
+    let isProcessing = false;
+    
+    // Безопасный вызов функции
+    function safeCall(fn, delay = 300) {
+        if (isProcessing) return;
+        isProcessing = true;
+        try {
+            fn();
+        } catch (e) {
+            console.error('Button error:', e);
+        }
+        setTimeout(() => { isProcessing = false; }, delay);
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // Кнопка New Game
+        const newGameBtns = document.querySelectorAll('.new-game-btn, button[onclick*="newGame"]');
+        newGameBtns.forEach(btn => {
+            btn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                safeCall(() => {
+                    if (window.game) {
+                        console.log('🎮 New Game button pressed');
+                        window.game.newGame();
+                    }
+                });
+            }, { passive: false });
+        });
+        
+        // Кнопка GM
+        const gmBtn = document.getElementById('gm-btn');
+        if (gmBtn) {
+            gmBtn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                safeCall(() => {
+                    console.log('☀️ GM button pressed');
+                    sendGM();
+                }, 500);
+            }, { passive: false });
+        }
+        
+        // Кнопка GM в панели
+        const gmSendBtn = document.querySelector('.gm-send-btn');
+        if (gmSendBtn) {
+            gmSendBtn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                safeCall(() => {
+                    console.log('☀️ GM panel button pressed');
+                    sendGM();
+                }, 500);
+            }, { passive: false });
+        }
+        
+        // Кнопка Deploy
+        const deployBtn = document.getElementById('deploy-btn');
+        if (deployBtn) {
+            deployBtn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                safeCall(() => {
+                    console.log('📜 Deploy button pressed');
+                    deployContract();
+                }, 500);
+            }, { passive: false });
+        }
+        
+        // Кнопка Test
+        const testBtn = document.getElementById('test-btn');
+        if (testBtn) {
+            testBtn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                safeCall(() => {
+                    console.log('🔥 Test button pressed');
+                    testElements();
+                });
+            }, { passive: false });
+        }
+        
+        // Кнопка Play Again (Game Over)
+        const playAgainBtns = document.querySelectorAll('.game-over button, .game-over-message button');
+        playAgainBtns.forEach(btn => {
+            btn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                safeCall(() => {
+                    console.log('🎮 Play Again button pressed');
+                    if (window.game) window.game.newGame();
+                });
+            }, { passive: false });
+        });
+        
+        // Кнопка PLAY в главном меню
+        const playBtn = document.querySelector('.menu-play-btn');
+        if (playBtn) {
+            playBtn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                safeCall(() => {
+                    console.log('▶️ PLAY button pressed');
+                    if (typeof startGame === 'function') startGame();
+                });
+            }, { passive: false });
+        }
+        
+        console.log('✅ Enhanced button handlers initialized for laptop compatibility');
+    });
+})();

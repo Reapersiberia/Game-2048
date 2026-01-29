@@ -6591,3 +6591,71 @@ body.no-particles .element-legendary .pokemon-sprite {
     will-change: transform, opacity;
     contain: layout style paint;
 }
+
+/* ============================================ */
+/* ОПТИМИЗАЦИИ ДЛЯ НОУТБУКОВ С ТАЧСКРИНОМ */
+/* ============================================ */
+
+/* Гибридные устройства (ноутбуки с тачскрином) */
+@media (pointer: fine) and (any-pointer: coarse) {
+    /* Увеличиваем область нажатия для кнопок */
+    button, .web3-btn, .menu-play-btn, .menu-secondary-btn, .new-game-btn, .nav-item {
+        min-height: 44px;
+        min-width: 44px;
+        cursor: pointer;
+    }
+}
+
+/* Универсальные стили для кликабельных элементов */
+button, 
+.web3-btn, 
+.menu-play-btn, 
+.menu-secondary-btn, 
+.new-game-btn, 
+.nav-item,
+.gm-send-btn,
+.leaderboard-toggle-btn,
+[onclick] {
+    cursor: pointer !important;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    /* Убираем задержку на всех устройствах */
+    -ms-touch-action: manipulation;
+}
+
+/* Активное состояние кнопок */
+button:active, 
+.web3-btn:active, 
+.menu-play-btn:active, 
+.menu-secondary-btn:active, 
+.new-game-btn:active,
+.gm-send-btn:active {
+    transform: scale(0.95) !important;
+    opacity: 0.9;
+}
+
+/* Убеждаемся что кнопки кликабельны */
+.new-game-btn,
+.web3-btn,
+.gm-send-btn,
+#gm-btn,
+#deploy-btn,
+#test-btn {
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 10;
+}
+
+/* Game controls panel должна быть поверх всего */
+.game-controls-panel {
+    position: relative;
+    z-index: 100;
+}
+
+/* Web3 buttons контейнер */
+.web3-buttons {
+    position: relative;
+    z-index: 100;
+}

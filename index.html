@@ -901,6 +901,34 @@
     <!-- ethers.js для Web3 -->
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
     
+    <!-- Coinbase Wallet SDK для спонсируемых транзакций -->
+    <script src="https://unpkg.com/@coinbase/wallet-sdk@4.3.0/dist/index.umd.js"></script>
+    <script>
+        // Инициализация Coinbase Smart Wallet с Paymaster (спонсируемые транзакции)
+        (function() {
+            try {
+                if (typeof CoinbaseWalletSDK !== 'undefined') {
+                    const sdk = new CoinbaseWalletSDK({
+                        appName: 'Pokemon 2048',
+                        appLogoUrl: 'https://game-2048-theta-eosin.vercel.app/icon.png',
+                        appChainIds: [8453], // Base mainnet
+                    });
+                    
+                    // Создаём провайдер с поддержкой спонсируемых транзакций
+                    const coinbaseProvider = sdk.makeWeb3Provider({
+                        options: 'smartWalletOnly', // Только Smart Wallet (поддерживает paymaster)
+                    });
+                    
+                    window.coinbaseProvider = coinbaseProvider;
+                    window.coinbaseSDK = sdk;
+                    console.log('✅ Coinbase Smart Wallet SDK ready (sponsored txs)');
+                }
+            } catch (e) {
+                console.log('Coinbase SDK init:', e.message);
+            }
+        })();
+    </script>
+    
     <!-- Farcaster MiniApp SDK -->
     <script type="module">
         import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk@0.2.2';
