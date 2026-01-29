@@ -2921,6 +2921,10 @@ async function ensureBaseNetwork() {
 // GM Function - Send onchain GM transaction
 // ============================================
 
+// Константы для GM системы
+const GM_COOLDOWN_MS = 12 * 60 * 60 * 1000; // 12 часов между GM (2 в сутки)
+const GM_MAX_PER_DAY = 2;
+
 // GM Counter Functions
 function getGMCount() {
     const count = localStorage.getItem('gm_total_count');
@@ -2941,10 +2945,83 @@ function incrementGMCount() {
     return newCount;
 }
 
+// Получаем массив timestamps отправленных GM
+function getGMTimestamps() {
+    const data = localStorage.getItem('gm_timestamps');
+    if (!data) {
+        // Миграция старых данных - если есть gm_last_date, создаём timestamp
+        const oldLastDate = localStorage.getItem('gm_last_date');
+        if (oldLastDate) {
+            // Создаём примерный timestamp из старой даты
+            const approxTimestamp = new Date(oldLastDate).getTime() + (12 * 60 * 60 * 1000); // +12 часов
+            localStorage.setItem('gm_timestamps', JSON.stringify([approxTimestamp]));
+            return [approxTimestamp];
+        }
+        return [];
+    }
+    try {
+        return JSON.parse(data);
+    } catch (e) {
+        return [];
+    }
+}
+
+// Сохраняем timestamp нового GM
+function saveGMTimestamp() {
+    const timestamps = getGMTimestamps();
+    timestamps.push(Date.now());
+    // Храним только последние 10 записей
+    if (timestamps.length > 10) timestamps.shift();
+    localStorage.setItem('gm_timestamps', JSON.stringify(timestamps));
+}
+
+// Получаем количество GM за последние 24 часа
+function getGMsInLast24Hours() {
+    const timestamps = getGMTimestamps();
+    const now = Date.now();
+    const oneDayAgo = now - (24 * 60 * 60 * 1000);
+    return timestamps.filter(ts => ts > oneDayAgo).length;
+}
+
+// Получаем время до следующего доступного GM (в мс)
+function getTimeUntilNextGM() {
+    const timestamps = getGMTimestamps();
+    if (timestamps.length === 0) return 0;
+    
+    const now = Date.now();
+    const oneDayAgo = now - (24 * 60 * 60 * 1000);
+    const recentTimestamps = timestamps.filter(ts => ts > oneDayAgo).sort((a, b) => a - b);
+    
+    // Если меньше 2 GM за 24 часа - можно отправлять
+    if (recentTimestamps.length < GM_MAX_PER_DAY) return 0;
+    
+    // Иначе ждём пока самый старый выйдет за пределы 24 часов
+    const oldestRecent = recentTimestamps[0];
+    const timeUntilAvailable = (oldestRecent + (24 * 60 * 60 * 1000)) - now;
+    return Math.max(0, timeUntilAvailable);
+}
+
+// Форматирование времени ожидания
+function formatTimeRemaining(ms) {
+    if (ms <= 0) return 'Ready!';
+    
+    const hours = Math.floor(ms / (60 * 60 * 1000));
+    const minutes = Math.floor((ms % (60 * 60 * 1000)) / (60 * 1000));
+    const seconds = Math.floor((ms % (60 * 1000)) / 1000);
+    
+    if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    } else if (minutes > 0) {
+        return `${minutes}m ${seconds}s`;
+    } else {
+        return `${seconds}s`;
+    }
+}
+
 function getLastGMDate() {
-    const dateStr = localStorage.getItem('gm_last_date');
-    if (!dateStr) return null;
-    return new Date(dateStr);
+    const timestamps = getGMTimestamps();
+    if (timestamps.length === 0) return null;
+    return new Date(timestamps[timestamps.length - 1]);
 }
 
 function formatDate(date) {
@@ -2954,7 +3031,9 @@ function formatDate(date) {
     yesterday.setDate(yesterday.getDate() - 1);
     
     if (date.toDateString() === today.toDateString()) {
-        return 'Today';
+        const hours = date.getHours().toString().padStart(2, '0');
+        const mins = date.getMinutes().toString().padStart(2, '0');
+        return `Today ${hours}:${mins}`;
     } else if (date.toDateString() === yesterday.toDateString()) {
         return 'Yesterday';
     } else {
@@ -2970,66 +3049,107 @@ function formatDate(date) {
 function updateGMCounter() {
     const counterValue = document.getElementById('gm-counter-value');
     const counterDate = document.getElementById('gm-counter-date');
+    const counterBox = document.querySelector('.gm-counter-box');
     
     if (counterValue) {
         const count = getGMCount();
+        const oldCount = parseInt(counterValue.textContent) || 0;
         counterValue.textContent = count;
         
-        // Анимация при обновлении
-        counterValue.style.transform = 'scale(1.2)';
-        setTimeout(() => {
-            counterValue.style.transform = 'scale(1)';
-        }, 200);
+        // Анимация при обновлении (только если count увеличился)
+        if (count > oldCount) {
+            counterValue.style.transform = 'scale(1.3)';
+            counterValue.style.color = '#ff6b6b';
+            
+            // Добавляем glow эффект на бокс
+            if (counterBox) {
+                counterBox.classList.add('pulse-glow');
+                setTimeout(() => counterBox.classList.remove('pulse-glow'), 500);
+            }
+            
+            setTimeout(() => {
+                counterValue.style.transform = 'scale(1)';
+                counterValue.style.color = '';
+            }, 300);
+        }
     }
     
     if (counterDate) {
         const lastDate = getLastGMDate();
         counterDate.textContent = formatDate(lastDate);
     }
+    
+    // Обновляем статус кулдауна
+    updateGMCooldownDisplay();
 }
 
-// Check if GM can be sent (max 2 per day)
+// Обновление отображения кулдауна
+function updateGMCooldownDisplay() {
+    const timeUntil = getTimeUntilNextGM();
+    const remaining = getRemainingGMToday();
+    const formattedTime = formatTimeRemaining(timeUntil);
+    
+    // Обновляем верхний счётчик
+    const cooldownEl = document.getElementById('gm-cooldown');
+    const cooldownTimerEl = document.getElementById('gm-cooldown-timer');
+    
+    if (cooldownEl) {
+        if (timeUntil > 0) {
+            cooldownEl.style.display = 'flex';
+            if (cooldownTimerEl) {
+                cooldownTimerEl.textContent = formattedTime;
+            }
+        } else {
+            cooldownEl.style.display = 'none';
+        }
+    }
+    
+    // Обновляем панель GM
+    const panelCooldownEl = document.getElementById('gm-cooldown-panel');
+    const panelTimerEl = document.getElementById('gm-panel-cooldown-timer');
+    
+    if (panelCooldownEl) {
+        if (timeUntil > 0) {
+            panelCooldownEl.style.display = 'flex';
+            if (panelTimerEl) {
+                panelTimerEl.textContent = formattedTime;
+            }
+        } else {
+            panelCooldownEl.style.display = 'none';
+        }
+    }
+    
+    // Обновляем текст remaining
+    const gmRemainingEl = document.getElementById('gm-remaining');
+    if (gmRemainingEl) {
+        gmRemainingEl.textContent = remaining;
+    }
+    
+    // Обновляем last date
+    const gmLastDate = document.getElementById('gm-last-date');
+    if (gmLastDate) {
+        const lastDate = getLastGMDate();
+        gmLastDate.textContent = formatDate(lastDate);
+    }
+}
+
+// Check if GM can be sent (max 2 per 24 hours)
 function canSendGMToday() {
-    const today = new Date().toDateString();
-    const lastGMDate = localStorage.getItem('gm_last_date');
-    const gmTodayCount = parseInt(localStorage.getItem('gm_today_count') || '0');
-    
-    // Если другой день - сбрасываем счётчик
-    if (lastGMDate !== today) {
-        localStorage.setItem('gm_today_count', '0');
-        return true;
-    }
-    
-    // Максимум 2 GM в день
-    return gmTodayCount < 2;
+    return getGMsInLast24Hours() < GM_MAX_PER_DAY;
 }
 
-// Get remaining GM count for today
+// Get remaining GM count for 24 hours
 function getRemainingGMToday() {
-    const today = new Date().toDateString();
-    const lastGMDate = localStorage.getItem('gm_last_date');
-    const gmTodayCount = parseInt(localStorage.getItem('gm_today_count') || '0');
-    
-    if (lastGMDate !== today) {
-        return 2;
-    }
-    return Math.max(0, 2 - gmTodayCount);
+    return Math.max(0, GM_MAX_PER_DAY - getGMsInLast24Hours());
 }
 
-// Save GM for today with optional tx hash
+// Save GM with timestamp
 function saveGMToday(txHash) {
-    const today = new Date().toDateString();
-    const lastGMDate = localStorage.getItem('gm_last_date');
-    let gmTodayCount = parseInt(localStorage.getItem('gm_today_count') || '0');
+    // Сохраняем timestamp
+    saveGMTimestamp();
     
-    // Если новый день - сбрасываем счётчик
-    if (lastGMDate !== today) {
-        gmTodayCount = 0;
-    }
-    
-    gmTodayCount++;
-    localStorage.setItem('gm_last_date', today);
-    localStorage.setItem('gm_today_count', gmTodayCount.toString());
+    // Обновляем legacy storage для совместимости
+    localStorage.setItem('gm_last_date', new Date().toDateString());
     
     if (txHash) {
         localStorage.setItem('gm_last_tx', txHash);
@@ -3054,7 +3174,38 @@ function updateGMPanelInfo() {
     if (gmPanelValue) {
         gmPanelValue.textContent = getGMCount();
     }
+    
+    // Обновляем countdown
+    updateGMCooldownDisplay();
 }
+
+// Интервал для обновления countdown таймера
+let gmCountdownInterval = null;
+
+function startGMCountdownTimer() {
+    // Останавливаем предыдущий интервал если есть
+    if (gmCountdownInterval) {
+        clearInterval(gmCountdownInterval);
+    }
+    
+    // Обновляем каждую секунду
+    gmCountdownInterval = setInterval(() => {
+        updateGMCooldownDisplay();
+        
+        // Обновляем состояние кнопок
+        const btn = document.getElementById('gm-btn');
+        const gmSendBtn = document.querySelector('.gm-send-btn');
+        const remaining = getRemainingGMToday();
+        const timeUntil = getTimeUntilNextGM();
+        
+        if (remaining > 0 && timeUntil <= 0) {
+            if (btn) btn.disabled = false;
+            if (gmSendBtn) gmSendBtn.disabled = false;
+        }
+    }, 1000);
+}
+
+// Таймер запускается в основной инициализации GM ниже
 
 // GM function - gasless транзакция для Base App (спонсируется Base)
 async function sendGM() {
@@ -3068,8 +3219,11 @@ async function sendGM() {
     }
     
     const remaining = getRemainingGMToday();
-    if (remaining <= 0) {
-        showStatus('GM лимит исчерпан! Завтра ещё 2 ☀️', 'success');
+    const timeUntil = getTimeUntilNextGM();
+    
+    if (remaining <= 0 || timeUntil > 0) {
+        const waitTime = formatTimeRemaining(timeUntil);
+        showStatus(`GM cooldown: ${waitTime} ⏰`, 'success');
         if (btn) btn.disabled = true;
         if (gmSendBtn) gmSendBtn.disabled = true;
         return;
@@ -3180,25 +3334,31 @@ async function sendGM() {
     }
 }
 
-// Также делаем кнопку GM в панели работающей
+// Инициализация GM системы
 window.addEventListener('DOMContentLoaded', () => {
     // Инициализируем состояние кнопки GM
     setTimeout(() => {
         const btn = document.getElementById('gm-btn');
         const gmSendBtn = document.querySelector('.gm-send-btn');
         const remaining = getRemainingGMToday();
-        
-        // Обновляем панель GM
+        const timeUntil = getTimeUntilNextGM();
+
+        // Обновляем панель GM и счётчик
         updateGMPanelInfo();
+        updateGMCounter();
         
-        if (remaining <= 0) {
+        // Запускаем countdown таймер
+        startGMCountdownTimer();
+
+        // Дизейблим кнопку если нет лимита или ещё кулдаун
+        if (remaining <= 0 || timeUntil > 0) {
             if (btn) btn.disabled = true;
             if (gmSendBtn) gmSendBtn.disabled = true;
         } else {
             if (btn) btn.disabled = false;
             if (gmSendBtn) gmSendBtn.disabled = false;
         }
-        console.log('GM button state initialized, remaining:', remaining);
+        console.log('GM system initialized - Total GMs:', getGMCount(), '| Remaining:', remaining, '| Cooldown:', formatTimeRemaining(timeUntil));
     }, 100);
 });
 

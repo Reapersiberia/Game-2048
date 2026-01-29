@@ -1962,19 +1962,29 @@ h1 {
 
 .gm-counter-box {
     background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 15px 20px;
     display: flex;
     align-items: center;
     gap: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    min-width: 200px;
+    box-shadow: 0 4px 20px rgba(253, 160, 133, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+    min-width: 220px;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .gm-counter-box:hover {
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 8px 30px rgba(253, 160, 133, 0.5), 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.gm-counter-box.pulse-glow {
+    animation: gmCounterGlow 0.5s ease-out;
+}
+
+@keyframes gmCounterGlow {
+    0% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 4px 20px rgba(253, 160, 133, 0.4); }
+    100% { box-shadow: 0 4px 20px rgba(253, 160, 133, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2); }
 }
 
 .gm-counter-icon {
@@ -2052,6 +2062,53 @@ h1 {
     color: rgba(0, 0, 0, 0.6);
     font-size: 11px;
     font-weight: 500;
+}
+
+/* GM Cooldown Timer */
+.gm-cooldown {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 4px 8px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+    border-radius: 8px;
+    font-size: 11px;
+    color: white;
+    font-weight: 600;
+    animation: gmCooldownPulse 2s ease-in-out infinite;
+}
+
+.gm-cooldown-icon {
+    font-size: 12px;
+}
+
+.gm-cooldown-timer {
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    min-width: 50px;
+    text-align: center;
+}
+
+@keyframes gmCooldownPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.02); opacity: 0.9; }
+}
+
+/* GM Panel Cooldown */
+.gm-cooldown-panel {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+    padding: 10px 15px !important;
+    border-radius: 12px;
+    margin-top: 5px;
+}
+
+.gm-cooldown-highlight {
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 2px 8px;
+    border-radius: 6px;
 }
 
 /* ============================================ */

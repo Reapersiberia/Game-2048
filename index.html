@@ -446,9 +446,14 @@
                          onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png';">
                 </div>
                 <div class="gm-counter-content">
-                    <div class="gm-counter-label">GM Count</div>
+                    <div class="gm-counter-label">☀️ Total GMs Sent</div>
                     <div class="gm-counter-value" id="gm-counter-value">0</div>
                     <div class="gm-counter-date" id="gm-counter-date">Never</div>
+                    <div class="gm-cooldown" id="gm-cooldown" style="display: none;">
+                        <span class="gm-cooldown-icon">⏰</span>
+                        <span>Next GM in: </span>
+                        <span class="gm-cooldown-timer" id="gm-cooldown-timer">--:--</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -709,7 +714,7 @@
                 <div class="gm-info">
                     <div class="gm-info-item">
                         <span class="gm-info-icon">🎯</span>
-                        <span class="gm-info-text">Today: <span id="gm-remaining">2</span>/2 left</span>
+                        <span class="gm-info-text">24h limit: <span id="gm-remaining">2</span>/2 left</span>
                     </div>
                     <div class="gm-info-item">
                         <span class="gm-info-icon">📅</span>
@@ -718,6 +723,10 @@
                     <div class="gm-info-item">
                         <span class="gm-info-icon">🔥</span>
                         <span class="gm-info-text">Streak: <span id="gm-streak">0</span> days</span>
+                    </div>
+                    <div class="gm-info-item gm-cooldown-panel" id="gm-cooldown-panel" style="display: none;">
+                        <span class="gm-info-icon">⏰</span>
+                        <span class="gm-info-text">Next GM in: <span id="gm-panel-cooldown-timer" class="gm-cooldown-highlight">--:--</span></span>
                     </div>
                 </div>
                 
