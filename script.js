@@ -745,9 +745,18 @@ function testElements() {
             [0, 0, 0, 0]
         ];
         
-        // Устанавливаем очки для нужной стихии (только для отображения)
+        // Устанавливаем очки для нужной стихии
         window.game.score = testData.score;
         window.game.scoreElement.textContent = testData.score.toLocaleString();
+        
+        // Получаем данные о стихии по текущему score
+        const element = window.game.getCurrentElement();
+        
+        // ПРИНУДИТЕЛЬНО сбрасываем currentElement чтобы показать анимацию
+        // Это гарантирует что showElementChange всегда вызовется
+        window.game.currentElement = '__force_update__';
+        
+        // Теперь updateElement покажет анимацию смены стихии
         window.game.updateElement();
         
         // ВАЖНО: Сбрасываем кэш чтобы отобразить новых покемонов
