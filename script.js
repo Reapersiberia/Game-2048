@@ -732,7 +732,11 @@ window.isTestMode = false;
 
 function testElements() {
     try {
-        const testData = testScores[testElementIndex];
+        // Сохраняем текущий индекс ПЕРЕД инкрементом
+        const currentIndex = testElementIndex;
+        const testData = testScores[currentIndex];
+        
+        console.log('🧪 TEST: index=' + currentIndex + ', element=' + testData.name + ', score=' + testData.score);
         
         // Включаем тестовый режим
         window.isTestMode = true;
@@ -749,15 +753,17 @@ function testElements() {
         window.game.score = testData.score;
         window.game.scoreElement.textContent = testData.score.toLocaleString();
         
-        // Получаем данные о стихии по текущему score
-        const element = window.game.getCurrentElement();
+        // Находим соответствующий элемент в scoreElements
+        const element = window.game.scoreElements[currentIndex];
         
-        // ПРИНУДИТЕЛЬНО сбрасываем currentElement чтобы показать анимацию
-        // Это гарантирует что showElementChange всегда вызовется
-        window.game.currentElement = '__force_update__';
+        console.log('🎯 Element from scoreElements:', element ? element.name : 'NOT FOUND');
         
-        // Теперь updateElement покажет анимацию смены стихии
-        window.game.updateElement();
+        // Напрямую устанавливаем стихию и покемонов
+        window.game.currentElement = element.type;
+        window.game.pokemonMap = window.game.elementPokemon[element.type];
+        
+        // Показываем анимацию смены стихии
+        window.game.showElementChange(element);
         
         // ВАЖНО: Сбрасываем кэш чтобы отобразить новых покемонов
         window.game._gridCache = null;
@@ -765,7 +771,7 @@ function testElements() {
         
         // Показываем уведомление о стихии
         if (typeof showStatus === 'function') {
-            showStatus('👁️ PREVIEW: ' + testData.emoji + ' ' + testData.name + ' (' + testData.score.toLocaleString() + '+ pts) • No achievements!', 'success');
+            showStatus('👁️ PREVIEW [' + (currentIndex + 1) + '/' + testScores.length + ']: ' + testData.emoji + ' ' + testData.name + ' (' + testData.score.toLocaleString() + '+ pts)', 'success');
         }
         
         // Показываем подсказку
@@ -785,10 +791,10 @@ function testElements() {
         }
         if (hint) hint.style.display = 'block';
         
-        // Переходим к следующей стихии
+        // Переходим к следующей стихии ПОСЛЕ показа
         testElementIndex = (testElementIndex + 1) % testScores.length;
         
-        console.log('Test element:', testData.name);
+        console.log('✅ Next index will be:', testElementIndex);
     } catch (e) {
         console.error('testElements error:', e);
     }
